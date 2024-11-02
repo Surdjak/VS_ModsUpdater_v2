@@ -1,0 +1,51 @@
+# Fichiers et dossiers générés par PyCharm
+.idea/
+*.iml
+*.iws
+
+# Fichiers compilés Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environnements virtuels
+venv/
+.env/
+*.env
+
+# Fichiers de logs
+*.log
+
+# Fichiers de configuration spécifiques à l'OS
+.DS_Store
+Thumbs.db
+
+# Caches Jupyter Notebook
+.ipynb_checkpoints
+
+# Fichiers de distribution
+dist/
+build/
+*.egg-info/
+
+# Caches de tests
+.pytest_cache/
+.tox/
+
+# Caches de coverage
+.coverage
+htmlcov/
+
+# Configurations de linting
+.mypy_cache/
+.pyre/
+ruff_cache/
+
+# Autres fichiers temporaires
+*.swp
+*.swo
+*.bak
+*.tmp
+*.old
+/logs/
+/temp/
