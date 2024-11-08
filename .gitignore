@@ -55,3 +55,4 @@ ruff_cache/
 /.venv/
 /_divers/
 /VS_ModsUpdater_v2.py
+/config.ini
