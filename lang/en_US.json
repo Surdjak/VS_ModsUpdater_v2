@@ -1,10 +1,11 @@
 {
-    "title_modsupdater_title": "ModsUpdater for Vintage Story {mu_ver} by Laerinok",
+    "title_modsupdater_title": "ModsUpdater for Vintage Story v{mu_ver} (by Laerinok)",
     "title_new_version": "New version available!!!",
     "title_no_new_version": "No new version available",
     "game_version": "Latest version",
     "first_launch_text": "Default configuration",
     "first_launch_language": "Language",
     "first_launch_mods_location": "Mods location",
-    "first_launch_game_version": "Game version"
+    "first_launch_game_version": "Game version",
+    "tqdm_looking_for_update": "Look for update"
 }

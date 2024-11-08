@@ -49,3 +49,9 @@ ruff_cache/
 *.old
 /logs/
 /temp/
+/extrainfo.json
+/info_mod.ods
+/tests/
+/.venv/
+/_divers/
+/VS_ModsUpdater_v2.py

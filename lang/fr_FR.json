@@ -1,10 +1,14 @@
 {
-    "title_modsupdater_title": "ModsUpdater pour Vintage Story {mu_ver} par Laerinok",
+    "title_modsupdater_title": "ModsUpdater pour Vintage Story v{mu_ver} (par Laerinok)",
 	"title_new_version": "Nouvelle version disponible !!!",
 	"title_no_new_version": "Aucune nouvelle version disponible",
 	"game_version": "Dernière version",
 	"first_launch_text": "Configuration par défaut",
 	"first_launch_language": "Langue",
 	"first_launch_mods_location": "Emplacement des mods",
-	"first_launch_game_version": "Version du jeu"
+	"first_launch_game_version": "Version du jeu",
+	"cfg_error_save_file": "Erreur : Impossible de créer le fichier de configuration à cause de {e}.",
+	"mods_to_update": "Les mods suivants peuvent être mis à jour:",
+	"going_on_auto_update": "Voulez-vous continuer ?",
+	"tqdm_looking_for_update": "Recherche de mise à jour"
 }
