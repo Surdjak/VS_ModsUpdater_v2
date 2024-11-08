@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) 2024  Laerinok
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -11,15 +16,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+"""
+
+
+"""
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"
-__date__ = "2024-11-07"  # Last update
+__date__ = "2024-11-08"  # Last update
 
-# lang.py
+# language_config.py
 
-import config  # Import the config module
 import json
+import config
 from pathlib import Path
+from rich import print
+from rich.prompt import Prompt
 
 translations_cache = {}
 
@@ -49,4 +60,25 @@ def load_translations():
     return translations_cache
 
 
-load_translations()
+def ask_language_choice():
+    """Ask the user to select a language at the first script launch."""
+    print("[bold cyan]Please select your preferred language:[/bold cyan]")
+
+    # Display a message to prompt the user for language selection
+    language_options = list(config.SUPPORTED_LANGUAGES.keys())
+    for index, region in enumerate(language_options, start=1):
+        language_name = config.SUPPORTED_LANGUAGES[region][1]
+        print(f"    [bold]{index}.[/bold] {language_name} ({region})")
+
+    # Use Prompt.ask to get the user's input
+    choice_index = Prompt.ask(
+        "Enter the number of your language choice",
+        choices=[str(i) for i in range(1, len(language_options) + 1)],
+        show_choices=False
+    )
+
+    # Convert the user's choice to the corresponding language key
+    chosen_region = language_options[int(choice_index) - 1]
+    language_code = config.SUPPORTED_LANGUAGES.get(chosen_region)[0]
+    chosen_language = f'{language_code}_{chosen_region}'
+    return chosen_language

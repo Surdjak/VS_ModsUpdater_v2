@@ -28,6 +28,7 @@ import platform
 import datetime as dt
 import configparser
 import logging
+import language_config  # Import the new language_config module
 
 
 # Constants for url
@@ -86,8 +87,15 @@ DEFAULT_CONFIG = {
 # Function to create or load the config.ini file
 def load_or_create_config():
     config = configparser.ConfigParser()
+
     # Check if config.ini exists
     if not CONFIG_FILE_PATH.exists():
+        # Ask for language choice using language_config module
+        chosen_language = language_config.ask_language_choice()
+
+        # Update the config with the chosen language
+        DEFAULT_CONFIG["Language"]["language"] = chosen_language
+
         # Create the config.ini with default values
         config.read_dict(DEFAULT_CONFIG)
         with open(CONFIG_FILE_PATH, 'w') as configfile:
