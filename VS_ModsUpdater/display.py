@@ -22,7 +22,7 @@ __date__ = "2024-11-08"  # Last update
 
 # display.py
 
-import translations  # Import the lang module
+import lang
 import mu_script_update
 import os
 # from rich import print
@@ -35,19 +35,20 @@ console = Console()
 
 
 def welcome_display():
+
     # look for script update
     new_version, urlscript = mu_script_update.fetch_page()
     # new_version, urlscript = [True, config.URL_SCRIPT[config.SYSTEM.lower()]]  # test
     if new_version:
-        text_script_new_version = f'[red]- {translations.translations_cache.get("title_new_version")} -[/red]\n{urlscript} -'
+        text_script_new_version = f'[red]- {lang.translations_cache.get("title_new_version")} -[/red]\n{urlscript} -'
     else:
-        text_script_new_version = f'[bold cyan]- {translations.translations_cache.get("title_no_new_version")} - [/bold cyan]'
+        text_script_new_version = f'[bold cyan]- {lang.translations_cache.get("title_no_new_version")} - [/bold cyan]'
     # *** Welcome text ***
     try:
         column, row = os.get_terminal_size()
     except OSError:
         column, row = 300, 50  # Default values
-    txt_title = f'\n\n[bold cyan]{translations.translations_cache.get("title_modsupdater_title").format(mu_ver=__version__)}[/bold cyan]'
+    txt_title = f'\n\n[bold cyan]{lang.translations_cache.get("title_modsupdater_title").format(mu_ver=__version__)}[/bold cyan]'
 
     lines = txt_title.splitlines() + text_script_new_version.splitlines()
     for line in lines:

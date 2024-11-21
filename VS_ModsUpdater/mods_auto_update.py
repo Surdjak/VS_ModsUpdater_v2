@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) 2024  Laerinok
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -11,13 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+"""
+Vintage Story mod management:
+
+"""
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"
-__date__ = "2024-11-08"  # Last update
+__date__ = "2024-11-21"  # Last update
 
-# translations.py
-
-import language_config  # Import the new language_config module
-
-# Just load translations from language_config
-translations_cache = language_config.load_translations()
+# mods_auto_update.py

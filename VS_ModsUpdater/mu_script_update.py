@@ -27,7 +27,6 @@ __date__ = "2024-11-08"  # Last update
 # mu_script_update.py
 
 import config
-# import lang
 import utils
 import logging
 import requests

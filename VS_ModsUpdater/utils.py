@@ -24,7 +24,8 @@ __date__ = "2024-11-07"  # Last update
 
 import re
 import logging
-from packaging.version import Version
+import requests
+from packaging.version import Version, InvalidVersion
 
 
 def print_dict(dictionary):  # For test and debug
@@ -62,13 +63,36 @@ def version_compare(local_version, online_version):
         return new_version
 
 
-def setup_directories(pathtemp, pathlogs):
-    required_directories = [pathtemp, pathlogs]
-    for directory in required_directories:
-        if not directory.exists():
-            directory.mkdir(parents=True, exist_ok=True)
+def setup_directories(path_dir):
+    if not path_dir.exists():
+        path_dir.mkdir(parents=True, exist_ok=True)
 
 
 def log_error(message):
     print(message)
     logging.error(message)
+
+
+def is_valid_version(version_string):
+    try:
+        # Try to create a Version object.
+        Version(version_string)
+        return True
+    except InvalidVersion:
+        # If the version is not valid, an InvalidVersion exception will be raised.
+        return False
+
+
+# Retrieve the last game version
+def get_last_game_version(url_api='https://mods.vintagestory.at/api'):
+    gameversions_api_url = f'{url_api}/gameversions'
+    try:
+        response = requests.get(gameversions_api_url)
+        response.raise_for_status()  # Checks that the request was successful (status code 200)
+        gameversion_data = response.json()  # Retrieves JSON content
+        logging.info(f"Game version data retrieved.")
+        # Retrieve the latest version
+        return gameversion_data['gameversions'][0]['name'][1:]
+    except:
+        logging.warning(f"Cannot reach gameversion api.")
+        return None
