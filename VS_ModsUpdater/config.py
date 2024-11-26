@@ -16,145 +16,131 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+"""
+# Manage configuration using a global cache.
+"""
+
+
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"
-__date__ = "2024-11-21"  # Last update
+__date__ = "2024-11-22"  # Last update
+
 
 # config.py
 
+
+import global_cache
 import configparser
 import os
 import platform
+import logging
 import utils
 from pathlib import Path
 import datetime as dt
-import logging
 from rich import print
 from rich.prompt import Prompt
 
-# Constants for url
-URL_MODS = 'https://mods.vintagestory.at'
-URL_API = 'https://mods.vintagestory.at/api'
-URL_SCRIPT = {
-    "windows": 'https://mods.vintagestory.at/modsupdater#tab-files',
-    "linux": 'https://mods.vintagestory.at/modsupdaterforlinux#tab-files'
-}
-# Constants for file paths
-APPLICATION_PATH = os.getcwd()
-HOME_PATH = Path.home()
-CONFIG_FILE_PATH = Path(APPLICATION_PATH).parent / Path('config.ini')
-TEMP_PATH = Path(APPLICATION_PATH).parent / Path('temp')
-LOGS_PATH = Path(APPLICATION_PATH).parent / Path('logs')
-LANG_PATH = Path(APPLICATION_PATH).parent / Path('lang')
-XDG_CONFIG_HOME_PATH = os.getenv('XDG_CONFIG_HOME', os.path.expanduser(
-    '~/.config'))  # Get the value of XDG_CONFIG_HOME environment variable
-MODS_PATHS = {
-    "Windows": Path(HOME_PATH,
-                    r'AppData\Roaming\VintagestoryData\Mods'),
-    "Linux": Path(XDG_CONFIG_HOME_PATH, 'VintagestoryData')
-}
-# Constant for os
-SYSTEM = platform.system()
 
-# Supported languages - Region:[language-abr, language, index]
+# Constants for supported languages
 SUPPORTED_LANGUAGES = {
     "US": ["en", "English", '1'],
     "FR": ["fr", "Français", '2']
 }
 DEFAULT_LANGUAGE = "en_US"
 
-"""Create default config.ini"""
+# Default configuration
 DEFAULT_CONFIG = {
     "ModsUpdater": {"version": __version__},
-    "Logging": {"log_level": "DEBUG"},
-    "Options": {
-        "force_update": "false",
-        "disable_mod_dev": "false",
-        "auto_update": "true",
-    },
-    "ModsPath": {
-        "path": r"C:\Users\Jerome\AppData\Roaming\VintagestoryData\Mods"},
-    "Language": {"language": "en_US"},
+    "Logging": {"log_level": "INFO"},
+    "Options": {"force_update": "false", "disable_mod_dev": "false", "auto_update": "true"},
+    "Backup_Mods": {"backup_folder": "backup_mods", "max_backups":3},
+    "ModsPath": {"path": str(global_cache.MODS_PATHS[platform.system()])},
+    "Language": {"language": DEFAULT_LANGUAGE},
     "Game_Version": {"version": ""},
-    "Mod_Exclusion": {
-        'mod1': "",
-        'mod2': "",
-        'mod3': "",
-        'mod4': "",
-        'mod5': "",
-    }
+    "Mod_Exclusion": {'mod1': "", 'mod2': "", 'mod3': "", 'mod4': "", 'mod5': ""}
 }
-
-_cached_config = None
 
 
 def create_config(language, mod_folder, game_version, auto_update):
-    # Update value for lang and mods path
+    """
+    Create the config.ini file with default or user-specified values.
+    """
     DEFAULT_CONFIG["Language"]["language"] = language[0]
     DEFAULT_CONFIG["ModsPath"]["path"] = mod_folder
     DEFAULT_CONFIG["Game_Version"]["version"] = game_version
-    auto_update = 'true' if auto_update == "auto" else 'false'
-    DEFAULT_CONFIG["Options"]["auto_update"] = auto_update
-    # Create the config.ini with default values
+    DEFAULT_CONFIG["Options"]["auto_update"] = 'true' if auto_update == "auto" else 'false'
+
     config = configparser.ConfigParser()
-    # Browse the dictionary and add sections and options
     for section, options in DEFAULT_CONFIG.items():
-        config.add_section(section)  # Add section
+        config.add_section(section)
         for key, value in options.items():
-            config.set(section, key, str(value))  # Add options (Values converted to string)
+            config.set(section, key, str(value))
     try:
-        with open(CONFIG_FILE_PATH, 'w') as configfile:
+        with open(global_cache.CONFIG_FILE_PATH, 'w') as configfile:
             config.write(configfile)
+            logging.info(f"Config.ini file created")
     except (FileNotFoundError, IOError, PermissionError) as e:
         logging.error(f"Failed to create config file: {e}")
 
 
 def load_config():
-    """Load and return the parameters from config.ini with caching."""
-    global _cached_config  # Using the global variable _cached_config
+    """
+    Load and cache the configuration from config.ini.
+    """
+    if global_cache.config_cache:
+        return global_cache.config_cache
 
-    # If the cache is already populated, do we return the configuration directly
-    if _cached_config is not None:
-        return _cached_config
-
-    if not CONFIG_FILE_PATH.exists():
+    if not global_cache.CONFIG_FILE_PATH.exists():
         raise FileNotFoundError("config.ini file not found.")
 
     config = configparser.ConfigParser()
-    config.read(CONFIG_FILE_PATH)
-    # We fetch config data
-    version = config.get("ModsUpdater", "version")
-    log_level = config.get("Logging", "log_level")
-    force_update = config.get("Options", "force_update")
-    disable_mod_dev = config.get("Options", "disable_mod_dev")
-    auto_update = config.get("Options", "auto_update")
-    mods_path = config.get("ModsPath", "path")
-    language = config.get("Language", "language")
-    game_version = config.get("Game_Version", "version")
+    config.read(global_cache.CONFIG_FILE_PATH)
+    global_cache.config_cache.update({
+        "ModsUpdater": {"version": config.get("ModsUpdater", "version")},
+        "Logging": {"log_level": config.get("Logging", "log_level")},
+        "Options": {
+            "force_update": config.get("Options", "force_update"),
+            "disable_mod_dev": config.get("Options", "disable_mod_dev"),
+            "auto_update": config.get("Options", "auto_update")
+        },
+        "Backup_Mods": {
+            "backup_folder": config.get("Backup_Mods", "backup_folder"),
+            "max_backups": config.get("Backup_Mods", "max_backups"),
+        },
+        "ModsPath": {"path": config.get("ModsPath", "path")},
+        "Language": {"language": config.get("Language", "language")},
+        "Game_Version": {"version": config.get("Game_Version", "version")},
+        "Mod_Exclusion": {
+            'mod1': config.get("Mod_Exclusion", "mod1"),
+            'mod2': config.get("Mod_Exclusion", "mod2"),
+            'mod3': config.get("Mod_Exclusion", "mod3"),
+            'mod4': config.get("Mod_Exclusion", "mod4"),
+            'mod5': config.get("Mod_Exclusion", "mod5")
+        }
+    })
+    return global_cache.config_cache
 
-    _cached_config = {
-        "version": version,
-        "log_level": log_level,
-        "force_update": force_update,
-        "disable_mod_dev": disable_mod_dev,
-        "auto_update": auto_update,
-        "mods_path": mods_path,
-        "language": language,
-        "game_version": game_version
-    }
-    return _cached_config
+
+def reload_config():
+    """
+    Clear the configuration cache and reload it.
+    """
+    global_cache.config_cache.clear()
+    return load_config()
 
 
 def config_exists():
-    """Check if config.ini exists."""
-    return CONFIG_FILE_PATH.exists()
+    """
+    Check if the config.ini file exists.
+    """
+    return global_cache.CONFIG_FILE_PATH.exists()
 
 
 def ask_mods_directory():
     """Ask the user to choose a folder for the mods."""
     mods_directory = Prompt.ask(
         'Enter the path to your mods folder. Leave blank for default path',
-        default=MODS_PATHS[SYSTEM]
+        default=global_cache.MODS_PATHS[global_cache.SYSTEM]
         )
     # Check if path exists
     if os.path.isdir(mods_directory):
@@ -176,9 +162,10 @@ def ask_language_choice():
 
     # Use Prompt.ask to get the user's input
     choice_index = Prompt.ask(
-        "Enter the number of your language choice",
+        "Enter the number of your language choice (default: english)",
         choices=[str(i) for i in range(1, len(language_options) + 1)],
-        show_choices=False
+        show_choices=False,
+        default=1
     )
 
     # Convert the user's choice to the corresponding language key
@@ -219,25 +206,48 @@ def ask_auto_update():
 
 
 def configure_logging():
-    utils.setup_directories(Path(LOGS_PATH))
+    # Check if a FileHandler is already present
+    if not any(isinstance(handler, logging.FileHandler) for handler in logging.getLogger().handlers):
+        # Remove existing handlers, if necessary.
+        if logging.getLogger().hasHandlers():
+            logging.getLogger().handlers.clear()
 
-    # logger
-    timestamp = dt.datetime.today().strftime("%Y%m%d%H%M%S")
-    log_file = Path(LOGS_PATH) / f'log_{timestamp}.txt'
-    # Charge la configuration avant de configurer le logger
-    # Récupère le niveau de log depuis la configuration
-    # log_level = conf.get("Logging", "log_level").upper()
-    log_level = 'DEBUG'
-    # Configure logging based on the configuration
-    # log_level = load_or_create_config().get("Logging", "log_level").upper()
-    logging.basicConfig(
-        filename=log_file,
-        level=getattr(logging, log_level, logging.DEBUG),
-        format="%(asctime)s - %(levelname)s - %(message)s",
-    )
+        # Ensure that the directories exist before configuring the logging.
+        utils.setup_directories(global_cache.LOGS_PATH)
+
+        timestamp = dt.datetime.today().strftime("%Y%m%d%H%M%S")
+        log_file = Path(global_cache.LOGS_PATH) / f'log_{timestamp}.txt'
+
+        # print(f"[bold cyan]Log file will be created at:[/bold cyan] {log_file}")  # test
+
+        # Create a handler for the file.
+        file_handler = logging.FileHandler(log_file)
+        file_handler.setLevel(logging.DEBUG)  # On met par défaut à DEBUG, mais on mettra à jour après
+
+        # Create a log format.
+        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+        file_handler.setFormatter(formatter)
+
+        # Add the handler to the logger.
+        logging.getLogger().addHandler(file_handler)
+
+        # Retrieve the log level from the configuration and apply it.
+        log_level = global_cache.config_cache.get("Logging", {}).get("log_level", "DEBUG").upper()
+
+        valid_log_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
+        if log_level not in valid_log_levels:
+            logging.warning(f"Invalid log level '{log_level}' in configuration. Defaulting to 'DEBUG'.")
+            log_level = "DEBUG"
+
+        # Apply the log level.
+        logging.getLogger().setLevel(getattr(logging, log_level, logging.DEBUG))
+
+        # print(f"[bold green]Logging configured successfully with '{log_level}' level and custom file handler![/bold green]")  # test
+
+    else:
+        # print(f"[bold yellow]FileHandler already present, skipping reconfiguration[/bold yellow]") # test
+        pass  # test
 
 
-configure_logging()  # Load the logger
-
-if __name__ == "__main__":  # For test
+if __name__ == "__main__":
     pass

@@ -3,19 +3,17 @@
     "title_new_version": "New version available!!!",
     "title_no_new_version": "No new version available",
 
-    "game_version": "Latest version",
-
-    "first_launch_text": "Default configuration",
-    "first_launch_language": "Language set to",
-    "first_launch_mods_location_ask": "Enter the path to your mods folder. Leave blank for default path",
+    "first_launch_language": "The language is set to: ",
+    "first_launch_mods_location_ask": "Enter the path to the mods folder. (Leave blank to use the default path): ",
     "first_launch_config_created": "The 'config.ini' file has been created.",
-    "first_launch_mods_location": "Mods location",
-    "first_launch_game_version": "Game version",
-
-    "cfg_file_not_found": "'config.ini' file not found",
-    "cfg_error_save_file": "Error: Unable to create the configuration file due to {e}.",
+    "first_launch_mods_location": "Mods location: ",
+    "first_launch_game_version": "Game version: ",
+    "first_launch_latest_game_version": "Latest version",
+    "first_launch_set_update": "Mods update: ",
+    "first_launch_manual_update": "Manual",
+    "first_launch_auto_update": "Auto",
 
     "mods_to_update": "The following mods can be updated:",
     "going_on_auto_update": "Do you want to continue?",
-    "tqdm_looking_for_update": "Looking for updates"
+    "tqdm_looking_for_update": "Looking for updates..."
 }

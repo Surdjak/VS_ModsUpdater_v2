@@ -9,7 +9,9 @@
 	"first_launch_mods_location": "Emplacement des mods : ",
 	"first_launch_game_version": "Version du jeu : ",
 	"first_launch_latest_game_version": "Dernière version",
-	"first_launch_set_update": "Mise à jour : ",
+	"first_launch_set_update": "Mise à jour des mods : ",
+	"first_launch_manual_update": "Manuelle",
+	"first_launch_auto_update": "Automatique",
 
 	"mods_to_update": "Les mods suivants peuvent être mis à jour :",
 	"going_on_auto_update": "Voulez-vous continuer ?",

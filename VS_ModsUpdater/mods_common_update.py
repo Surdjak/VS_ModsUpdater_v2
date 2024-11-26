@@ -22,30 +22,38 @@ Vintage Story mod management:
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"
-__date__ = "2024-11-21"  # Last update
+__date__ = "2024-11-23"  # Last update
 
 # mods_common_update.py
 
 import config
 import utils
-import lang
+import global_cache
 import zipfile
 import json
 import re
 import logging
 import requests
+import datetime
+import os
 from pathlib import Path
 from tqdm import tqdm
 from packaging.version import Version
 
-
-path_mods = Path(config.load_config()['mods_path'])
 mod_dic = {}
 mods_to_update = {}
+
+# Access translations through the cache
+cache_lang = global_cache.language_cache
+
+config.load_config()
+# config.configure_logging()  # debug
 
 
 # Creation of the mods list in a dictionary
 def list_mods():
+    path_mods = Path(global_cache.config_cache['ModsPath']['path'])
+
     def process_zip_mod(zip_mod):
         with zipfile.ZipFile(zip_mod, "r") as zip_modfile:
             with zip_modfile.open("modinfo.json", "r") as modinfo_json:
@@ -115,14 +123,15 @@ def get_mod_info(mod_file):
 
 
 def get_mod_api_data(modid):
-    mod_url_api = f'{config.URL_API}/mod/{modid}'
+    mod_url_api = f'{global_cache.URL_API}/mod/{modid}'
     logging.debug(f"Retrieving mod info from: {mod_url_api}")
 
     try:
         response = requests.get(mod_url_api)
         response.raise_for_status()  # Checks that the request was successful (status code 200)
         mod_data = response.json()  # Retrieves JSON content
-        logging.debug(f"Mod data retrieved successfully.")
+        name = mod_data['mod']['name']
+        logging.info(f"{name}: data from API retrieved successfully.")
         return mod_data
 
     except requests.exceptions.HTTPError as http_err:
@@ -131,14 +140,111 @@ def get_mod_api_data(modid):
         logging.error(f'Other error occurred: {err}')
 
 
+# get 'mainfile' for tag from json mod api
+def get_mainfile_by_tag(mod_releases, target_tag):
+    mainfiles = []
+    for release in mod_releases:
+        if target_tag in release['tags']:
+            mainfiles.append(release['mainfile'])
+    return mainfiles
+
+
+def url_mod_to_dl(modfile):
+    """ Construct url for DL according game version"""
+    mod_info = get_mod_info(modfile)
+    if not mod_info:
+        logging.warning(f"No information found for mod file: {modfile}")
+        return
+
+    mod_name, mod_version, mod_modid, mod_description = mod_info
+    game_version = global_cache.config_cache['Game_Version']['version']
+    if not game_version:
+        logging.warning("Cannot retrieve the latest game version.")
+        return
+
+    mod_api_data = get_mod_api_data(mod_modid)
+    if not mod_api_data:
+        logging.warning(
+            f"No data found for mod '{mod_name}' with ID '{mod_modid}'.")
+        return
+    mod_releases = mod_api_data['mod']['releases']
+
+    tag_to_search = f'v{game_version}'
+    try:
+        result = get_mainfile_by_tag(mod_releases, tag_to_search)
+        url_mod_to_download = f'https://mods.vintagestory.at/{result[0]}'
+        return mod_name, url_mod_to_download
+    except IndexError:
+        info = f'{mod_name}: no download corresponding to the desired game version.'
+        logging.info(info)
+        return mod_name, info
+    
+
 def check_mod_update():
     print(f'\n')
-    for mod_filename, mod_desc in tqdm(mod_dic_sorted.items(), desc=lang.get('tqdm_looking_for_update'), unit="mod", ncols=100, bar_format="{l_bar} {bar} | {n}/{total} "):
+    game_version = global_cache.config_cache['Game_Version']['version']
+    for mod_filename, mod_desc in tqdm(mod_dic_sorted.items(), desc=cache_lang.get('tqdm_looking_for_update'), unit="mod", ncols=100, bar_format="{l_bar} {bar} | {n}/{total} "):
         local_version = (mod_desc['version'])
         mod_data = get_mod_api_data(mod_desc['modid'])
-        mod_last_version = mod_data['mod']['releases'][0]['modversion']
+        
+        mod_last_version = mod_data['mod']['releases'][0]['modversion']  # A corriger pour correpondre à la version du jeu
+        
         mod_asset_id = mod_data['mod']['assetid']
         if Version(mod_last_version) > Version(local_version):
-            mods_to_update[mod_desc['name']] = (local_version, mod_last_version, mod_asset_id)
+            mods_to_update[mod_desc['name']] = (game_version, local_version, mod_last_version, mod_asset_id)
     print(f'\n')
     return mods_to_update
+
+
+def backup_mods():
+    """
+    Create a backup of the ZIP mods before download and manage a retention policy.
+    """
+    # Modifier par valeur config.ini
+    max_backups = int(global_cache.config_cache['Backup_Mods']['max_backups'])
+
+    # Dictionnaire des mods à sauvegarder
+    mods_to_backup = {}  # À remplacer par la liste effective des mods à sauvegarder
+    mods_to_backup_import = check_mod_update()
+
+    for mod_name, versions in mods_to_backup_import.items():
+        for zip_filename, details in mod_dic_sorted.items():
+            # Check if the mod name in mods_to_backup_import matches the 'name' in mod_dic_sorted
+            if mod_name == details["name"]:
+                zipfile_path = Path(global_cache.MODS_PATHS[global_cache.SYSTEM]) / zip_filename
+                if zipfile_path.is_file():
+                    mods_to_backup[mod_name] = zipfile_path
+                    break
+
+    # Modifier par valeur de config .ini
+    backup_folder_name = global_cache.config_cache['Backup_Mods']['backup_folder']
+    backup_folder = Path(global_cache.APPLICATION_PATH).parent / backup_folder_name
+
+    # Ensure the backup directory exists
+    utils.setup_directories(backup_folder)
+
+    # Create a unique backup name with timestamp
+    timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    backup_path = backup_folder / f"backup_{timestamp}.zip"
+
+    # Create the ZIP archive
+    with zipfile.ZipFile(backup_path, 'w', zipfile.ZIP_DEFLATED) as backup_zip:
+        for mod_name, file_path in mods_to_backup.items():
+            if file_path.is_file():
+                backup_zip.write(file_path, arcname=file_path.name)
+
+    print(f"Backup created: {backup_path}")
+
+    # Cleanup old backups if the maximum limit is exceeded
+    backups = sorted(backup_folder.glob("backup_*.zip"), key=os.path.getmtime,
+                     reverse=True)
+    if len(backups) > max_backups:
+        for old_backup in backups[max_backups:]:
+            old_backup.unlink()
+            print(f"Deleted old backup: {old_backup}")
+
+
+if __name__ == "__main__":
+    # get_mod_api_data('extrainfo')  # Test
+    # url_mod_to_dl('ExtraInfo-v1.8.0.zip')  # test
+    backup_mods()

@@ -96,3 +96,25 @@ def get_last_game_version(url_api='https://mods.vintagestory.at/api'):
     except:
         logging.warning(f"Cannot reach gameversion api.")
         return None
+
+
+def get_current_log_file():
+    """
+    Retrieve the log file currently in use by the logging system.
+    """
+    log_file_paths = []
+
+    # Parcourir tous les handlers attachés au logger racine
+    for handler in logging.getLogger().handlers:
+        if isinstance(handler, logging.FileHandler):  # Vérifie s'il s'agit d'un FileHandler
+            log_file_paths.append(handler.baseFilename)  # Récupère le chemin du fichier
+
+    return log_file_paths if log_file_paths else None
+
+
+def check_current_log_file():
+    log_files = get_current_log_file()
+    if log_files:
+        print(f"Current log file(s): {log_files}")
+    else:
+        print("No log file currently in use.")
