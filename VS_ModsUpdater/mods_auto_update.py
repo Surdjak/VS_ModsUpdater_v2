@@ -18,10 +18,40 @@
 
 """
 Vintage Story mod management:
+-
 
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"
-__date__ = "2024-11-23"  # Last update
+__date__ = "2024-11-26"  # Last update
 
 # mods_auto_update.py
+
+import logging
+import mods_common_update
+from rich import print
+
+print(f'\n\t[yellow]Auto Update[/yellow]')
+
+
+def auto_update():
+    mods_common_update.backup_mods()
+    logging.info('Starting update check for mods.')
+    mods_to_update = mods_common_update.check_mod_to_update()  # Identify the mods to update.
+    for mod_name, (game_version, local_version, mod_last_version, mod_asset_id, mod_filename) in mods_to_update.items():
+        mod_url = mods_common_update.url_mod_to_dl(mod_filename)[1]
+        mod_version = mods_common_update.url_mod_to_dl(mod_filename)[2]
+        print(f'{mod_name}: {local_version} -> {mod_version}')  # debug
+        log = mods_common_update.get_changelog(mod_asset_id)
+        if mod_url:
+            print(log)
+            print(f"Downloading {mod_name}... {mod_url}\n")  # debug
+            # Code to download and install the mod
+            logging.info(f'"{mod_name}" downloaded ({local_version} -> {mod_version}).')
+    logging.info('Mods update done.')
+    return
+
+
+if __name__ == "__main__":
+    mods_common_update.get_changelog(7214)
+    auto_update()

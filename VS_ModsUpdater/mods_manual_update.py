@@ -25,3 +25,23 @@ __version__ = "2.0.0-dev1"
 __date__ = "2024-11-21"  # Last update
 
 # mods_manual_update.py
+
+import mods_common_update
+
+print('Manual Update')
+
+
+def manual_update():
+    mods_to_update = mods_common_update.check_mod_to_update()  # Identifie les mods à mettre à jour
+    for mod_name, (game_version, local_version, mod_last_version, mod_asset_id) in mods_to_update.items():
+        print(f"Mod: {mod_name}")
+        mod_data = mods_common_update.get_mod_api_data(mod_name)
+        changelog = mod_data.get('mod', {}).get('changelog', 'No changelog available.')
+
+        print(f"Changelog: {changelog}")
+        user_choice = input(f"Do you want to update {mod_name}? (yes/no): ")
+        if user_choice.lower() == 'yes':
+            mod_url = mods_common_update.url_mod_to_dl(mod_name)
+            if mod_url:
+                print(f"Downloading {mod_name}...")
+                # Code pour télécharger et installer le mod

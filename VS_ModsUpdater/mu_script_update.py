@@ -22,7 +22,7 @@
 
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"
-__date__ = "2024-11-22"  # Last update
+__date__ = "2024-11-26"  # Last update
 
 # mu_script_update.py
 
@@ -40,13 +40,14 @@ from urllib.error import URLError, HTTPError
 
 config.load_config()
 # config.configure_logging()  debug
-logging.info(f'OS: {global_cache.SYSTEM} - Checking for ModsUpdater update')
+logging.info(f'OS: {global_cache.SYSTEM} - ModsUpdater v{__version__}')
+logging.info(f'Checking for ModsUpdater update')
 
 
 def fetch_page():
     """Fetch and parse the page for the update script, handling errors."""
     system = global_cache.SYSTEM.lower()
-    url_script = global_cache.URL_SCRIPT[system]
+    url_script = config.URL_SCRIPT[system]
 
     try:
         response = requests.get(url_script)
@@ -64,7 +65,7 @@ def fetch_page():
         # Retrieve version number from changelog
         latest_version = re.search('<strong>v(.*)</strong>', str(changelog))
         new_version = utils.version_compare(__version__, latest_version[1])
-        url_script = f'{global_cache.URL_MODS}{download_link["href"]}'
+        url_script = f'{config.URL_MODS}{download_link["href"]}'
         logging.info("Check for script update done.")
         return new_version, url_script
 

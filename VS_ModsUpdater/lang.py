@@ -28,7 +28,6 @@ __date__ = "2024-11-21"  # Last update
 # lang.py
 
 import json
-# import config
 import global_cache
 from pathlib import Path
 # from utils import print_dict  # for test
@@ -36,9 +35,9 @@ from pathlib import Path
 
 def get_language_setting():
     """Retrieve the language setting from the global cache."""
-    if not global_cache.config_cache:
+    if not global_cache.global_cache.config_cache:
         raise RuntimeError("Configuration cache is empty. Ensure configuration is loaded.")
-    return global_cache.config_cache["Language"]["language"]
+    return global_cache.global_cache.config_cache["Language"]["language"]
 
 
 def load_translations(path=None):
@@ -46,17 +45,17 @@ def load_translations(path=None):
     Load translations into the global cache based on the current language setting.
     """
     # If translations are already loaded, return them from the cache
-    if global_cache.language_cache:
-        return global_cache.language_cache
+    if global_cache.global_cache.language_cache:
+        return global_cache.global_cache.language_cache
 
     lang_file_path = None
 
     # Determine the path of the language file
     if path:
         lang_file_path = Path(path)
-    elif global_cache.config_cache:
+    elif global_cache.global_cache.config_cache:
         language = get_language_setting()
-        lang_file_path = Path(global_cache.config_cache["mods_path"]) / "lang" / f"{language}.json"
+        lang_file_path = Path() / "lang" / f"{language}.json"
 
     # Handle the case where lang_file_path could not be determined
     if not lang_file_path or not lang_file_path.exists():
@@ -68,10 +67,10 @@ def load_translations(path=None):
     try:
         with open(lang_file_path, 'r', encoding='utf-8') as file:
             translations = json.load(file)
-            global_cache.language_cache.update(translations)
+            global_cache.global_cache.language_cache.update(translations)
     except json.JSONDecodeError as e:
         raise ValueError(f"[Error] Failed to parse language file: {lang_file_path}. {e}")
     except FileNotFoundError as e:
         raise FileNotFoundError(f"[Error] Unable to locate the language file: {lang_file_path}. {e}")
 
-    return global_cache.language_cache
+    return global_cache.global_cache.language_cache

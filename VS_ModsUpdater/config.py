@@ -23,16 +23,16 @@
 
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"
-__date__ = "2024-11-22"  # Last update
+__date__ = "2024-11-27"  # Last update
 
 
 # config.py
 
 
+# from global_cache import global_cache
 import global_cache
 import configparser
 import os
-import platform
 import logging
 import utils
 from pathlib import Path
@@ -41,6 +41,13 @@ from rich import print
 from rich.prompt import Prompt
 
 
+# Constants for paths
+APPLICATION_PATH = os.getcwd()
+CONFIG_FILE = Path(APPLICATION_PATH).parent / Path('config.ini')
+TEMP_PATH = Path(APPLICATION_PATH).parent / Path('temp')
+LOGS_PATH = Path(APPLICATION_PATH).parent / Path('logs')
+LANG_PATH = Path(APPLICATION_PATH).parent / Path('lang')
+
 # Constants for supported languages
 SUPPORTED_LANGUAGES = {
     "US": ["en", "English", '1'],
@@ -48,13 +55,21 @@ SUPPORTED_LANGUAGES = {
 }
 DEFAULT_LANGUAGE = "en_US"
 
+# Constants for url
+URL_MODS = 'https://mods.vintagestory.at'
+URL_API = 'https://mods.vintagestory.at/api'
+URL_SCRIPT = {
+    "windows": 'https://mods.vintagestory.at/modsupdater#tab-files',
+    "linux": 'https://mods.vintagestory.at/modsupdaterforlinux#tab-files'
+}
+
 # Default configuration
 DEFAULT_CONFIG = {
     "ModsUpdater": {"version": __version__},
     "Logging": {"log_level": "INFO"},
     "Options": {"force_update": "false", "disable_mod_dev": "false", "auto_update": "true"},
-    "Backup_Mods": {"backup_folder": "backup_mods", "max_backups":3},
-    "ModsPath": {"path": str(global_cache.MODS_PATHS[platform.system()])},
+    "Backup_Mods": {"backup_folder": "backup_mods", "max_backups": 3},
+    "ModsPath": {"path": str(global_cache.MODS_PATHS[global_cache.SYSTEM])},
     "Language": {"language": DEFAULT_LANGUAGE},
     "Game_Version": {"version": ""},
     "Mod_Exclusion": {'mod1': "", 'mod2': "", 'mod3': "", 'mod4': "", 'mod5': ""}
@@ -68,7 +83,7 @@ def create_config(language, mod_folder, game_version, auto_update):
     DEFAULT_CONFIG["Language"]["language"] = language[0]
     DEFAULT_CONFIG["ModsPath"]["path"] = mod_folder
     DEFAULT_CONFIG["Game_Version"]["version"] = game_version
-    DEFAULT_CONFIG["Options"]["auto_update"] = 'true' if auto_update == "auto" else 'false'
+    DEFAULT_CONFIG["Options"]["auto_update"] = 'True' if auto_update == "auto" else 'False'
 
     config = configparser.ConfigParser()
     for section, options in DEFAULT_CONFIG.items():
@@ -76,7 +91,7 @@ def create_config(language, mod_folder, game_version, auto_update):
         for key, value in options.items():
             config.set(section, key, str(value))
     try:
-        with open(global_cache.CONFIG_FILE_PATH, 'w') as configfile:
+        with open(CONFIG_FILE, 'w') as configfile:
             config.write(configfile)
             logging.info(f"Config.ini file created")
     except (FileNotFoundError, IOError, PermissionError) as e:
@@ -85,55 +100,33 @@ def create_config(language, mod_folder, game_version, auto_update):
 
 def load_config():
     """
-    Load and cache the configuration from config.ini.
+    Load configuration into the global cache.
     """
-    if global_cache.config_cache:
-        return global_cache.config_cache
+    # Check if the cache is already populated
+    if global_cache.global_cache.config_cache:
+        return global_cache.global_cache.config_cache
 
-    if not global_cache.CONFIG_FILE_PATH.exists():
+    # Check the existence of the configuration file
+    if not CONFIG_FILE.exists():
         raise FileNotFoundError("config.ini file not found.")
 
     config = configparser.ConfigParser()
-    config.read(global_cache.CONFIG_FILE_PATH)
-    global_cache.config_cache.update({
-        "ModsUpdater": {"version": config.get("ModsUpdater", "version")},
-        "Logging": {"log_level": config.get("Logging", "log_level")},
-        "Options": {
-            "force_update": config.get("Options", "force_update"),
-            "disable_mod_dev": config.get("Options", "disable_mod_dev"),
-            "auto_update": config.get("Options", "auto_update")
-        },
-        "Backup_Mods": {
-            "backup_folder": config.get("Backup_Mods", "backup_folder"),
-            "max_backups": config.get("Backup_Mods", "max_backups"),
-        },
-        "ModsPath": {"path": config.get("ModsPath", "path")},
-        "Language": {"language": config.get("Language", "language")},
-        "Game_Version": {"version": config.get("Game_Version", "version")},
-        "Mod_Exclusion": {
-            'mod1': config.get("Mod_Exclusion", "mod1"),
-            'mod2': config.get("Mod_Exclusion", "mod2"),
-            'mod3': config.get("Mod_Exclusion", "mod3"),
-            'mod4': config.get("Mod_Exclusion", "mod4"),
-            'mod5': config.get("Mod_Exclusion", "mod5")
+    config.read(CONFIG_FILE)
+
+    # Populate the config_cache
+    for section in config.sections():
+        global_cache.global_cache.config_cache[section] = {
+            key: value for key, value in config.items(section)
         }
-    })
-    return global_cache.config_cache
 
-
-def reload_config():
-    """
-    Clear the configuration cache and reload it.
-    """
-    global_cache.config_cache.clear()
-    return load_config()
+    return global_cache.global_cache.config_cache
 
 
 def config_exists():
     """
     Check if the config.ini file exists.
     """
-    return global_cache.CONFIG_FILE_PATH.exists()
+    return CONFIG_FILE.exists()
 
 
 def ask_mods_directory():
@@ -213,10 +206,10 @@ def configure_logging():
             logging.getLogger().handlers.clear()
 
         # Ensure that the directories exist before configuring the logging.
-        utils.setup_directories(global_cache.LOGS_PATH)
+        utils.setup_directories(LOGS_PATH)
 
         timestamp = dt.datetime.today().strftime("%Y%m%d%H%M%S")
-        log_file = Path(global_cache.LOGS_PATH) / f'log_{timestamp}.txt'
+        log_file = Path(LOGS_PATH) / f'log_{timestamp}.txt'
 
         # print(f"[bold cyan]Log file will be created at:[/bold cyan] {log_file}")  # test
 
@@ -232,7 +225,7 @@ def configure_logging():
         logging.getLogger().addHandler(file_handler)
 
         # Retrieve the log level from the configuration and apply it.
-        log_level = global_cache.config_cache.get("Logging", {}).get("log_level", "DEBUG").upper()
+        log_level = global_cache.global_cache.config_cache.get("Logging", {}).get("log_level", "DEBUG").upper()
 
         valid_log_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
         if log_level not in valid_log_levels:

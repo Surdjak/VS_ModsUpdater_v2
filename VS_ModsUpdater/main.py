@@ -27,7 +27,7 @@ TO do list:
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"
-__date__ = "2024-11-21"  # Last update
+__date__ = "2024-11-26"  # Last update
 
 # main.py
 
@@ -49,8 +49,9 @@ def initialize_config():
         print(f'\n\t[yellow]First run detected - Set up config.ini -[/yellow]')
         language = config.ask_language_choice()
         # Load translations
-        path = Path(f'{global_cache.LANG_PATH}/{language[0]}.json')
+        path = Path(f'{global_cache.global_cache.global_cache.LANG_PATH}/{language[0]}.json')
         cache_lang = lang.load_translations(path)
+
         mods_dir = config.ask_mods_directory()
         game_version = config.ask_game_version()
         auto_update = config.ask_auto_update()
@@ -62,17 +63,23 @@ def initialize_config():
         else:
             choice_update = cache_lang['first_launch_auto_update']
         print(f'{cache_lang['first_launch_set_update']}{choice_update}')
+
         # Create the config.ini file
         config.create_config(language, mods_dir, game_version, auto_update)
         print(f"\n{cache_lang['first_launch_config_created']}")
-    global_cache.config_cache.update(config.load_config())
+
+    # Update the global cache with the config settings
+    global_cache.global_cache.config_cache.update(config.load_config())
+    # print(global_cache.global_cache.config_cache)  # debug
+
     # Configure the logging
     config.configure_logging()
-    # Load the language translations from the config file
-    lang_path = Path(f"{global_cache.LANG_PATH}/{global_cache.config_cache['Language']['language']}.json")
-    global_cache.language_cache.update(lang.load_translations(lang_path))
 
-    return global_cache.language_cache
+    # Load the language translations from the config file into the global cache
+    lang_path = Path(f"{config.LANG_PATH}/{global_cache.global_cache.config_cache['Language']['language']}.json")
+    global_cache.global_cache.language_cache.update(lang.load_translations(lang_path))
+
+    return global_cache.global_cache.language_cache
 
 
 def welcome_display():
@@ -80,15 +87,15 @@ def welcome_display():
     # look for script update
     new_version, urlscript = mu_script_update.fetch_page()
     if new_version:
-        text_script_new_version = f'[red]- {cachelang["title_new_version"]} -[/red]\n{urlscript} -'
+        text_script_new_version = f'[red]- {global_cache.global_cache.language_cache["title_new_version"]} -[/red]\n{urlscript} -'
     else:
-        text_script_new_version = f'[bold cyan]- {cachelang["title_no_new_version"]} - [/bold cyan]'
+        text_script_new_version = f'[bold cyan]- {global_cache.global_cache.language_cache["title_no_new_version"]} - [/bold cyan]'
     # to center text
     try:
         column, row = os.get_terminal_size()
     except OSError:
         column, row = 300, 50  # Default values
-    txt_title = f'\n\n[bold cyan]{cachelang["title_modsupdater_title"].format(mu_ver=__version__)}[/bold cyan]'
+    txt_title = f'\n\n[bold cyan]{global_cache.global_cache.language_cache["title_modsupdater_title"].format(mu_ver=__version__)}[/bold cyan]'
 
     lines = txt_title.splitlines() + text_script_new_version.splitlines()
     for line in lines:
@@ -96,13 +103,14 @@ def welcome_display():
 
 
 if __name__ == "__main__":
-    # Initialize config before calling mods_common_update
-    cachelang = initialize_config()
+    # Initialize config before calling mods update
+    initialize_config()
     import mu_script_update
-    import mods_common_update
-
     welcome_display()
-    # print(mods_common_update.check_mod_update())
-    # print(mods_common_update.mod_dic_sorted)
-    # print(mods_common_update.url_mod_to_dl('ExtraInfo-v1.8.0.zip'))
-    mods_common_update.backup_mods()
+
+    if global_cache.global_cache.config_cache['Options']['auto_update']:
+        import mods_auto_update
+        mods_auto_update.auto_update()
+    else:
+        import mods_manual_update
+        mods_manual_update.manual_update()
