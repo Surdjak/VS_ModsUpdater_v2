@@ -18,13 +18,15 @@
 
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"
-__date__ = "2024-11-07"  # Last update
+__date__ = "2024-11-27"  # Last update
 
 # utils.py
 
 import re
 import logging
 import requests
+import sys
+import time
 from packaging.version import Version, InvalidVersion
 
 
@@ -74,6 +76,13 @@ def log_error(message):
 
 
 def is_valid_version(version_string):
+    """
+    Validate if the version string matches the standard version format.
+    Args:
+        version_string (str): The version string to validate.
+    Returns:
+        bool: True if valid, False otherwise.
+    """
     try:
         # Try to create a Version object.
         Version(version_string)
@@ -81,6 +90,14 @@ def is_valid_version(version_string):
     except InvalidVersion:
         # If the version is not valid, an InvalidVersion exception will be raised.
         return False
+
+
+def complete_version(version_string):
+    """Ensure version has three components (major.minor.patch)."""
+    parts = version_string.split(".")
+    while len(parts) < 3:  # Add missing components
+        parts.append("0")
+    return ".".join(parts)
 
 
 # Retrieve the last game version
@@ -104,17 +121,25 @@ def get_current_log_file():
     """
     log_file_paths = []
 
-    # Parcourir tous les handlers attachés au logger racine
+    # Browse all the handlers attached to the root logger.
     for handler in logging.getLogger().handlers:
-        if isinstance(handler, logging.FileHandler):  # Vérifie s'il s'agit d'un FileHandler
-            log_file_paths.append(handler.baseFilename)  # Récupère le chemin du fichier
+        if isinstance(handler, logging.FileHandler):  # Check if it is a FileHandler.
+            log_file_paths.append(handler.baseFilename)  # Retrieve the file path.
 
     return log_file_paths if log_file_paths else None
 
 
 def check_current_log_file():
+    """
+    For Debug and test
+    """
     log_files = get_current_log_file()
     if log_files:
         print(f"Current log file(s): {log_files}")
     else:
         print("No log file currently in use.")
+
+
+def exit_program():
+    time.sleep(2)  # 2-second delay to give the user time to read the message.
+    sys.exit()

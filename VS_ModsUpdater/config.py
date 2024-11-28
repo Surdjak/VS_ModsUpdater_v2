@@ -172,20 +172,18 @@ def ask_language_choice():
 def ask_game_version():
     """Ask the user to select the game version the first script launch."""
     last_game_version = utils.get_last_game_version()
-    game_version = Prompt.ask(
-        'What version of the game are you using? (Format: major.minor.patch, e.g., 1.19.8 or leave blank to use the latest game version)',
-        default=last_game_version
-        )
-    # Check format
-    result = utils.is_valid_version(game_version)
-
-    if result:
-        return game_version
-    else:
-        # If the format is invalid, display an error message and ask for the version again.
-        print(
-            "[bold red]Error: Please provide a valid version in the format major.minor.patch (e.g., 1.2.3).[/bold red]")
-        return ask_game_version()  # Keep asking until a valid version is provided.
+    while True:
+        game_version = Prompt.ask(
+            'What version of the game are you using? (Format: major.minor.patch, e.g., 1.19.8 or leave blank to use the latest game version)',
+            default=last_game_version
+            )
+        # If valid, complete and return the version
+        if utils.is_valid_version(game_version):
+            return utils.complete_version(game_version)
+        else:
+            # If the format is invalid, display an error message and ask for the version again.
+            print(
+                "[bold red]Error: Please provide a valid version in the format major.minor.patch (e.g., 1.2.3).[/bold red]")
 
 
 def ask_auto_update():

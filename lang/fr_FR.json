@@ -12,8 +12,13 @@
 	"first_launch_set_update": "Mise à jour des mods : ",
 	"first_launch_manual_update": "Manuelle",
 	"first_launch_auto_update": "Automatique",
+	"first_launch_confirms_update_info": "Vous pouvez poursuivre la mise à jour, ou quitter afin de modifier le fichier config.ini (par ex. pour exclure des mods de la mise à jour)",
+	"first_launch_confirms_update": "Voulez-vous continuer (oui/non)?",
 
-	"mods_to_update": "Les mods suivants peuvent être mis à jour :",
-	"going_on_auto_update": "Voulez-vous continuer ?",
-	"tqdm_looking_for_update": "Recherche de mise à jour..."
+	"exiting_program": "Arrêt du programme",
+
+	"yes": "oui",
+	"no": "non",
+
+	"tqdm_looking_for_update": "Récupération des informations de mise à jour..."
 }

@@ -27,31 +27,73 @@ __date__ = "2024-11-26"  # Last update
 
 # mods_auto_update.py
 
-import logging
+import global_cache
 import mods_common_update
+import utils
+import os
+import config
+import logging
+import requests
+import wget
 from rich import print
+from pathlib import Path
 
-print(f'\n\t[yellow]Auto Update[/yellow]')
+config.load_config()
+config.configure_logging()
+
+print(f'\n\t[yellow]Auto Update for game version {global_cache.global_cache.config_cache['Game_Version']['version']}[/yellow]')
 
 
-def auto_update():
-    mods_common_update.backup_mods()
-    logging.info('Starting update check for mods.')
-    mods_to_update = mods_common_update.check_mod_to_update()  # Identify the mods to update.
-    for mod_name, (game_version, local_version, mod_last_version, mod_asset_id, mod_filename) in mods_to_update.items():
-        mod_url = mods_common_update.url_mod_to_dl(mod_filename)[1]
-        mod_version = mods_common_update.url_mod_to_dl(mod_filename)[2]
-        print(f'{mod_name}: {local_version} -> {mod_version}')  # debug
-        log = mods_common_update.get_changelog(mod_asset_id)
-        if mod_url:
-            print(log)
-            print(f"Downloading {mod_name}... {mod_url}\n")  # debug
-            # Code to download and install the mod
-            logging.info(f'"{mod_name}" downloaded ({local_version} -> {mod_version}).')
-    logging.info('Mods update done.')
-    return
+def auto_download():
+    # On procède à la maj
+    logging.info("Starting download process for mods.")
+    print(f'[yellow]Téléchargement des mods:[yellow]\n')
+    for mod, url in mods_to_update.items():
+        dl_link = url
+        modspaths = global_cache.global_cache.config_cache['ModsPath']['path']
+        modname = global_cache.global_cache.mods[mod]['name']
+        modversion = global_cache.global_cache.mods[mod]['modversion']
+        current_mod = Path(modspaths) / mod
+        resp = requests.get(str(dl_link), stream=True, timeout=2)
+        file_size = int(resp.headers.get("Content-length"))
+        file_size_mo = round(file_size / (1024 ** 2), 2)
+        logging.info(
+            f"Preparing to download {modname} (v{modversion}) - Size: {file_size_mo} MB.")
+        try:
+            # os.remove(current_mod)  # désactivé temporairment
+            logging.info(f"Deleted old version of {modname} from {modspaths}.")
+        except PermissionError as e:
+            logging.error(f"Permission denied while deleting {current_mod}: {e}")
+            print(f"[red]You don't have permission to delete this file.[/red]")
+            utils.exit_program()
+        except FileNotFoundError as e:
+            logging.warning(f"{current_mod} not found during deletion: {e}")
+            print(f'{current_mod} not found')
+            utils.exit_program()
+        print(f'[green] {modname} (v{modversion}) [/green] [white]Téléchargement en cours...({str(file_size_mo)}Mb)[/white]')
+        try:
+            # wget.download(dl_link, str(modspaths))  # désactivé temporairment
+            print('\n')
+            logging.info(f"Successfully downloaded {modname} to {modspaths}.")
+        except Exception as e:
+            logging.error(f"Error during download of {modname}: {e}")
+            raise
+
+
+mods_common_update.update_mod_cache_with_api_ata()
+
+# Look for mods to update
+mods_to_update = mods_common_update.check_mod_to_update()
+
+# Backup mods before Download
+mods_common_update.backup_mods(mods_to_update)
+
+# Download Mods
+auto_download()
 
 
 if __name__ == "__main__":
-    mods_common_update.get_changelog(7214)
-    auto_update()
+    # test
+    pass
+    # print(global_cache.global_cache.mods)
+    # auto_update()

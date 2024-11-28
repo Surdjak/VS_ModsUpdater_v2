@@ -27,15 +27,17 @@ TO do list:
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"
-__date__ = "2024-11-26"  # Last update
+__date__ = "2024-11-27"  # Last update
 
 # main.py
 
 import config
 import lang
 import global_cache
+from utils import exit_program
 from rich import print
 from rich.console import Console
+from rich.prompt import Prompt
 from pathlib import Path
 import os
 
@@ -49,24 +51,42 @@ def initialize_config():
         print(f'\n\t[yellow]First run detected - Set up config.ini -[/yellow]')
         language = config.ask_language_choice()
         # Load translations
-        path = Path(f'{global_cache.global_cache.global_cache.LANG_PATH}/{language[0]}.json')
+        path = Path(f'{config.LANG_PATH}/{language[0]}.json')
         cache_lang = lang.load_translations(path)
 
         mods_dir = config.ask_mods_directory()
         game_version = config.ask_game_version()
         auto_update = config.ask_auto_update()
-        print(f'\n{cache_lang['first_launch_language']}{language[1]}')
-        print(f'{cache_lang['first_launch_mods_location']}{mods_dir}')
-        print(f'{cache_lang['first_launch_game_version']}{game_version}')
+        print(f"\n{cache_lang['first_launch_language']}{language[1]}")
+        print(f"{cache_lang['first_launch_mods_location']}{mods_dir}")
+        print(f"{cache_lang['first_launch_game_version']}{game_version}")
         if auto_update.lower() == 'manual':
             choice_update = cache_lang['first_launch_manual_update']
         else:
             choice_update = cache_lang['first_launch_auto_update']
-        print(f'{cache_lang['first_launch_set_update']}{choice_update}')
+        print(f"{cache_lang['first_launch_set_update']}{choice_update}")
 
         # Create the config.ini file
         config.create_config(language, mods_dir, game_version, auto_update)
         print(f"\n{cache_lang['first_launch_config_created']}")
+
+        # Ask for going on or exit to modify config.ini (e.g. add some mods to exception.)
+        print(global_cache.global_cache.language_cache["first_launch_confirms_update_info"])
+        while True:
+            user_confirms_update = Prompt.ask(
+                global_cache.global_cache.language_cache["first_launch_confirms_update"],
+                default=global_cache.global_cache.language_cache["yes"]
+            )
+            user_confirms_update = user_confirms_update.strip().lower()
+
+            if user_confirms_update == global_cache.global_cache.language_cache["yes"].lower():
+                return
+            elif user_confirms_update == global_cache.global_cache.language_cache["no"].lower():
+                print(global_cache.global_cache.language_cache["exiting_program"])
+                exit_program()
+
+            else:
+                pass
 
     # Update the global cache with the config settings
     global_cache.global_cache.config_cache.update(config.load_config())
@@ -83,7 +103,6 @@ def initialize_config():
 
 
 def welcome_display():
-    # Initialize config and load translations
     # look for script update
     new_version, urlscript = mu_script_update.fetch_page()
     if new_version:
@@ -109,8 +128,10 @@ if __name__ == "__main__":
     welcome_display()
 
     if global_cache.global_cache.config_cache['Options']['auto_update']:
-        import mods_auto_update
-        mods_auto_update.auto_update()
+        import mods_auto_update  # noqa: F401 - Used for its side effects
+
     else:
-        import mods_manual_update
-        mods_manual_update.manual_update()
+        import mods_manual_update  # noqa: F401 - Used for its side effects
+
+
+# print(global_cache.global_cache.mods)  # debug
