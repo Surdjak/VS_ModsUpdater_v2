@@ -20,5 +20,11 @@
 	"yes": "oui",
 	"no": "non",
 
+	"auto_update_title": "Mise à jour automatique des mods pour la version {VS_version} de Vintage Story",
+	"auto_update_no_permission_delete_file": "Vous n'avez pas la permission de supprimer ce fichier ({current_mod})",
+	"auto_update_mod_not_found": "Le mod {current_mod} n'a pas été trouvé.",
+	"auto_update_download_in_progress": "Téléchargement en cours...",
+	"auto_update_following_mods": "Les mods suivants vont être mis à jour : ",
+
 	"tqdm_looking_for_update": "Récupération des informations de mise à jour..."
 }

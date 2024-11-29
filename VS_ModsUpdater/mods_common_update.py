@@ -159,14 +159,15 @@ def update_mod_cache_with_api_ata():
     # Retrieve mods list from mods folder
     list_mods()
     # Créez la barre de progression tqdm avec le total explicite
-    print(global_cache.global_cache.language_cache['tqdm_looking_for_update'])
+    print(f"\n{global_cache.global_cache.language_cache['tqdm_looking_for_update']}")
     pbar = tqdm(global_cache.global_cache.mods.items(),
                 unit="mod",
                 total=len(global_cache.global_cache.mods),
                 initial=1,
                 bar_format="{l_bar} {bar} | {n}/{total} | {postfix}",
-                ncols=120,
-                position=0)
+                ncols=100,
+                position=0,
+                leave=False)
 
     temporary_data = {}  # Dictionnaire temporaire pour stocker les données API
 
@@ -215,9 +216,9 @@ def get_mainfile_by_tag(mod_releases, target_tag):
 
 
 def get_changelog(mod_asset_id):
-    # print(f'cache: {mod_data_cache}')  # debug
     url_changelog = f'https://mods.vintagestory.at/show/mod/{mod_asset_id}#tab-files'
-    # Scrap pour recuperer le changelog
+    # url_changelog = f'https://mods.vintagestory.at/show/mod/4405#tab-files'  # for test
+    # Scrap to retrieve changelog
     req_url = urllib.request.Request(url_changelog)
     log = {}
     raw_log = {}
@@ -227,11 +228,12 @@ def get_changelog(mod_asset_id):
         page = req_page_url.content
         soup = BeautifulSoup(page, features="html.parser")
         soup_raw_changelog = soup.find("div", {"class": "changelogtext"})
+
         # log version
         log_version = soup_raw_changelog.find('strong').text
-        # log content
-        raw_log[log_version] = soup_raw_changelog.text
-        log[log_version] = raw_log[log_version].replace('\n', '\n\t\t').lstrip('\n')
+        # raw_log[log_version] = soup_raw_changelog.text
+        # print(f"\n{soup_raw_changelog}")  # debug
+
     except requests.exceptions.ReadTimeout:
         logging.warning('ReadTimeout error: Server did not respond within the specified timeout.')
     except urllib.error.URLError as err_url:
@@ -251,7 +253,7 @@ def check_mod_to_update():
         modversion = mod_details.get('modversion')
         if modversion and Version(modversion) > Version(local_version):
             mod_to_update[mod_filename] = f'{config.URL_MODS}/{mod_details['mainfile']}'
-            print(f'[green]{mod_details['name']} peut être mis à jour.[/green]')
+        # print(f'[green]{mod_details['name']} peut être mis à jour.[/green]')
     return mod_to_update
 
 
@@ -294,5 +296,17 @@ def backup_mods(mods_to_backup):
             logging.info(f"Deleted old backup: {old_backup}")
 
 
+def load_mods_exclusion():
+    # Check if the section and the key exist in the config cache
+    mods_section = global_cache.global_cache.config_cache.get("Mod_Exclusion", {})
+    raw_mods = mods_section.get("mods", "")
+
+    # Split and clean the mod names, ensuring no empty strings
+    excluded_mods = [mod.strip() for mod in raw_mods.split(",") if mod.strip()]
+
+    return excluded_mods
+
+
 if __name__ == "__main__":
+    print(load_mods_exclusion())
     pass

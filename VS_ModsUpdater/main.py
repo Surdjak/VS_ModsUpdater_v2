@@ -88,9 +88,10 @@ def initialize_config():
             else:
                 pass
 
+    config.migrate_config_if_needed()
+
     # Update the global cache with the config settings
     global_cache.global_cache.config_cache.update(config.load_config())
-    # print(global_cache.global_cache.config_cache)  # debug
 
     # Configure the logging
     config.configure_logging()

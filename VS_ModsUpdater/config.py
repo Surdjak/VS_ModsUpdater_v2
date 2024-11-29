@@ -22,8 +22,8 @@
 
 
 __author__ = "Laerinok"
-__version__ = "2.0.0-dev1"
-__date__ = "2024-11-27"  # Last update
+__version__ = "2.0.0-dev1"  # Don't forget to change EXPECTED_VERSION
+__date__ = "2024-11-29"  # Last update
 
 
 # config.py
@@ -40,6 +40,9 @@ import datetime as dt
 from rich import print
 from rich.prompt import Prompt
 
+
+# The target version after migration
+EXPECTED_VERSION = "2.0.0-dev1"
 
 # Constants for paths
 APPLICATION_PATH = os.getcwd()
@@ -72,8 +75,65 @@ DEFAULT_CONFIG = {
     "ModsPath": {"path": str(global_cache.MODS_PATHS[global_cache.SYSTEM])},
     "Language": {"language": DEFAULT_LANGUAGE},
     "Game_Version": {"version": ""},
-    "Mod_Exclusion": {'mod1': "", 'mod2': "", 'mod3': "", 'mod4': "", 'mod5': ""}
+    "Mod_Exclusion": {'mods': ""}
 }
+
+
+# Example function that checks the configuration version in the cache
+def get_config_version_from_cache():
+    try:
+        return global_cache.global_cache.config_cache['ModsUpdater']['version']
+    except KeyError:
+        return None  # If the version is not present in the cache
+
+
+def read_version_from_config_file():
+    config = configparser.ConfigParser()
+    config.read(CONFIG_FILE)  # Lire le fichier de configuration
+    return config.get('ModsUpdater', 'version', fallback=None)
+
+
+def migrate_config_if_needed():
+    # Check the current version of the configuration file
+    current_version = get_config_version_from_cache()  # Retrieve the config version from the global cache
+
+    # If the current version is None (cache doesn't exist), read directly from config.ini
+    if current_version is None:
+        current_version = read_version_from_config_file()  # Function to read the version from config.ini
+
+    if current_version != EXPECTED_VERSION:
+        # If the configuration version is outdated, initiate the migration
+        print(f"Old configuration detected (v{current_version}). Migrating...")
+        print("All the old settings have been preserved.")
+        old_config = configparser.ConfigParser()
+        old_config.read(CONFIG_FILE)  # Read the current configuration file
+        migrate_config(old_config)  # Migrate the configuration to the new version
+
+
+def migrate_config(old_config):
+    # Create a new configparser for the migrated file
+    new_config = configparser.ConfigParser()
+
+    # Copy sections, options and values from the old file
+    for section in old_config.sections():
+        if section == "Mod_Exclusion":  # Special handling of the Mod_Exclusion section
+            if "mods" in old_config[section]:
+                raw_mods = old_config[section]["mods"]
+                new_config[section] = {
+                    "mods": ", ".join(mod.strip() for mod in raw_mods.split(","))
+                }
+        else:
+            # Copy each section and its options
+            new_config[section] = {key: old_config[section][key] for key in old_config[section]}
+
+    # Add or modify default sections
+    new_config["ModsUpdater"] = {"version": EXPECTED_VERSION}
+
+    # Save the new configuration
+    with open(CONFIG_FILE, "w") as configfile:
+        new_config.write(configfile)
+
+    print(f"Configuration migrated to v{EXPECTED_VERSION}")
 
 
 def create_config(language, mod_folder, game_version, auto_update):
