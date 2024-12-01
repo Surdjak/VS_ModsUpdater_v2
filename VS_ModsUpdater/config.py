@@ -39,6 +39,7 @@ from pathlib import Path
 import datetime as dt
 from rich import print
 from rich.prompt import Prompt
+# from collections import OrderedDict
 
 
 # The target version after migration
@@ -77,9 +78,21 @@ DEFAULT_CONFIG = {
     "Game_Version": {"version": ""},
     "Mod_Exclusion": {'mods': ""}
 }
+"""
+DEFAULT_CONFIG = [
+    ("ModsUpdater", {"version": EXPECTED_VERSION}),
+    ("Logging", {"log_level": "INFO"}),
+    ("Options", {"force_update": "false", "disable_mod_dev": "false", "auto_update": "True"}),
+    ("Backup_Mods", {"backup_folder": "backup_mods", "max_backups": "3"}),
+    ("ModsPath", {"path": "C:\\Users\\Jerome\\AppData\\Roaming\\VintagestoryData\\Mods"}),  # Default value
+    ("Language", {"language": "fr_FR"}),
+    ("Game_Version", {"version": "1.20.0-pre"}),
+    ("Mod_Exclusion", {"mods": ""}),
+]
+"""
 
 
-# Example function that checks the configuration version in the cache
+# Checks the configuration version in the cache
 def get_config_version_from_cache():
     try:
         return global_cache.global_cache.config_cache['ModsUpdater']['version']
@@ -89,7 +102,7 @@ def get_config_version_from_cache():
 
 def read_version_from_config_file():
     config = configparser.ConfigParser()
-    config.read(CONFIG_FILE)  # Lire le fichier de configuration
+    config.read(CONFIG_FILE)  # Read the configuration file
     return config.get('ModsUpdater', 'version', fallback=None)
 
 
@@ -100,40 +113,117 @@ def migrate_config_if_needed():
     # If the current version is None (cache doesn't exist), read directly from config.ini
     if current_version is None:
         current_version = read_version_from_config_file()  # Function to read the version from config.ini
-
     if current_version != EXPECTED_VERSION:
         # If the configuration version is outdated, initiate the migration
-        print(f"Old configuration detected (v{current_version}). Migrating...")
-        print("All the old settings have been preserved.")
         old_config = configparser.ConfigParser()
         old_config.read(CONFIG_FILE)  # Read the current configuration file
         migrate_config(old_config)  # Migrate the configuration to the new version
 
 
+# Mapping for renamed sections or options
+RENAME_MAP = {
+    "Game_Version_max": "Game_Version",
+    "ModPath": "ModsPath",
+    "ver": "version",
+    "mod1": "mods",
+    "mod2": "mods",
+    "mod3": "mods",
+    "mod4": "mods",
+    "mod5": "mods",
+    "mod6": "mods",
+    "mod7": "mods",
+    "mod8": "mods",
+    "mod9": "mods",
+    "mod10": "mods",
+}
+
+
 def migrate_config(old_config):
-    # Create a new configparser for the migrated file
+    """
+    Migrate the configuration from an old version to the new format.
+    This function:
+      - Updates the version field.
+      - Removes unnecessary legacy options (e.g., `system`).
+      - Migrates renamed sections and options.
+      - Preserves the order of sections as defined in `DEFAULT_CONFIG`.
+      - Ensures all sections and options from the default config are present.
+    """
     new_config = configparser.ConfigParser()
 
-    # Copy sections, options and values from the old file
-    for section in old_config.sections():
-        if section == "Mod_Exclusion":  # Special handling of the Mod_Exclusion section
-            if "mods" in old_config[section]:
-                raw_mods = old_config[section]["mods"]
-                new_config[section] = {
-                    "mods": ", ".join(mod.strip() for mod in raw_mods.split(","))
-                }
+    # Step 1: Handle ModsUpdater version migration
+    new_config["ModsUpdater"] = {"version": EXPECTED_VERSION}  # Always set to latest version
+
+    # Step 2: Handle Options migration
+    options_section = {}
+    if "ModsUpdater" in old_config:
+        for option in ["force_update", "disable_mod_dev"]:  # Only migrate valid options
+            if option in old_config["ModsUpdater"]:
+                options_section[option] = old_config["ModsUpdater"][option]
+
+    # Merge with defaults, excluding unnecessary keys (e.g., log_level if already elsewhere)
+    new_config["Options"] = {
+        k: v
+        for k, v in {**DEFAULT_CONFIG["Options"], **options_section}.items()
+        if k != "log_level"  # Exclude log_level (already in [Logging])
+    }
+
+    # Step 3: Handle Game_Version_max -> Game_Version migration
+    if "Game_Version_max" in old_config:
+        game_version = old_config["Game_Version_max"].get("version")
+        new_config["Game_Version"] = {"version": game_version or DEFAULT_CONFIG["Game_Version"]["version"]}
+    else:
+        new_config["Game_Version"] = DEFAULT_CONFIG["Game_Version"]
+
+    # Step 4: Handle ModPath -> ModsPath migration
+    if "ModPath" in old_config:
+        mods_path = old_config["ModPath"].get("path")
+        if mods_path:  # Use existing path if available
+            new_config["ModsPath"] = {"path": mods_path}
+        else:  # Fallback to cache value
+            new_config["ModsPath"] = DEFAULT_CONFIG["ModsPath"]
+    else:
+        new_config["ModsPath"] = DEFAULT_CONFIG["ModsPath"]
+
+    # Step 5: Handle Mod_Exclusion migration (dictionary to list)
+    if "Mod_Exclusion" in old_config:
+        mods_list = [
+            value.strip()
+            for key, value in old_config["Mod_Exclusion"].items()
+            if value.strip()  # Ignore empty values
+        ]
+        if mods_list:  # Only add if valid mods exist
+            new_config["Mod_Exclusion"] = {"mods": ", ".join(mods_list)}
+    else:
+        new_config["Mod_Exclusion"] = DEFAULT_CONFIG["Mod_Exclusion"]
+
+    # Step 6: Handle Language migration
+    if "Language" in old_config:
+        language = old_config["Language"].get("language")
+        if language:
+            new_config["Language"] = {"language": language}
+    else:
+        new_config["Language"] = DEFAULT_CONFIG["Language"]
+
+    # Step 7: Add any missing sections or options from DEFAULT_CONFIG
+    for section, defaults in DEFAULT_CONFIG.items():
+        if section not in new_config:
+            new_config[section] = defaults
         else:
-            # Copy each section and its options
-            new_config[section] = {key: old_config[section][key] for key in old_config[section]}
+            for key, value in defaults.items():
+                if key not in new_config[section]:
+                    new_config[section][key] = value
 
-    # Add or modify default sections
-    new_config["ModsUpdater"] = {"version": EXPECTED_VERSION}
-
-    # Save the new configuration
+    # Step 8: Write the migrated configuration to the file, preserving the order of sections
     with open(CONFIG_FILE, "w") as configfile:
-        new_config.write(configfile)
+        # Write each section in the order of DEFAULT_CONFIG
+        for section, _ in DEFAULT_CONFIG.items():
+            if section in new_config:
+                configfile.write(f"[{section}]\n")
+                for key, value in new_config[section].items():
+                    configfile.write(f"{key} = {value}\n")
+                configfile.write("\n")
 
-    print(f"Configuration migrated to v{EXPECTED_VERSION}")
+    print(f"Configuration migrated successfully to version {EXPECTED_VERSION}.")
 
 
 def create_config(language, mod_folder, game_version, auto_update):

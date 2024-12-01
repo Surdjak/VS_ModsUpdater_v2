@@ -11,14 +11,20 @@
     "first_launch_latest_game_version": "Latest version",
     "first_launch_set_update": "Mods update: ",
     "first_launch_manual_update": "Manual",
-    "first_launch_auto_update": "Auto",
-	"first_launch_confirms_update_info": "You can proceed with the update, or quit to modify the config.ini file (for example, to exclude mods from the update).",
-	"first_launch_confirms_update": "Do you want to continue (yes/no)?",
+    "first_launch_auto_update": "Automatic",
+    "first_launch_confirms_update_info": "You can proceed with the update or exit to modify the config.ini file (e.g., to exclude mods from the update).",
+    "first_launch_confirms_update": "Do you want to continue (yes/no)?",
 
-	"exiting_program": "Program shutdown",
+    "exiting_program": "Exiting the program",
 
-	"yes": "yes",
-	"no": "no",
+    "yes": "yes",
+    "no": "no",
 
-    "tqdm_looking_for_update": "Retrieving update information..."
+    "auto_update_title": "Automatic mod updates for Vintage Story version {VS_version}",
+    "auto_update_no_permission_delete_file": "You do not have permission to delete this file ({current_mod}).",
+    "auto_update_mod_not_found": "The mod {current_mod} was not found.",
+    "auto_update_download_in_progress": "Download in progress...",
+    "auto_update_following_mods": "The following mods will be updated: ",
+
+    "tqdm_looking_for_update": "Fetching update information..."
 }
