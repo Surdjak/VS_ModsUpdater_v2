@@ -373,7 +373,6 @@ def ask_auto_update():
 
 
 def configure_logging(logging_level):
-    print(logging_level)
     # Vérifier si un FileHandler est déjà présent
     if not any(isinstance(handler, logging.FileHandler) for handler in logging.getLogger().handlers):
         # Enlever les handlers existants si nécessaire.

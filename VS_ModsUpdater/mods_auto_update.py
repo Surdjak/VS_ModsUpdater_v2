@@ -43,7 +43,7 @@ config.configure_logging(global_cache.global_cache.config_cache["Logging"]['log_
 
 VS_version = global_cache.global_cache.config_cache['Game_Version']['version']
 print(
-    f'\n\t[yellow]{global_cache.global_cache.language_cache["auto_update_title"].format(VS_version=VS_version)}[/yellow]')
+    f'\n\t[yellow]{global_cache.global_cache.language_cache["auto_update_title"].format(VS_version=VS_version)}\n[/yellow]')
 
 
 def auto_download():

@@ -27,5 +27,5 @@
 	"auto_update_following_mods": "Les mods suivants vont être mis à jour : ",
 	"auto_update_no_download": "Aucune mise à jour requise.",
 
-	"tqdm_looking_for_update": "Récupération des informations de mise à jour..."
+	"tqdm_retrieving_data_update": "Récupération des informations de mise à jour..."
 }

@@ -38,13 +38,12 @@ from bs4 import BeautifulSoup
 from rich import print
 import requests
 from packaging.version import Version
-from tqdm import tqdm
 import concurrent.futures
 import config
 import global_cache
 import utils
 import os
-
+from rich.progress import Progress, BarColumn, TimeRemainingColumn
 
 config.load_config()
 mod_dic = global_cache.global_cache.mods
@@ -149,17 +148,16 @@ def get_mod_api_data(modid):
         response.raise_for_status()
         mod_json = response.json()
         name = mod_json['mod']['name']
-        logging.debug(f"'{name}': Data from API retrieved successfully.")
-
+        mod_assetid = mod_json['mod']['assetid']
         mod_releases = mod_json['mod']['releases']
         target_tag = f'v{game_version}'
         mod_data_by_tag = get_mod_data_by_tag(mod_releases, target_tag)
         modversion = mod_data_by_tag[0]
         mainfile = mod_data_by_tag[1]
-        # print(f"\nmod_releases={mod_releases} - target_tag={target_tag}")  # debug
         logging.debug(f"mod_data_by_tag (before sorting): {mod_data_by_tag}")
-        # print(f"\nmod_data_by_tag (before sorting): {mod_data_by_tag}")  # debug
-        # print(f"\nname: {name}\nmodversion: {modversion}\nmainfile: {mainfile}")  # debug
+
+        # Retrieve changelog from VS ModDB
+        # changelog = get_changelog(mod_assetid)
 
         mod_info_api = {
             'name': mod_json['mod']['name'],
@@ -167,12 +165,9 @@ def get_mod_api_data(modid):
             'game_version': game_version,
             'modversion': modversion,
             'mainfile': mainfile,
-            # 'changelog': get_changelog(mod_json['mod']['assetid'])  # pose pb. a revoir !!!
             'changelog': ''
         }
-
         logging.debug(f"Final mod_info_api: {mod_info_api}")
-        # print(f"\nFinal mod_info_api: {mod_info_api}")  # debug
         logging.info(f"'{name}': Data successfully retrieved from API.")
         return mod_info_api
 
@@ -186,43 +181,37 @@ def get_mod_api_data(modid):
 def update_mod_cache_with_api_ata():
     # Retrieve mods list from mods folder
     list_mods()
-    # Create the tqdm progress bar with the explicit total
-    print(f"\n{global_cache.global_cache.language_cache['tqdm_looking_for_update']}")
-    pbar = tqdm(global_cache.global_cache.mods.items(),
-                unit="mod",
-                total=len(global_cache.global_cache.mods),
-                initial=1,
-                bar_format="{l_bar} {bar} | {n}/{total} | {postfix}",
-                ncols=100,
-                position=0,
-                leave=False)
 
-    temporary_data = {}  # Temporary dictionary to store API data
+    with Progress(
+            "{task.description}",
+            BarColumn(),
+            "[progress.percentage]{task.percentage:>3.0f}%",
+            TimeRemainingColumn(),
+            "[green]{task.fields[mod_name]}",
+            transient=False
+    ) as progress:
+        # Add the task with a custom field for the mod name
+        task = progress.add_task(f"[cyan]{global_cache.global_cache.language_cache['tqdm_retrieving_data_update']}",
+                                 total=len(global_cache.global_cache.mods), mod_name="")
 
-    # Iterate over each mod in the cache
-    for mod, mod_info in pbar:
-        # Dynamically update the mod name in the progress bar (only display the name)
-        pbar.set_postfix_str(mod_info['name'],
-                             refresh=True)  # Display only the value of the name
+        temporary_data = {}  # Temporary dictionary to store API data
 
-        # Retrieve the data from the API without modifying the cache directly
-        mod_info_api = get_mod_api_data(mod_info['modid'])
-        if mod_info_api:
-            logging.debug(
-                f"API data collected for mod '{mod_info['name']}' (ID: {mod_info['modid']}).")
-            temporary_data[
-                mod_info['modid']] = mod_info_api  # Temporarily store the data
-        """
-        else:
-            logging.error(
-                f"Failed to collect API data for mod '{mod_info['name']}' (ID: {mod_info['modid']}).")
-        """
-    # Update the data in the global cache
-    for mod, mod_info in global_cache.global_cache.mods.items():
-        modid = mod_info.get('modid')  # Identify the `modid` of the current entry
-        if modid and modid in temporary_data:
-            # Merge the API data with the existing data
-            global_cache.global_cache.mods[mod].update(temporary_data[modid])
+        for mod, mod_info in global_cache.global_cache.mods.items():
+            # Update progress bar with the current mod name in the custom field
+            progress.update(task, advance=1, mod_name=mod_info['name'])
+
+            # Retrieve the data from the API
+            mod_info_api = get_mod_api_data(mod_info['modid'])
+            if mod_info_api:
+                logging.debug(
+                    f"API data collected for mod '{mod_info['name']}' (ID: {mod_info['modid']}).")
+                temporary_data[mod_info['modid']] = mod_info_api
+
+        # Update the global cache with the retrieved data
+        for mod, mod_info in global_cache.global_cache.mods.items():
+            modid = mod_info.get("modid")
+            if modid and modid in temporary_data:
+                global_cache.global_cache.mods[mod].update(temporary_data[modid])
 
 
 def get_mod_data_by_tag(mod_releases, target_tag):
@@ -251,7 +240,6 @@ def get_mod_data_by_tag(mod_releases, target_tag):
             modversion = release.get('modversion')
             mainfile = release.get('mainfile')
             results.append((modversion, mainfile))
-    # print(f"\nFiltered results: {results[0]}")  # debug
     return results[0]
 
 
