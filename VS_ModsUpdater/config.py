@@ -54,7 +54,8 @@ LANG_PATH = Path(APPLICATION_PATH).parent / Path('lang')
 # Constants for supported languages
 SUPPORTED_LANGUAGES = {
     "US": ["en", "English", '1'],
-    "FR": ["fr", "Français", '2']
+    "FR": ["fr", "Français", '2'],
+    "UA": ["uk", "Yкраїнська", '3']
 }
 DEFAULT_LANGUAGE = "en_US"
 

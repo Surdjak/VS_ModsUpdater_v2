@@ -1,0 +1,33 @@
+{
+    "title_modsupdater_title": "ModsUpdater для Vintage Story v{mu_ver} (від Laerinok)",
+	"title_new_version": "Доступна нова версія!!!",
+	"title_no_new_version": "Нових версій немає",
+
+	"first_launch_language": "Мова встановлена на: ",
+	"first_launch_mods_location_ask": "Введіть шлях до папки з модами. (Залиште порожнім, щоб використовувати шлях за замовчуванням): ",
+	"first_launch_config_created": "Файл 'config.ini' створено.",
+	"first_launch_mods_location": "Розташування модів: ",
+	"first_launch_game_version": "Версія гри: ",
+	"first_launch_latest_game_version": "Остання версія",
+	"first_launch_set_update": "Оновлення модів: ",
+	"first_launch_manual_update": "Ручне",
+	"first_launch_auto_update": "Автоматичне",
+	"first_launch_confirms_update_info": "Ви можете продовжити оновлення або вийти, щоб змінити файл config.ini (наприклад, для виключення деяких модів з оновлення)",
+	"first_launch_confirms_update": "Чи бажаєте продовжити (так/ні)?",
+
+	"exiting_program": "Вихід з програми",
+
+	"yes": "так",
+	"no": "ні",
+
+	"auto_update_title": "Автоматичне оновлення модів для версії {VS_version} Vintage Story",
+	"auto_update_no_permission_delete_file": "У вас немає дозволу видалити цей файл ({current_mod})",
+	"auto_update_mod_not_found": "Мод {current_mod} не знайдено.",
+	"auto_update_download_in_progress": "Завантаження триває...",
+	"auto_update_following_mods": "Наступні моди будуть оновлені: ",
+	"auto_update_no_download": "Оновлення не потрібне.",
+
+	"tqdm_retrieving_data_update": "Отримання інформації про оновлення...",
+
+	"pdf_title": "Список встановлених модів"
+}

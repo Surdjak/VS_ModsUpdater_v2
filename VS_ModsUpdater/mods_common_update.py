@@ -158,6 +158,7 @@ def get_mod_api_data(modid):
 
         # Retrieve changelog from VS ModDB
         # changelog = get_changelog(mod_assetid)
+        # print(f"changelog:{changelog}")   # debug
 
         mod_info_api = {
             'name': mod_json['mod']['name'],
@@ -248,38 +249,14 @@ def get_changelog(mod_asset_id):
     # url_changelog = f'https://mods.vintagestory.at/show/mod/7214#tab-files'  # for test
     # Scrap to retrieve changelog
     req_url = urllib.request.Request(url_changelog)
-    log = {}
-    cleaned_text = None
+
     try:
         urllib.request.urlopen(req_url)
         req_page_url = requests.get(url_changelog, timeout=2)
         page = req_page_url.content
         soup = BeautifulSoup(page, features="html.parser")
         changelog_div = soup.find("div", {"class": "changelogtext"})
-        # log version
-        log_version = changelog_div.find('strong').text
-        # print(f"\n\nchangelog_div: {log_version}\n\n{changelog_div}\n")  # debug
-
-        # Nettoyer le contenu
-        if changelog_div:
-            # 1. Supprimer la balise <strong> qui contient la version et d'autres éléments non nécessaires
-            for strong_tag in changelog_div.find_all('strong'):
-                strong_tag.decompose()
-
-            # 2. Remplacer les liens <a> par leur URL texte
-            for a_tag in changelog_div.find_all('a'):
-                a_tag.insert_after(
-                    f" [Link: {a_tag.get('href')}]")  # Remplacer le lien par son URL
-
-            # 3. Remplacer les balises <br> par des sauts de ligne
-            for br_tag in changelog_div.find_all('br'):
-                br_tag.insert_before("\n")
-                br_tag.decompose()  # Supprimer la balise <br> après l'insertion du saut de ligne
-
-            # 4. Convertir en texte brut
-            cleaned_text = changelog_div.get_text(separator="\n", strip=True)
-            # print(f"\n\n{cleaned_text}\n")  # debug
-        # print(f"\n\n{changelog_div}\n")  # debug
+        print(changelog_div)  # debug
 
     except requests.exceptions.ReadTimeout:
         logging.warning('ReadTimeout error: Server did not respond within the specified timeout.')
@@ -288,7 +265,10 @@ def get_changelog(mod_asset_id):
         print(f'[red]Lien non valide[/red]')
         msg_error = f'{err_url.reason} : {url_changelog}'
         logging.warning(msg_error)
-    return cleaned_text
+
+
+def process_and_display_changelog(changelog_html):
+    pass
 
 
 mod_to_update = {}

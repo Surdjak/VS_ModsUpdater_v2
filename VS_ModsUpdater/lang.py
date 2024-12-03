@@ -30,7 +30,6 @@ __date__ = "2024-11-21"  # Last update
 import json
 import global_cache
 from pathlib import Path
-# from utils import print_dict  # for test
 
 
 def get_language_setting():

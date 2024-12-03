@@ -20,9 +20,9 @@
 Vintage Story mod management
 
 TO do list:
-- for new version installation:
-    - check if a previous config.ini is present
-    - retrieve previous config to set the new config
+    -> arguments pour ligne de commande
+    -> test linux
+    -> manual update
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"
@@ -33,6 +33,7 @@ __date__ = "2024-12-03"  # Last update
 import config
 import lang
 import global_cache
+import pdf_creation
 from utils import exit_program
 from rich import print
 from rich.console import Console
@@ -136,3 +137,7 @@ if __name__ == "__main__":
         import mods_manual_update  # noqa: F401 - Used for its side effects
 
 # tests
+mods_data = global_cache.global_cache.mods
+output_pdf_path = str(Path(config.APPLICATION_PATH).parent / "mods_list.pdf")
+
+pdf_creation.generate_mod_pdf(mods_data, output_pdf_path)

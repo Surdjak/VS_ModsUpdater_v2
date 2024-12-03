@@ -27,5 +27,7 @@
     "auto_update_following_mods": "The following mods will be updated: ",
     "auto_update_no_download": "No update required.",
 
-    "tqdm_looking_for_update": "Fetching update information..."
+    "tqdm_looking_for_update": "Fetching update information...",
+
+    "pdf_title": "List of Installed Mods"
 }

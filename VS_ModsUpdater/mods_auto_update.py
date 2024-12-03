@@ -29,7 +29,6 @@ __date__ = "2024-11-26"  # Last update
 
 import logging
 from pathlib import Path
-
 import requests
 from rich import print
 
@@ -37,6 +36,7 @@ import config
 import global_cache
 import mods_common_update
 import utils
+
 
 config.load_config()
 config.configure_logging(global_cache.global_cache.config_cache["Logging"]['log_level'].upper())
@@ -109,6 +109,7 @@ if len(mods_to_update) > 0:
     auto_download()
 else:
     print(f"{global_cache.global_cache.language_cache['auto_update_no_download']}")
+
 
 if __name__ == "__main__":
     pass
