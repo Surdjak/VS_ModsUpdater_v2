@@ -37,7 +37,7 @@ XDG_CONFIG_HOME_PATH = os.getenv('XDG_CONFIG_HOME', os.path.expanduser('~/.confi
 
 MODS_PATHS = {
     "Windows": Path(HOME_PATH, r'AppData\Roaming\VintagestoryData\Mods'),
-    "Linux": Path(XDG_CONFIG_HOME_PATH, 'VintagestoryData')
+    "Linux": Path(XDG_CONFIG_HOME_PATH) / 'VintagestoryData' / 'Mods'
 }
 
 
