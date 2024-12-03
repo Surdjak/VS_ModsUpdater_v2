@@ -25,6 +25,7 @@
     "auto_update_mod_not_found": "The mod {current_mod} was not found.",
     "auto_update_download_in_progress": "Download in progress...",
     "auto_update_following_mods": "The following mods will be updated: ",
+    "auto_update_no_download": "No update required.",
 
     "tqdm_looking_for_update": "Fetching update information..."
 }

@@ -60,3 +60,6 @@ ruff_cache/
 /VS_ModsUpdater/back_up/
 /backup_mods/
 /new_features.txt
+/config_.ini
+/config_140.ini
+/TODO_LIST.txt

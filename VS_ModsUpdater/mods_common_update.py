@@ -22,7 +22,7 @@ Vintage Story mod management:
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"
-__date__ = "2024-11-28"  # Last update
+__date__ = "2024-12-03"  # Last update
 
 # mods_common_update.py
 
@@ -39,10 +39,11 @@ from rich import print
 import requests
 from packaging.version import Version
 from tqdm import tqdm
-
+import concurrent.futures
 import config
 import global_cache
 import utils
+import os
 
 
 config.load_config()
@@ -51,21 +52,40 @@ mod_dic = global_cache.global_cache.mods
 # Access translations through the cache
 cache_lang = global_cache.global_cache.language_cache
 
-config.configure_logging()
+config.configure_logging(global_cache.global_cache.config_cache["Logging"]['log_level'].upper())
 
 
 # Creation of the mods list in a dictionary
 def list_mods():
     path_mods = Path(global_cache.global_cache.config_cache['ModsPath']['path'])
+    # List all mod files
+    mod_files = [mod_file for mod_file in path_mods.iterdir() if zipfile.is_zipfile(mod_file) or mod_file.suffix.lower() == ".cs"]
 
-    for mod_file in path_mods.iterdir():
-        if zipfile.is_zipfile(mod_file):
-            process_zip_mod(mod_file)
-        elif mod_file.suffix.lower() == ".cs":
-            process_cs_mod(mod_file)
+    # Use ThreadPoolExecutor for I/O-bound tasks
+    max_workers = config.MAX_WORKERS
+
+    if max_workers is None:
+        max_workers = os.cpu_count()
+    # Apply a reasonable limit to avoid overload
+    max_workers = min(max_workers, os.cpu_count() * 3)  # Limit to 3 times the number of logical cores
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # Process all mod files in parallel
+        futures = []
+        for mod_file in mod_files:
+            if zipfile.is_zipfile(mod_file):
+                futures.append(executor.submit(process_zip_mod, mod_file))
+            elif mod_file.suffix.lower() == ".cs":
+                futures.append(executor.submit(process_cs_mod, mod_file))
+
+        # Wait for all futures to complete
+        for future in concurrent.futures.as_completed(futures):
+            future.result()  # Will raise an exception if the function raised one
 
     # Sort mod_dic by mod name
-    sorted_mods = {key: value for key, value in sorted(mod_dic.items(), key=lambda item: item[1]["name"])}
+    sorted_mods = {key: value for key, value in
+                   sorted(mod_dic.items(), key=lambda item: item[1]["name"])}
+
     # Store in the cache
     global_cache.global_cache.mods = sorted_mods
 
@@ -116,49 +136,57 @@ def get_mod_api_data(modid):
     """
     logging.debug(f"Attempting to fetch data for mod '{modid}' from API.")
 
-    # Check if the mod is already in the cache
     if modid in global_cache.global_cache.mods:
         logging.debug(f"Data for mod '{modid}' found in cache. Skipping API call.")
-        return global_cache.global_cache.mods[modid]  # Return the cached data
+        return global_cache.global_cache.mods[modid]
 
-    # If the mod is not in the cache, fetch the information via the API
     mod_url_api = f'{config.URL_API}/mod/{modid}'
-    # print(f'\nmod_url_api: {mod_url_api}')  # debug
-    # print(f'game_version: {global_cache.global_cache.config_cache['Game_Version']['version']}')  # debug
     game_version = global_cache.global_cache.config_cache['Game_Version']['version']
     logging.debug(f"Retrieving mod info from: {mod_url_api}")
-    name = None
+
     try:
         response = requests.get(mod_url_api)
-        response.raise_for_status()  # Check that the request is successful (status code 200)
-        mod_json = response.json()  # Retrieve the JSON data
+        response.raise_for_status()
+        mod_json = response.json()
         name = mod_json['mod']['name']
-        logging.debug(f"{name}: data from API retrieved successfully.")
-        mainfile = get_mainfile_by_tag(mod_json['mod']['releases'], f'v{game_version}')
-        modversion = get_modversion_by_tag(mod_json['mod']['releases'], f'v{game_version}')
+        logging.debug(f"'{name}': Data from API retrieved successfully.")
+
+        mod_releases = mod_json['mod']['releases']
+        target_tag = f'v{game_version}'
+        mod_data_by_tag = get_mod_data_by_tag(mod_releases, target_tag)
+        modversion = mod_data_by_tag[0]
+        mainfile = mod_data_by_tag[1]
+        # print(f"\nmod_releases={mod_releases} - target_tag={target_tag}")  # debug
+        logging.debug(f"mod_data_by_tag (before sorting): {mod_data_by_tag}")
+        # print(f"\nmod_data_by_tag (before sorting): {mod_data_by_tag}")  # debug
+        # print(f"\nname: {name}\nmodversion: {modversion}\nmainfile: {mainfile}")  # debug
+
         mod_info_api = {
-            'name':  mod_json['mod']['name'],
+            'name': mod_json['mod']['name'],
             'assetid': mod_json['mod']['assetid'],
             'game_version': game_version,
-            'modversion': modversion[0],
-            'mainfile': mainfile[0],
-            'changelog': get_changelog(mod_json['mod']['assetid'])
+            'modversion': modversion,
+            'mainfile': mainfile,
+            # 'changelog': get_changelog(mod_json['mod']['assetid'])  # pose pb. a revoir !!!
+            'changelog': ''
         }
-        logging.info(f"Data successfully retrieved from API for mod '{name}'.")
+
+        logging.debug(f"Final mod_info_api: {mod_info_api}")
+        # print(f"\nFinal mod_info_api: {mod_info_api}")  # debug
+        logging.info(f"'{name}': Data successfully retrieved from API.")
         return mod_info_api
 
     except requests.exceptions.HTTPError as http_err:
         logging.error(f'HTTP error occurred: {http_err}')
-    except Exception:
-        # logging.error(f'Other error occurred: {err}')  # debug
-        logging.error(f'{name}: No file available for the desired game version.')
-    return None  # If an error occurs, return None
+    except Exception as err:
+        logging.error(f'Error occurred: {err}')
+    return None
 
 
 def update_mod_cache_with_api_ata():
     # Retrieve mods list from mods folder
     list_mods()
-    # Créez la barre de progression tqdm avec le total explicite
+    # Create the tqdm progress bar with the explicit total
     print(f"\n{global_cache.global_cache.language_cache['tqdm_looking_for_update']}")
     pbar = tqdm(global_cache.global_cache.mods.items(),
                 unit="mod",
@@ -169,70 +197,101 @@ def update_mod_cache_with_api_ata():
                 position=0,
                 leave=False)
 
-    temporary_data = {}  # Dictionnaire temporaire pour stocker les données API
+    temporary_data = {}  # Temporary dictionary to store API data
 
-    # Itérer sur chaque mod dans le cache
+    # Iterate over each mod in the cache
     for mod, mod_info in pbar:
-        # Mise à jour dynamique du nom du mod dans la barre de progression (affiche seulement le nom)
+        # Dynamically update the mod name in the progress bar (only display the name)
         pbar.set_postfix_str(mod_info['name'],
-                             refresh=True)  # Affiche uniquement la valeur du nom
+                             refresh=True)  # Display only the value of the name
 
-        # Récupérer les données de l'API sans modifier le cache directement
+        # Retrieve the data from the API without modifying the cache directly
         mod_info_api = get_mod_api_data(mod_info['modid'])
         if mod_info_api:
-            logging.info(
+            logging.debug(
                 f"API data collected for mod '{mod_info['name']}' (ID: {mod_info['modid']}).")
             temporary_data[
-                mod_info['modid']] = mod_info_api  # Stocker temporairement les données
+                mod_info['modid']] = mod_info_api  # Temporarily store the data
         """
         else:
             logging.error(
                 f"Failed to collect API data for mod '{mod_info['name']}' (ID: {mod_info['modid']}).")
         """
-    # Mise à jour des données dans le cache global
+    # Update the data in the global cache
     for mod, mod_info in global_cache.global_cache.mods.items():
-        modid = mod_info.get('modid')  # Identifier le `modid` de l'entrée actuelle
+        modid = mod_info.get('modid')  # Identify the `modid` of the current entry
         if modid and modid in temporary_data:
-            # Fusionner les données API avec les données existantes
+            # Merge the API data with the existing data
             global_cache.global_cache.mods[mod].update(temporary_data[modid])
 
 
-# get 'modversion' for tag from json mod api
-def get_modversion_by_tag(mod_releases, target_tag):
-    modversion = []
-    for release in mod_releases:
-        if target_tag in release['tags']:
-            modversion.append(release['modversion'])
-    return modversion
+def get_mod_data_by_tag(mod_releases, target_tag):
+    """
+    Retrieves modversion and mainfile for a given target tag.
 
+    Args:
+        mod_releases (list): List of mod release dictionaries.
+        target_tag (str): The tag to search for.
 
-# get 'mainfile' for tag from json mod api
-def get_mainfile_by_tag(mod_releases, target_tag):
-    mainfiles = []
+    Returns:
+        list: A list of tuples containing (modversion, mainfile) for matching releases.
+    """
+    results = []
     for release in mod_releases:
-        if target_tag in release['tags']:
-            mainfiles.append(release['mainfile'])
-    return mainfiles
+        tags = release.get('tags', [])  # Récupération des tags de la release
+
+        # Si la liste des tags contient une seule valeur, on fait une comparaison stricte
+        if len(tags) == 1:
+            if target_tag.strip().lower() == tags[0].strip().lower():  # Comparaison avec une seule valeur
+                modversion = release.get('modversion')
+                mainfile = release.get('mainfile')
+                results.append((modversion, mainfile))
+        # Sinon, on fait la comparaison habituelle pour plusieurs tags
+        elif any(target_tag.strip().lower() in tag.strip().lower() for tag in tags):
+            modversion = release.get('modversion')
+            mainfile = release.get('mainfile')
+            results.append((modversion, mainfile))
+    # print(f"\nFiltered results: {results[0]}")  # debug
+    return results[0]
 
 
 def get_changelog(mod_asset_id):
     url_changelog = f'https://mods.vintagestory.at/show/mod/{mod_asset_id}#tab-files'
-    # url_changelog = f'https://mods.vintagestory.at/show/mod/4405#tab-files'  # for test
+    # url_changelog = f'https://mods.vintagestory.at/show/mod/7214#tab-files'  # for test
     # Scrap to retrieve changelog
     req_url = urllib.request.Request(url_changelog)
     log = {}
-    raw_log = {}
+    cleaned_text = None
     try:
         urllib.request.urlopen(req_url)
         req_page_url = requests.get(url_changelog, timeout=2)
         page = req_page_url.content
         soup = BeautifulSoup(page, features="html.parser")
-        soup_raw_changelog = soup.find("div", {"class": "changelogtext"})
-
+        changelog_div = soup.find("div", {"class": "changelogtext"})
         # log version
-        log_version = soup_raw_changelog.find('strong').text
-        # raw_log[log_version] = soup_raw_changelog.text
-        # print(f"\n{soup_raw_changelog}")  # debug
+        log_version = changelog_div.find('strong').text
+        # print(f"\n\nchangelog_div: {log_version}\n\n{changelog_div}\n")  # debug
+
+        # Nettoyer le contenu
+        if changelog_div:
+            # 1. Supprimer la balise <strong> qui contient la version et d'autres éléments non nécessaires
+            for strong_tag in changelog_div.find_all('strong'):
+                strong_tag.decompose()
+
+            # 2. Remplacer les liens <a> par leur URL texte
+            for a_tag in changelog_div.find_all('a'):
+                a_tag.insert_after(
+                    f" [Link: {a_tag.get('href')}]")  # Remplacer le lien par son URL
+
+            # 3. Remplacer les balises <br> par des sauts de ligne
+            for br_tag in changelog_div.find_all('br'):
+                br_tag.insert_before("\n")
+                br_tag.decompose()  # Supprimer la balise <br> après l'insertion du saut de ligne
+
+            # 4. Convertir en texte brut
+            cleaned_text = changelog_div.get_text(separator="\n", strip=True)
+            # print(f"\n\n{cleaned_text}\n")  # debug
+        # print(f"\n\n{changelog_div}\n")  # debug
 
     except requests.exceptions.ReadTimeout:
         logging.warning('ReadTimeout error: Server did not respond within the specified timeout.')
@@ -241,19 +300,22 @@ def get_changelog(mod_asset_id):
         print(f'[red]Lien non valide[/red]')
         msg_error = f'{err_url.reason} : {url_changelog}'
         logging.warning(msg_error)
-    return log
+    return cleaned_text
 
 
 mod_to_update = {}
 
 
 def check_mod_to_update():
+    # print(global_cache.global_cache.mods)  # debug
     for mod_filename, mod_details in global_cache.global_cache.mods.items():
         local_version = mod_details['local_version']
         modversion = mod_details.get('modversion')
+        # print(f"mod_filename: {mod_filename}")  # debug
+        # print(f"local_version: {local_version}\tmodversion: {modversion}")  # debug
         if modversion and Version(modversion) > Version(local_version):
             mod_to_update[mod_filename] = f'{config.URL_MODS}/{mod_details['mainfile']}'
-        # print(f'[green]{mod_details['name']} peut être mis à jour.[/green]')
+            # print(f'[green]{mod_details['name']} peut être mis à jour.[/green]')  # debug
     return mod_to_update
 
 
@@ -261,10 +323,7 @@ def backup_mods(mods_to_backup):
     """
     Create a backup of the ZIP mods before download and manage a retention policy.
     """
-    # Modifier par valeur config.ini
     max_backups = int(global_cache.global_cache.config_cache['Backup_Mods']['max_backups'])
-
-    # Modifier par valeur de config .ini
     backup_folder_name = global_cache.global_cache.config_cache['Backup_Mods']['backup_folder']
     backup_folder = Path(config.APPLICATION_PATH).parent / backup_folder_name
 
@@ -308,5 +367,5 @@ def load_mods_exclusion():
 
 
 if __name__ == "__main__":
-    print(load_mods_exclusion())
+
     pass

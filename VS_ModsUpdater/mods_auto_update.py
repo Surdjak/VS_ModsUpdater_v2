@@ -39,7 +39,7 @@ import mods_common_update
 import utils
 
 config.load_config()
-config.configure_logging()
+config.configure_logging(global_cache.global_cache.config_cache["Logging"]['log_level'].upper())
 
 VS_version = global_cache.global_cache.config_cache['Game_Version']['version']
 print(
@@ -47,7 +47,9 @@ print(
 
 
 def auto_download():
-    # On procède à la maj
+    """
+    Proceed with the update
+    """
     logging.info("Starting download process for mods.")
     for mod, url in mods_to_update.items():
         dl_link = url
@@ -93,7 +95,7 @@ mods_to_update = {mod: url for mod, url in mods_to_update.items() if mod not in 
 
 
 # print(mods_to_update)  # debug
-print(f"{global_cache.global_cache.language_cache['auto_update_following_mods']}")
+print(f"\n{global_cache.global_cache.language_cache['auto_update_following_mods']}")
 for key in mods_to_update:
     print(
         f"\t- {global_cache.global_cache.mods[key]['name']} ({global_cache.global_cache.mods[key]['local_version']} -> {global_cache.global_cache.mods[key]['modversion']})")
@@ -105,6 +107,8 @@ mods_common_update.backup_mods(mods_to_update)
 # Download Mods
 if len(mods_to_update) > 0:
     auto_download()
+else:
+    print(f"{global_cache.global_cache.language_cache['auto_update_no_download']}")
 
 if __name__ == "__main__":
     pass

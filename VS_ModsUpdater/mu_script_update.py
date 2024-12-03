@@ -41,6 +41,7 @@ from urllib.error import URLError, HTTPError
 config.load_config()
 # config.configure_logging()  debug
 logging.info(f'OS: {global_cache.SYSTEM} - ModsUpdater v{__version__}')
+logging.info(f"For version v{global_cache.global_cache.config_cache['Game_Version']['version']} of Vintage Story")
 logging.info(f'Checking for ModsUpdater update')
 
 

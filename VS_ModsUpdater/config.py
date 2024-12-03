@@ -23,7 +23,7 @@
 
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"  # Don't forget to change EXPECTED_VERSION
-__date__ = "2024-11-29"  # Last update
+__date__ = "2024-12-03"  # Last update
 
 
 # config.py
@@ -39,7 +39,6 @@ from pathlib import Path
 import datetime as dt
 from rich import print
 from rich.prompt import Prompt
-# from collections import OrderedDict
 
 
 # The target version after migration
@@ -71,25 +70,16 @@ URL_SCRIPT = {
 DEFAULT_CONFIG = {
     "ModsUpdater": {"version": __version__},
     "Logging": {"log_level": "INFO"},
-    "Options": {"force_update": "false", "disable_mod_dev": "false", "auto_update": "true"},
+    "Options": {"force_update": "false", "disable_mod_dev": "false", "auto_update": "true", "max_workers": 4},
     "Backup_Mods": {"backup_folder": "backup_mods", "max_backups": 3},
     "ModsPath": {"path": str(global_cache.MODS_PATHS[global_cache.SYSTEM])},
     "Language": {"language": DEFAULT_LANGUAGE},
     "Game_Version": {"version": ""},
     "Mod_Exclusion": {'mods': ""}
 }
-"""
-DEFAULT_CONFIG = [
-    ("ModsUpdater", {"version": EXPECTED_VERSION}),
-    ("Logging", {"log_level": "INFO"}),
-    ("Options", {"force_update": "false", "disable_mod_dev": "false", "auto_update": "True"}),
-    ("Backup_Mods", {"backup_folder": "backup_mods", "max_backups": "3"}),
-    ("ModsPath", {"path": "C:\\Users\\Jerome\\AppData\\Roaming\\VintagestoryData\\Mods"}),  # Default value
-    ("Language", {"language": "fr_FR"}),
-    ("Game_Version", {"version": "1.20.0-pre"}),
-    ("Mod_Exclusion", {"mods": ""}),
-]
-"""
+
+# Maximum number of files to process simultaneously, best = nb of core of the processor
+MAX_WORKERS = 10  # à changer par valeur de config.ini
 
 
 # Checks the configuration version in the cache
@@ -150,8 +140,11 @@ def migrate_config(old_config):
     """
     new_config = configparser.ConfigParser()
 
+    logging.info("Starting migration process of old config.ini...")
+
     # Step 1: Handle ModsUpdater version migration
     new_config["ModsUpdater"] = {"version": EXPECTED_VERSION}  # Always set to latest version
+    logging.debug("Migrating ModsUpdater section: version set to %s", EXPECTED_VERSION)
 
     # Step 2: Handle Options migration
     options_section = {}
@@ -159,6 +152,7 @@ def migrate_config(old_config):
         for option in ["force_update", "disable_mod_dev"]:  # Only migrate valid options
             if option in old_config["ModsUpdater"]:
                 options_section[option] = old_config["ModsUpdater"][option]
+                logging.debug("Migrating option '%s' to new config", option)
 
     # Merge with defaults, excluding unnecessary keys (e.g., log_level if already elsewhere)
     new_config["Options"] = {
@@ -166,23 +160,29 @@ def migrate_config(old_config):
         for k, v in {**DEFAULT_CONFIG["Options"], **options_section}.items()
         if k != "log_level"  # Exclude log_level (already in [Logging])
     }
+    logging.debug("Options section migrated successfully")
 
     # Step 3: Handle Game_Version_max -> Game_Version migration
     if "Game_Version_max" in old_config:
         game_version = old_config["Game_Version_max"].get("version")
         new_config["Game_Version"] = {"version": game_version or DEFAULT_CONFIG["Game_Version"]["version"]}
+        logging.debug("Migrating Game_Version_max to Game_Version: %s", game_version)
     else:
         new_config["Game_Version"] = DEFAULT_CONFIG["Game_Version"]
+        logging.debug("Using default Game_Version: %s", DEFAULT_CONFIG["Game_Version"]["version"])
 
     # Step 4: Handle ModPath -> ModsPath migration
     if "ModPath" in old_config:
         mods_path = old_config["ModPath"].get("path")
         if mods_path:  # Use existing path if available
             new_config["ModsPath"] = {"path": mods_path}
+            logging.debug("Migrating ModPath to ModsPath: %s", mods_path)
         else:  # Fallback to cache value
             new_config["ModsPath"] = DEFAULT_CONFIG["ModsPath"]
+            logging.debug("Using default ModsPath: %s", DEFAULT_CONFIG["ModsPath"]["path"])
     else:
         new_config["ModsPath"] = DEFAULT_CONFIG["ModsPath"]
+        logging.debug("Using default ModsPath: %s", DEFAULT_CONFIG["ModsPath"]["path"])
 
     # Step 5: Handle Mod_Exclusion migration (dictionary to list)
     if "Mod_Exclusion" in old_config:
@@ -193,37 +193,63 @@ def migrate_config(old_config):
         ]
         if mods_list:  # Only add if valid mods exist
             new_config["Mod_Exclusion"] = {"mods": ", ".join(mods_list)}
+            logging.debug("Migrating Mod_Exclusion with %d mods", len(mods_list))
     else:
         new_config["Mod_Exclusion"] = DEFAULT_CONFIG["Mod_Exclusion"]
+        logging.debug("Using default Mod_Exclusion")
 
     # Step 6: Handle Language migration
     if "Language" in old_config:
         language = old_config["Language"].get("language")
         if language:
             new_config["Language"] = {"language": language}
+            logging.debug("Migrating Language: %s", language)
     else:
         new_config["Language"] = DEFAULT_CONFIG["Language"]
+        logging.debug("Using default Language: %s", DEFAULT_CONFIG["Language"]["language"])
 
     # Step 7: Add any missing sections or options from DEFAULT_CONFIG
     for section, defaults in DEFAULT_CONFIG.items():
         if section not in new_config:
             new_config[section] = defaults
+            logging.debug("Adding missing section: %s", section)
         else:
             for key, value in defaults.items():
                 if key not in new_config[section]:
                     new_config[section][key] = value
+                    logging.debug("Adding missing option '%s' to section '%s'", key, section)
 
     # Step 8: Write the migrated configuration to the file, preserving the order of sections
-    with open(CONFIG_FILE, "w") as configfile:
-        # Write each section in the order of DEFAULT_CONFIG
-        for section, _ in DEFAULT_CONFIG.items():
-            if section in new_config:
-                configfile.write(f"[{section}]\n")
-                for key, value in new_config[section].items():
-                    configfile.write(f"{key} = {value}\n")
-                configfile.write("\n")
+    try:
+        with open(CONFIG_FILE, "w") as configfile:
+            # Write each section in the order of DEFAULT_CONFIG
+            for section, _ in DEFAULT_CONFIG.items():
+                if section in new_config:
+                    configfile.write(f"[{section}]\n")
+                    for key, value in new_config[section].items():
+                        configfile.write(f"{key} = {value}\n")
+                    configfile.write("\n")
+        logging.info("Migration completed and configuration file written successfully.")
+        print(f"Configuration migrated successfully to version {EXPECTED_VERSION}.")
+    except Exception as e:
+        logging.error("Error occurred while writing the migrated config: %s", str(e))
+    # After creating or updating the config.ini file.
+    reload_global_cache_config()
 
-    print(f"Configuration migrated successfully to version {EXPECTED_VERSION}.")
+
+def reload_global_cache_config():
+    """
+    Reload the configuration into the global cache after creating or migrating config.ini.
+    """
+    global_cache.global_cache.config_cache.clear()  # Vider l'ancien cache
+    config = configparser.ConfigParser()
+    try:
+        config.read(CONFIG_FILE)
+        for section in config.sections():
+            global_cache.global_cache.config_cache[section] = dict(config.items(section))
+        logging.debug("Global cache updated with new configuration.")
+    except Exception as e:
+        logging.error(f"Failed to reload configuration into global cache: {e}")
 
 
 def create_config(language, mod_folder, game_version, auto_update):
@@ -290,7 +316,7 @@ def ask_mods_directory():
         return mods_directory
     else:
         print(f"Error: {mods_directory} is not a valid directory.")
-        return ask_mods_directory()  # Re-demander si le chemin est invalide
+        return ask_mods_directory()  # Re-prompt if the path is invalid.
 
 
 def ask_language_choice():
@@ -346,48 +372,46 @@ def ask_auto_update():
     return auto_update
 
 
-def configure_logging():
-    # Check if a FileHandler is already present
+def configure_logging(logging_level):
+    print(logging_level)
+    # Vérifier si un FileHandler est déjà présent
     if not any(isinstance(handler, logging.FileHandler) for handler in logging.getLogger().handlers):
-        # Remove existing handlers, if necessary.
+        # Enlever les handlers existants si nécessaire.
         if logging.getLogger().hasHandlers():
             logging.getLogger().handlers.clear()
 
-        # Ensure that the directories exist before configuring the logging.
+        # S'assurer que les répertoires existent avant de configurer le logging.
         utils.setup_directories(LOGS_PATH)
 
         timestamp = dt.datetime.today().strftime("%Y%m%d%H%M%S")
         log_file = Path(LOGS_PATH) / f'log_{timestamp}.txt'
 
-        # print(f"[bold cyan]Log file will be created at:[/bold cyan] {log_file}")  # test
-
-        # Create a handler for the file.
+        # Créer un handler pour le fichier.
         file_handler = logging.FileHandler(log_file)
-        file_handler.setLevel(logging.DEBUG)  # On met par défaut à DEBUG, mais on mettra à jour après
+        file_handler.setLevel(logging.DEBUG)  # Défini par défaut à DEBUG, mais mis à jour après
 
-        # Create a log format.
+        # Créer un format de log.
         formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
         file_handler.setFormatter(formatter)
 
-        # Add the handler to the logger.
+        # Ajouter le handler au logger.
         logging.getLogger().addHandler(file_handler)
 
-        # Retrieve the log level from the configuration and apply it.
-        log_level = global_cache.global_cache.config_cache.get("Logging", {}).get("log_level", "DEBUG").upper()
+        log_level = logging_level.upper()
 
         valid_log_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
         if log_level not in valid_log_levels:
             logging.warning(f"Invalid log level '{log_level}' in configuration. Defaulting to 'DEBUG'.")
             log_level = "DEBUG"
 
-        # Apply the log level.
+        # Appliquer le niveau de log
         logging.getLogger().setLevel(getattr(logging, log_level, logging.DEBUG))
 
-        # print(f"[bold green]Logging configured successfully with '{log_level}' level and custom file handler![/bold green]")  # test
+        logging.debug(f"Logging configured successfully with '{log_level}' level and custom file handler!")
 
     else:
-        # print(f"[bold yellow]FileHandler already present, skipping reconfiguration[/bold yellow]") # test
-        pass  # test
+        # If FileHandler is already present, do nothing.
+        pass
 
 
 if __name__ == "__main__":

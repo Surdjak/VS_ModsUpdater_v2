@@ -23,11 +23,10 @@ TO do list:
 - for new version installation:
     - check if a previous config.ini is present
     - retrieve previous config to set the new config
-    - rename config.ini to config_01.back
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"
-__date__ = "2024-11-27"  # Last update
+__date__ = "2024-12-03"  # Last update
 
 # main.py
 
@@ -48,6 +47,8 @@ console = Console()
 def initialize_config():
     # Create config.ini if not present
     if not config.config_exists():
+        # Config logging with log_level 'INFO' for the first execution.
+        config.configure_logging('INFO')
         print(f'\n\t[yellow]First run detected - Set up config.ini -[/yellow]')
         language = config.ask_language_choice()
         # Load translations
@@ -94,7 +95,7 @@ def initialize_config():
     global_cache.global_cache.config_cache.update(config.load_config())
 
     # Configure the logging
-    config.configure_logging()
+    config.configure_logging(global_cache.global_cache.config_cache["Logging"]['log_level'].upper())
 
     # Load the language translations from the config file into the global cache
     lang_path = Path(f"{config.LANG_PATH}/{global_cache.global_cache.config_cache['Language']['language']}.json")
@@ -134,5 +135,4 @@ if __name__ == "__main__":
     else:
         import mods_manual_update  # noqa: F401 - Used for its side effects
 
-
-# print(global_cache.global_cache.mods)  # debug
+# tests
