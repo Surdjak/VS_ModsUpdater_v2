@@ -30,12 +30,14 @@ __date__ = "2024-12-04"  # Last update
 
 
 import logging
+import sys
+
 import global_cache
 import config
 import zipfile
 from datetime import datetime
 from pathlib import Path
-from rich.progress import Progress
+from rich.progress import Progress, BarColumn, TextColumn
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image, Paragraph, Spacer
@@ -151,6 +153,28 @@ def create_pdf_with_table(modsdata, pdf_path):
         canvas.setFillColorRGB(200/255, 220/255, 160/255)  # Vert très pâle en RGB (moins flashy)
         canvas.rect(0, 0, A4[0], A4[1], fill=1)  # Fill the entire page
 
+    # Add a link at the bottom-right corner (footer) of the page
+    def draw_footer(canvas, doc):
+        # Création du style pour le lien
+        styles = getSampleStyleSheet()
+        link_style = styles["Normal"].clone("LinkStyle")
+        link_style.textColor = colors.black
+        link_style.fontSize = 8
+
+        # Le texte du lien
+        footer_text = '<a href="https://mods.vintagestory.at/modsupdater">ModsUpdater by Laerinok</a>'
+        # Création du paragraphe avec le lien
+        link_paragraph = Paragraph(footer_text, link_style)
+
+        # Calcul de la position du texte
+        x = A4[0] - 110  # Position horizontale du texte
+        y = 10  # Position verticale du texte
+
+        # Dessiner le paragraphe avec le lien sur le canvas
+        link_paragraph.wrapOn(canvas, A4[0] - 40,
+                              100)  # Taille de l'espace disponible pour le lien
+        link_paragraph.drawOn(canvas, x, y)
+
     # Title
     elements.append(Paragraph(f"{global_cache.global_cache.language_cache['pdf_title']} ({num_mods} mods)", style_title))
 
@@ -213,9 +237,16 @@ def create_pdf_with_table(modsdata, pdf_path):
     # Add the table to the document
     elements.append(table)
 
-    # Build the PDF
-    doc.build(elements, onFirstPage=draw_background, onLaterPages=draw_background)
-    logging.info(f"PDF successfully created: {pdf_path}")
+    try:
+        # Build the PDF
+        doc.build(elements,
+                  onFirstPage=draw_background,
+                  onLaterPages=lambda canvas, doc: [draw_background(canvas, doc),draw_footer(canvas, doc)])
+        logging.info(f"PDF successfully created: {pdf_path}")
+    except PermissionError as e:
+        print(f"PermissionError: Unable to access the file '{pdf_path}'. The file may be open or in use by another process.\nPlease close any applications that may be using the file and try again.")
+        logging.error(f"PermissionError: Unable to access the file '{pdf_path}'. The file may be open or in use by another process. Please close any applications that may be using the file and try again.")
+        sys.exit()
 
 
 # Main function to orchestrate the PDF generation
@@ -240,16 +271,30 @@ def generate_mod_pdf(mod_info_data):
     logging.info(f"Preparing data for {total_mods} mods.")
 
     # Utilisation de Rich Progress
-    with Progress() as progress:
-        task = progress.add_task("PDF creation...", total=total_mods)
+    with Progress(
+            "[progress.description]" + global_cache.global_cache.language_cache['pdf_creation'],
+            BarColumn(bar_width=30, finished_style="green",
+                      complete_style="bold green"),
+            "[progress.percentage]{task.percentage:>3.0f}%",
+            TextColumn("{task.fields[mod_name]}"),
+            "{task.completed}/{task.total}",
+            transient=False,
+    ) as progress:
+        task = progress.add_task(
+            global_cache.global_cache.language_cache['pdf_creation'], total=total_mods,
+            mod_name="")
 
         for mod, mod_info in mod_info_data.items():
-            logging.debug(f"Processing mod: {mod} - {mod_info['name']}")
-            mod_zip_path = str(f"{global_cache.global_cache.config_cache['ModsPath']['path']}/{mod}")
+            mod_name = mod_info['name']
+            progress.update(task, advance=1, mod_name=mod_name)  # Met à jour mod_name
+
+            logging.debug(f"Processing mod: {mod} - {mod_name}")
+            mod_zip_path = str(
+                f"{global_cache.global_cache.config_cache['ModsPath']['path']}/{mod}")
 
             try:
                 mod_info_for_pdf[mod] = {
-                    "name": mod_info["name"],
+                    "name": mod_name,
                     "version": mod_info["local_version"],
                     "description": mod_info["description"],
                     "url_moddb": mod_info["url_moddb"],
@@ -259,11 +304,13 @@ def generate_mod_pdf(mod_info_data):
                 logging.error(f"Error processing mod: {mod} - {e}")
 
             # Avancer la barre de progression
-            progress.update(task, advance=1)
+            # progress.update(task, advance=1, mod_name=mod_name)
 
     global_cache.global_cache.total_mods = total_mods
     logging.info(f"Total mods processed: {total_mods}")
 
     logging.info("Generating PDF document.")
+
     create_pdf_with_table(mod_info_for_pdf, output_pdf_path)
+    print(f"{global_cache.global_cache.language_cache['pdf_creation_finished']}")
     logging.info(f"PDF generation complete: {output_pdf_path}")

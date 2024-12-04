@@ -80,7 +80,7 @@ DEFAULT_CONFIG = {
 }
 
 # Maximum number of files to process simultaneously, best = nb of core of the processor
-MAX_WORKERS = 10  # à changer par valeur de config.ini
+# MAX_WORKERS = 10  # à changer par valeur de config.ini
 
 
 # Checks the configuration version in the cache

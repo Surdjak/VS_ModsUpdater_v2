@@ -29,5 +29,7 @@
 
     "tqdm_looking_for_update": "Fetching update information...",
 
-    "pdf_title": "List of Installed Mods"
+    "pdf_title": "List of Installed Mods",
+    "pdf_creation": "PDF creation in progress",
+    "pdf_creation_finished": "PDF creation finished."
 }

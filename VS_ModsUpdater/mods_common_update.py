@@ -61,7 +61,7 @@ def list_mods():
     mod_files = [mod_file for mod_file in path_mods.iterdir() if zipfile.is_zipfile(mod_file) or mod_file.suffix.lower() == ".cs"]
 
     # Use ThreadPoolExecutor for I/O-bound tasks
-    max_workers = config.MAX_WORKERS
+    max_workers = int(global_cache.global_cache.config_cache['Options']['max_workers'])
 
     if max_workers is None:
         max_workers = os.cpu_count()

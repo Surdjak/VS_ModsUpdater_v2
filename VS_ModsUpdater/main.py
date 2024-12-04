@@ -137,6 +137,7 @@ if __name__ == "__main__":
         import mods_manual_update  # noqa: F401 - Used for its side effects
 
     # Ask for pdf creation
+
     import pdf_creation  # noqa: F401 - Used for its side effects
     mods_data = global_cache.global_cache.mods
     pdf_creation.generate_mod_pdf(mods_data)

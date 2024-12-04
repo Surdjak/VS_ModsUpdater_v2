@@ -27,61 +27,100 @@ __date__ = "2024-11-26"  # Last update
 
 # mods_auto_update.py
 
-import logging
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from urllib.parse import urlparse
+import logging
 import requests
 from rich import print
+from rich.progress import Progress, BarColumn, FileSizeColumn, TextColumn
 
 import config
 import global_cache
 import mods_common_update
-import utils
-
 
 config.load_config()
-config.configure_logging(global_cache.global_cache.config_cache["Logging"]['log_level'].upper())
+config.configure_logging(
+    global_cache.global_cache.config_cache["Logging"]['log_level'].upper())
 
 VS_version = global_cache.global_cache.config_cache['Game_Version']['version']
 print(
-    f'\n\t[yellow]{global_cache.global_cache.language_cache["auto_update_title"].format(VS_version=VS_version)}\n[/yellow]')
+    f'\n\t[yellow]{global_cache.global_cache.language_cache["auto_update_title"].format(VS_version=VS_version)}\n[/yellow]'
+)
 
 
-def auto_download():
+def download_mod(mod, url, modspaths):
     """
-    Proceed with the update
+    Download a mod from a given URL and save it to the specified path.
     """
-    logging.info("Starting download process for mods.")
-    for mod, url in mods_to_update.items():
-        dl_link = url
-        modspaths = global_cache.global_cache.config_cache['ModsPath']['path']
-        modname = global_cache.global_cache.mods[mod]['name']
-        modversion = global_cache.global_cache.mods[mod]['modversion']
-        current_mod = Path(modspaths) / mod
-        resp = requests.get(str(dl_link), stream=True, timeout=2)
-        file_size = int(resp.headers.get("Content-length"))
-        file_size_mb = round(file_size / (1024 ** 2), 2)
-        logging.info(
-            f"Preparing to download {modname} (v{modversion}) - Size: {file_size_mb} MB.")
-        try:
-            # os.remove(current_mod)  # désactivé temporairment
-            logging.info(f"Deleted old version of {modname} from {modspaths}.")
-        except PermissionError as e:
-            logging.error(f"Permission denied while deleting {current_mod}: {e}")
-            print(f"[red]{global_cache.global_cache.language_cache["auto_update_no_permission_delete_file"].format(current_mod=current_mod)}[/red]")
-            utils.exit_program()
-        except FileNotFoundError as e:
-            logging.warning(f"{current_mod} not found during deletion: {e}")
-            print(f"{global_cache.global_cache.language_cache['auto_update_mod_not_found'].format(current_mod=current_mod)}")
-            utils.exit_program()
-        print(
-            f"*[green] {modname} (v{modversion})[/green] - [white]{global_cache.global_cache.language_cache['auto_update_download_in_progress']} ({str(file_size_mb)}\u00A0MB)[/white]")
-        try:
-            # wget.download(dl_link, str(modspaths))  # désactivé temporairment
-            print('\n')
-            logging.info(f"Successfully downloaded {modname} to {modspaths}.")
-        except Exception as e:
-            logging.error(f"Error during download of {modname}: {e}")
-            raise
+    modname = global_cache.global_cache.mods[mod]['name']
+    modversion = global_cache.global_cache.mods[mod]['modversion']
+    parsed_url = urlparse(url)
+    file_name = Path(parsed_url.path).name
+    save_path = Path(modspaths) / file_name
+
+    # Delete obsolete files
+    for file in Path(modspaths).glob(f"{mod}*"):
+        if file != save_path:
+            try:
+                file.unlink()
+                logging.info(f"Deleted obsolete file: {file}")
+            except Exception as e:
+                logging.error(f"Failed to delete obsolete file {file}: {e}")
+
+    try:
+        resp = requests.get(url, stream=True, timeout=10)
+        resp.raise_for_status()
+        file_size = int(resp.headers.get("Content-length", 0)) / (1024 ** 2)
+        logging.info(f"Downloading {modname} (v{modversion}) - Size: {file_size:.2f} MB.")
+
+        if save_path.exists():
+            save_path.unlink()
+            logging.info(f"Deleted old version of {modname} from {save_path}.")
+
+        with open(save_path, "wb") as f:
+            for chunk in resp.iter_content(chunk_size=1024):
+                if chunk:
+                    f.write(chunk)
+        logging.info(f"Successfully downloaded {modname} to {save_path}.")
+    except Exception as e:
+        logging.error(f"Error during download of {modname}: {e}")
+        raise
+
+
+def auto_download_parallel():
+    """
+    Download mods in parallel, showing progress bars.
+    """
+    max_workers = int(global_cache.global_cache.config_cache['Options']['max_workers'])
+    modspaths = Path(global_cache.global_cache.config_cache['ModsPath']['path'])
+
+    logging.info("Starting parallel download process for mods.")
+
+    # Setup progress bar
+    with Progress(
+            "[progress.description]{task.description}",
+            BarColumn(),
+            "[progress.percentage]{task.percentage:>3}%",
+            FileSizeColumn(),
+            transient=False,
+    ) as progress:
+        download_task = progress.add_task(f"[cyan]{global_cache.global_cache.language_cache['auto_update_download_in_progress']}", total=len(mods_to_update), mod_name="")
+
+        # ThreadPool for parallel downloads
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {
+                executor.submit(download_mod, mod, url, modspaths): mod
+                for mod, url in mods_to_update.items()
+            }
+
+            for future in futures:
+                try:
+                    future.result()  # Wait for completion
+                    progress.update(download_task, advance=1, mod_name=mod)
+                except Exception as e:
+                    mod = futures[future]
+                    logging.error(f"Failed to download mod {mod}: {e}")
 
 
 # Update mod_cache info
@@ -91,24 +130,22 @@ mods_common_update.update_mod_cache_with_api_ata()
 excluded_mods = mods_common_update.load_mods_exclusion()
 # Look for mods to update
 mods_to_update = mods_common_update.check_mod_to_update()
-# Filter mods to update.
+# Filter mods to update
 mods_to_update = {mod: url for mod, url in mods_to_update.items() if mod not in excluded_mods}
 
-print(f"\n{global_cache.global_cache.language_cache['auto_update_following_mods']}")
-for key in mods_to_update:
-    print(
-        f"\t- {global_cache.global_cache.mods[key]['name']} ({global_cache.global_cache.mods[key]['local_version']} -> {global_cache.global_cache.mods[key]['modversion']})")
-print("\n")
 
-# Backup mods before Download
-mods_common_update.backup_mods(mods_to_update)
-
-# Download Mods
+# Download Mods in Parallel
 if len(mods_to_update) > 0:
-    auto_download()
+    print(f"\n{global_cache.global_cache.language_cache['auto_update_following_mods']}")
+    for key in mods_to_update:
+        print(
+            f"\t- {global_cache.global_cache.mods[key]['name']} ({global_cache.global_cache.mods[key]['local_version']} -> {global_cache.global_cache.mods[key]['modversion']})")
+    print("\n")
+    # Backup mods before Download
+    mods_common_update.backup_mods(mods_to_update)
+    auto_download_parallel()
 else:
-    print(f"{global_cache.global_cache.language_cache['auto_update_no_download']}")
-
+    print(f"{global_cache.global_cache.language_cache['auto_update_no_download']}\n")
 
 if __name__ == "__main__":
     pass
