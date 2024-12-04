@@ -36,7 +36,7 @@ HOME_PATH = Path.home()
 XDG_CONFIG_HOME_PATH = os.getenv('XDG_CONFIG_HOME', os.path.expanduser('~/.config'))
 
 MODS_PATHS = {
-    "Windows": Path(HOME_PATH, r'AppData\Roaming\VintagestoryData\Mods'),
+    "Windows": Path(HOME_PATH) / 'AppData' / 'Roaming' / 'VintagestoryData' / 'Mods',
     "Linux": Path(XDG_CONFIG_HOME_PATH) / 'VintagestoryData' / 'Mods'
 }
 
@@ -47,6 +47,7 @@ class GlobalCache:
         self.language_cache = {}  # Translation cache
         self.mods = {}  # Mod cache
         self.logs = {}  # For any internal log if needed
+        self.total_mods = 0
 
 
 global_cache = GlobalCache()

@@ -84,6 +84,7 @@ def auto_download():
             raise
 
 
+# Update mod_cache info
 mods_common_update.update_mod_cache_with_api_ata()
 
 # Load mods exclusion
@@ -93,8 +94,6 @@ mods_to_update = mods_common_update.check_mod_to_update()
 # Filter mods to update.
 mods_to_update = {mod: url for mod, url in mods_to_update.items() if mod not in excluded_mods}
 
-
-# print(mods_to_update)  # debug
 print(f"\n{global_cache.global_cache.language_cache['auto_update_following_mods']}")
 for key in mods_to_update:
     print(

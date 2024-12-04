@@ -22,7 +22,7 @@ Vintage Story mod management:
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"
-__date__ = "2024-12-03"  # Last update
+__date__ = "2024-12-04"  # Last update
 
 # mods_common_update.py
 
@@ -129,12 +129,38 @@ def add_mod_info(mod_name: str, mod_version: str, mod_modid: str, mod_descriptio
     }
 
 
+def get_url_mod(mod_assetid):
+    url = f"https://mods.vintagestory.at/show/mod/{mod_assetid}"
+    return url
+
+
+def new_get_mod_api_data():
+    """
+    Retrieve mod infos from API
+    """
+    for mod, mod_info in global_cache.global_cache.mods.items():
+        modid = mod_info['modid']
+        logging.debug(f"Attempting to fetch data for mod '{modid}' from API.")
+        mod_url_api = f'{config.URL_API}/mod/{modid}'
+        logging.debug(f"Retrieving mod info from: {mod_url_api}")
+        try:
+            response = requests.get(mod_url_api)
+            response.raise_for_status()
+            mod_json = response.json()
+            mod_assetid = mod_json["mod"]["assetid"]
+            return mod_assetid
+        except requests.exceptions.HTTPError as http_err:
+            logging.error(f'HTTP error occurred: {http_err}')
+        except Exception as err:
+            logging.error(f'Error occurred: {err}')
+        return None
+
+
 def get_mod_api_data(modid):
     """
     Retrieve mod infos from API or cache.
     """
     logging.debug(f"Attempting to fetch data for mod '{modid}' from API.")
-
     if modid in global_cache.global_cache.mods:
         logging.debug(f"Data for mod '{modid}' found in cache. Skipping API call.")
         return global_cache.global_cache.mods[modid]
@@ -142,30 +168,40 @@ def get_mod_api_data(modid):
     mod_url_api = f'{config.URL_API}/mod/{modid}'
     game_version = global_cache.global_cache.config_cache['Game_Version']['version']
     logging.debug(f"Retrieving mod info from: {mod_url_api}")
-
     try:
         response = requests.get(mod_url_api)
         response.raise_for_status()
         mod_json = response.json()
-        name = mod_json['mod']['name']
-        mod_assetid = mod_json['mod']['assetid']
-        mod_releases = mod_json['mod']['releases']
+        name = mod_json["mod"]["name"]
+        mod_assetid = mod_json["mod"]["assetid"]
+        mod_releases = mod_json["mod"]["releases"]
         target_tag = f'v{game_version}'
-        mod_data_by_tag = get_mod_data_by_tag(mod_releases, target_tag)
-        modversion = mod_data_by_tag[0]
-        mainfile = mod_data_by_tag[1]
-        logging.debug(f"mod_data_by_tag (before sorting): {mod_data_by_tag}")
-
-        # Retrieve changelog from VS ModDB
-        # changelog = get_changelog(mod_assetid)
-        # print(f"changelog:{changelog}")   # debug
-
+        try:
+            mod_data_by_tag = get_mod_data_by_tag(mod_releases, target_tag)
+            modversion = mod_data_by_tag[0]
+            mainfile = mod_data_by_tag[1]
+            url_moddb = f"{config.URL_MODS}/show/mod/{mod_assetid}"
+            mod_info_api = {
+                'name': name,
+                'assetid': mod_assetid,
+                'game_version': game_version,
+                'modversion': modversion,
+                'mainfile': mainfile,
+                'url_moddb': url_moddb,
+                'changelog': ''
+            }
+            logging.debug(f"mod_data_by_tag (before sorting): {mod_data_by_tag}")
+            logging.debug(f"Final mod_info_api: {mod_info_api}")
+            logging.info(f"'{name}': Data successfully retrieved from API.")
+            return mod_info_api
+        except Exception as err:
+            logging.error(f'{name} - Error occurred: {err}')
+        url_moddb = f"{config.URL_MODS}/show/mod/{mod_assetid}"
         mod_info_api = {
-            'name': mod_json['mod']['name'],
-            'assetid': mod_json['mod']['assetid'],
+            'name': name,
+            'assetid': mod_assetid,
             'game_version': game_version,
-            'modversion': modversion,
-            'mainfile': mainfile,
+            'url_moddb': url_moddb,
             'changelog': ''
         }
         logging.debug(f"Final mod_info_api: {mod_info_api}")
@@ -196,7 +232,6 @@ def update_mod_cache_with_api_ata():
                                  total=len(global_cache.global_cache.mods), mod_name="")
 
         temporary_data = {}  # Temporary dictionary to store API data
-
         for mod, mod_info in global_cache.global_cache.mods.items():
             # Update progress bar with the current mod name in the custom field
             progress.update(task, advance=1, mod_name=mod_info['name'])
@@ -267,7 +302,7 @@ def get_changelog(mod_asset_id):
         logging.warning(msg_error)
 
 
-def process_and_display_changelog(changelog_html):
+def process_and_display_changelog():
     pass
 
 
@@ -275,15 +310,11 @@ mod_to_update = {}
 
 
 def check_mod_to_update():
-    # print(global_cache.global_cache.mods)  # debug
     for mod_filename, mod_details in global_cache.global_cache.mods.items():
         local_version = mod_details['local_version']
         modversion = mod_details.get('modversion')
-        # print(f"mod_filename: {mod_filename}")  # debug
-        # print(f"local_version: {local_version}\tmodversion: {modversion}")  # debug
         if modversion and Version(modversion) > Version(local_version):
             mod_to_update[mod_filename] = f'{config.URL_MODS}/{mod_details['mainfile']}'
-            # print(f'[green]{mod_details['name']} peut être mis à jour.[/green]')  # debug
     return mod_to_update
 
 

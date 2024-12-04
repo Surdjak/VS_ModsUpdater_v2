@@ -414,5 +414,8 @@ def configure_logging(logging_level):
         pass
 
 
+logging.debug(f"Loaded configuration: {global_cache.global_cache.config_cache}")
+
+
 if __name__ == "__main__":
     pass

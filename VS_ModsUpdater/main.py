@@ -26,14 +26,14 @@ TO do list:
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"
-__date__ = "2024-12-03"  # Last update
+__date__ = "2024-12-04"  # Last update
+
 
 # main.py
 
 import config
 import lang
 import global_cache
-import pdf_creation
 from utils import exit_program
 from rich import print
 from rich.console import Console
@@ -136,8 +136,9 @@ if __name__ == "__main__":
     else:
         import mods_manual_update  # noqa: F401 - Used for its side effects
 
-# tests
-mods_data = global_cache.global_cache.mods
-output_pdf_path = str(Path(config.APPLICATION_PATH).parent / "mods_list.pdf")
+    # Ask for pdf creation
+    import pdf_creation  # noqa: F401 - Used for its side effects
+    mods_data = global_cache.global_cache.mods
+    pdf_creation.generate_mod_pdf(mods_data)
 
-pdf_creation.generate_mod_pdf(mods_data, output_pdf_path)
+    # tests
