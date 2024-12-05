@@ -279,8 +279,6 @@ def load_config():
     """
     Load configuration into the global cache.
     """
-    # Retrieve latest game version
-    last_game_version = utils.get_last_game_version()
 
     # Check if the cache is already populated
     if global_cache.global_cache.config_cache:
