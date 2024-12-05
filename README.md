@@ -3,10 +3,26 @@
 <br><br>
 
 This a third-party program. It means it is NOT a mod. You do not have to put it in the mods folder.<br>
-All you have do to is :
-- extract the archive
-- run the program
-- wait while checking/updating
-- play once finished
-<p>This program checks the "mods" folder and updates the mods if necessary. Once finished, if there has been an update, it creates an updates_YYYYMMDD_HHMMSS.txt file in the "logs" folder.</p>
-<p>Before quitting the program, you can choose to generate a pdf file listing ALL your mods in the 'Mods' folder.</p>
+
+
+
+
+
+**Work In Progress !**
+
+Features :
+
+
+* The ability to choose the update mode (automatic/manual). You can decide whether to update a mod or not.
+* ~~A system for migrating old/custom configurations.~~ DONE
+* ~~Backup of mods before updating them.~~ DONE
+* ~~Improved logging and error management system~~. DONE
+* ~~Improved processing, multithreading enable.~~ DONE
+
+I still have a lot to work on; I don’t have an estimated release date yet, but progress is being made.
+If you have any suggestions, now is the time to share them. If it’s within my abilities, I’ll see what I can do.
+
+(updated 2024-12-05)
+
+
+

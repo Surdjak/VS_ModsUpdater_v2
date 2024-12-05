@@ -198,8 +198,7 @@ def create_pdf_with_table(modsdata, pdf_path):
 
         # Draw the colored background just behind the text (adjusted size)
         canvas.setFillColorRGB(240 / 255, 245 / 255, 220 / 255)
-        canvas.rect(x_position, y_position, footer_width, footer_height,
-                    fill=1)
+        canvas.roundRect(x_position, y_position, footer_width, footer_height, radius=10, fill=1)
 
         # Centered positioning of the text
         link_paragraph.drawOn(canvas,

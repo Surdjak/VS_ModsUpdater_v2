@@ -34,7 +34,7 @@ __date__ = "2024-12-04"  # Last update
 import config
 import lang
 import global_cache
-from utils import exit_program
+from utils import parse_args, update_cache_from_args, exit_program
 from rich import print
 from rich.console import Console
 from rich.prompt import Prompt
@@ -128,6 +128,12 @@ if __name__ == "__main__":
     # Initialize config before calling mods update
     initialize_config()
     import mu_script_update
+
+    # Retrieve the arguments
+    args = parse_args()
+    # Update the cache with the arguments
+    update_cache_from_args(args)
+
     welcome_display()
 
     if global_cache.global_cache.config_cache['Options']['auto_update']:
@@ -139,8 +145,8 @@ if __name__ == "__main__":
     # Ask for pdf creation
     create_pdf = Prompt.ask(
         global_cache.global_cache.language_cache['pdf_request'],
-        choices=[global_cache.global_cache.language_cache['yes'], global_cache.global_cache.language_cache['no']], default=global_cache.global_cache.language_cache['no'])
-    if create_pdf == global_cache.global_cache.language_cache['yes']:
+        choices=[global_cache.global_cache.language_cache['yes'][0], global_cache.global_cache.language_cache['no'][0]], default=global_cache.global_cache.language_cache['no'][0])
+    if create_pdf == global_cache.global_cache.language_cache['yes'][0].lower():
         import pdf_creation  # noqa: F401 - Used for its side effects
         mods_data = global_cache.global_cache.mods
         pdf_creation.generate_mod_pdf(mods_data)

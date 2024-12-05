@@ -20,8 +20,11 @@ __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"
 __date__ = "2024-11-27"  # Last update
 
+
 # utils.py
 
+import global_cache
+import argparse
 import re
 import logging
 import requests
@@ -115,29 +118,35 @@ def get_last_game_version(url_api='https://mods.vintagestory.at/api'):
         return None
 
 
-def get_current_log_file():
-    """
-    Retrieve the log file currently in use by the logging system.
-    """
-    log_file_paths = []
+def parse_args():
+    parser = argparse.ArgumentParser(description="ModsUpdater options")
 
-    # Browse all the handlers attached to the root logger.
-    for handler in logging.getLogger().handlers:
-        if isinstance(handler, logging.FileHandler):  # Check if it is a FileHandler.
-            log_file_paths.append(handler.baseFilename)  # Retrieve the file path.
+    parser.add_argument('--modspath', type=str, help='Enter the mods directory (in quotes).')
+    parser.add_argument('--language', type=str, default='en_US', help='Set the language file (default=en_US)')
+    parser.add_argument('--nopause', type=lambda x: x.lower() == 'true', default=False, help='Disable the pause at the end (default=false)')
+    parser.add_argument('--exclusion', nargs='*', type=str, help='Filenames of mods to exclude (in quotes)')
+    parser.add_argument('--forceupdate', type=lambda x: x.lower() == 'true', default=False, help='Force update all mods (default=false)')
+    parser.add_argument('--makepdf', type=lambda x: x.lower() == 'true', default=False, help='Create a PDF file (default=false)')
+    parser.add_argument('--disable_mod_dev', type=lambda x: x.lower() == 'true', default=False, help='Enable/Disable mod dev updates (default=false)')
 
-    return log_file_paths if log_file_paths else None
+    return parser.parse_args()
 
 
-def check_current_log_file():
-    """
-    For Debug and test
-    """
-    log_files = get_current_log_file()
-    if log_files:
-        print(f"Current log file(s): {log_files}")
-    else:
-        print("No log file currently in use.")
+def update_cache_from_args(args):
+    if args.modspath:
+        global_cache.global_cache.modspath = args.modspath
+    if args.language:
+        global_cache.global_cache.language = args.language
+    if args.nopause:
+        global_cache.global_cache.nopause = args.nopause == 'true'
+    if args.exclusion:
+        global_cache.global_cache.exclusion = args.exclusion
+    if args.forceupdate:
+        global_cache.global_cache.forceupdate = args.forceupdate == 'true'
+    if args.makepdf:
+        global_cache.global_cache.makepdf = args.makepdf == 'true'
+    if args.disable_mod_dev:
+        global_cache.global_cache.disable_mod_dev = args.disable_mod_dev == 'true'
 
 
 def exit_program():
