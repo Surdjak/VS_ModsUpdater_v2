@@ -279,6 +279,9 @@ def load_config():
     """
     Load configuration into the global cache.
     """
+    # Retrieve latest game version
+    last_game_version = utils.get_last_game_version()
+
     # Check if the cache is already populated
     if global_cache.global_cache.config_cache:
         return global_cache.global_cache.config_cache
@@ -295,6 +298,15 @@ def load_config():
         global_cache.global_cache.config_cache[section] = {
             key: value for key, value in config.items(section)
         }
+
+    # Retrieve the latest game version if not provided
+    if not global_cache.global_cache.config_cache.get('Game_Version', {}).get('version'):
+        latest_game_version = utils.get_last_game_version()
+        if latest_game_version:
+            global_cache.global_cache.config_cache.setdefault('Game_Version', {})['version'] = latest_game_version
+            logging.info(f"Game version set to latest: {latest_game_version}")
+        else:
+            logging.warning("Unable to fetch the latest game version. Leaving it blank.")
 
     return global_cache.global_cache.config_cache
 
@@ -348,11 +360,10 @@ def ask_language_choice():
 
 def ask_game_version():
     """Ask the user to select the game version the first script launch."""
-    last_game_version = utils.get_last_game_version()
     while True:
         game_version = Prompt.ask(
             'What version of the game are you using? (Format: major.minor.patch, e.g., 1.19.8 or leave blank to use the latest game version)',
-            default=last_game_version
+            default=""
             )
         # If valid, complete and return the version
         if utils.is_valid_version(game_version):
