@@ -29,7 +29,8 @@
 
 	"tqdm_retrieving_data_update": "Récupération des informations de mise à jour...",
 
-	"pdf_title": "Liste des mods installés",
+	"pdf_request": "Voulez-vous créer un fichier pdf de la liste des mods contenus dans votre dossier 'mods' ?",
+	"pdf_title": "mods installés",
 	"pdf_creation": "Création du PDF en cours",
 	"pdf_creation_finished": "Création du PDF terminée."
 }

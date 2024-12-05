@@ -137,9 +137,16 @@ if __name__ == "__main__":
         import mods_manual_update  # noqa: F401 - Used for its side effects
 
     # Ask for pdf creation
+    create_pdf = Prompt.ask(
+        global_cache.global_cache.language_cache['pdf_request'],
+        choices=[global_cache.global_cache.language_cache['yes'], global_cache.global_cache.language_cache['no']], default=global_cache.global_cache.language_cache['no'])
+    if create_pdf == global_cache.global_cache.language_cache['yes']:
+        import pdf_creation  # noqa: F401 - Used for its side effects
+        mods_data = global_cache.global_cache.mods
+        pdf_creation.generate_mod_pdf(mods_data)
+        console.print(f"\n[green]{global_cache.global_cache.language_cache['pdf_creation_finished']}[/green]")
 
-    import pdf_creation  # noqa: F401 - Used for its side effects
-    mods_data = global_cache.global_cache.mods
-    pdf_creation.generate_mod_pdf(mods_data)
+    console.print(f"\n{global_cache.global_cache.language_cache['exiting_program']}")
+    exit_program()
 
     # tests

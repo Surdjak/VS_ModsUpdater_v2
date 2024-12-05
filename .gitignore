@@ -49,8 +49,6 @@ ruff_cache/
 *.old
 /logs/
 /temp/
-/extrainfo.json
-/info_mod.ods
 /tests/
 /.venv/
 /_divers/
@@ -64,4 +62,4 @@ ruff_cache/
 /config_140.ini
 /TODO_LIST.txt
 /mods_list.pdf
-/VS_Mods_2024_12_04.pdf
+*.pdf

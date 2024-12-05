@@ -23,7 +23,7 @@ Vintage Story mod management:
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"
-__date__ = "2024-12-04"  # Last update
+__date__ = "2024-12-05"  # Last update
 
 
 # pdf_creation.py
@@ -122,7 +122,6 @@ def create_pdf_with_table(modsdata, pdf_path):
     bold_freesans_path = Path(config.APPLICATION_PATH).parent / 'fonts' / 'FreeSansBold.ttf'
     pdfmetrics.registerFont(TTFont('FreeSansBold', bold_freesans_path))
 
-    # Exemple de styles pour le texte
     styles = getSampleStyleSheet()
     style_normal = styles["Normal"]
     style_normal.fontName = "FreeSans"
@@ -148,35 +147,67 @@ def create_pdf_with_table(modsdata, pdf_path):
     # Add a space of 50 points below the image
     elements.append(Spacer(1, 50))
 
-    # Draw background function
     def draw_background(canvas, doc):
-        canvas.setFillColorRGB(200/255, 220/255, 160/255)  # Vert très pâle en RGB (moins flashy)
-        canvas.rect(0, 0, A4[0], A4[1], fill=1)  # Fill the entire page
+        # Path to the background image
+        background_path = Path(
+            config.APPLICATION_PATH).parent / 'assets' / 'background.jpg'
+
+        if background_path.exists():
+            try:
+                # Page Dimensions
+                page_width, page_height = A4
+
+                # Direct use of ReportLab to display the image
+                canvas.drawImage(
+                    str(background_path),
+                    0,  # Position X
+                    0,  # Position Y
+                    width=page_width,
+                    height=page_height,
+                    preserveAspectRatio=True,
+                    mask='auto'  # Transparence
+                )
+            except Exception as error:
+                logging.error(f"Error displaying background image: {error}")
+                # Fallback en cas d'échec
+                canvas.setFillColorRGB(200 / 255, 220 / 255, 160 / 255)
+                canvas.rect(0, 0, A4[0], A4[1], fill=1)
+        else:
+            # Fallback if the image does not exist
+            canvas.setFillColorRGB(200 / 255, 220 / 255, 160 / 255)
+            canvas.rect(0, 0, A4[0], A4[1], fill=1)
 
     # Add a link at the bottom-right corner (footer) of the page
     def draw_footer(canvas, doc):
-        # Création du style pour le lien
-        styles = getSampleStyleSheet()
-        link_style = styles["Normal"].clone("LinkStyle")
-        link_style.textColor = colors.black
-        link_style.fontSize = 8
+        # Creating the style for the link
+        styles_local = getSampleStyleSheet()
+        link_style_custom = styles_local["Normal"].clone("LinkStyle")
+        link_style_custom.textColor = colors.black
+        link_style_custom.fontSize = 8
 
-        # Le texte du lien
+        # The footer text
         footer_text = '<a href="https://mods.vintagestory.at/modsupdater">ModsUpdater by Laerinok</a>'
-        # Création du paragraphe avec le lien
-        link_paragraph = Paragraph(footer_text, link_style)
+        link_paragraph = Paragraph(footer_text, link_style_custom)
 
-        # Calcul de la position du texte
-        x = A4[0] - 110  # Position horizontale du texte
-        y = 10  # Position verticale du texte
+        # Calculating the text size (width and height)
+        footer_width, footer_height = link_paragraph.wrap(A4[0] - 475, 100)  # 120 x 100
+        text_width = footer_width
+        text_height = footer_height
+        x_position = A4[0] - text_width - 20
+        y_position = 10  # Marge du bas
 
-        # Dessiner le paragraphe avec le lien sur le canvas
-        link_paragraph.wrapOn(canvas, A4[0] - 40,
-                              100)  # Taille de l'espace disponible pour le lien
-        link_paragraph.drawOn(canvas, x, y)
+        # Draw the colored background just behind the text (adjusted size)
+        canvas.setFillColorRGB(240 / 255, 245 / 255, 220 / 255)
+        canvas.rect(x_position, y_position, footer_width, footer_height,
+                    fill=1)
+
+        # Centered positioning of the text
+        link_paragraph.drawOn(canvas,
+                              x_position + (footer_width - text_width) / 2 + 15,
+                              y_position + (footer_height - text_height) / 2)
 
     # Title
-    elements.append(Paragraph(f"{global_cache.global_cache.language_cache['pdf_title']} ({num_mods} mods)", style_title))
+    elements.append(Paragraph(f"{num_mods} {global_cache.global_cache.language_cache['pdf_title']}", style_title))
 
     # Add a space below the title
     elements.append(Spacer(1, 10))
@@ -186,7 +217,7 @@ def create_pdf_with_table(modsdata, pdf_path):
     data = []  # no header (empty table. the first entry is the header)
 
     # Fill the table with mod data
-    row_colors = [(204/255, 221/255, 168/255), (240/255, 245/255, 230/255)]  # Couleurs de lignes plus douces
+    row_colors = [(204/255, 221/255, 168/255), (240/255, 245/255, 230/255)]
     for idx, mod_info in enumerate(modsdata.values()):
         # Icon (with direct insertion, not HTML)
         icon = mod_info.get("icon")
@@ -224,7 +255,7 @@ def create_pdf_with_table(modsdata, pdf_path):
         data.append([icon_image, name_and_version_paragraph, description_paragraph])
 
     # Create the table
-    table = Table(data, colWidths=[50, 150, 300])  # Adjust column widths
+    table = Table(data, colWidths=[30, 180, 330])  # Adjust column widths
     table.setStyle(TableStyle([
         ('ALIGN', (0, 0), (0, -1), 'CENTER'),                       # Center horizontal align
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),                      # Middle vertical align
@@ -241,11 +272,11 @@ def create_pdf_with_table(modsdata, pdf_path):
         # Build the PDF
         doc.build(elements,
                   onFirstPage=draw_background,
-                  onLaterPages=lambda canvas, doc: [draw_background(canvas, doc),draw_footer(canvas, doc)])
+                  onLaterPages=lambda canvas, doc: [draw_background(canvas, doc), draw_footer(canvas, doc)])
         logging.info(f"PDF successfully created: {pdf_path}")
     except PermissionError as e:
         print(f"PermissionError: Unable to access the file '{pdf_path}'. The file may be open or in use by another process.\nPlease close any applications that may be using the file and try again.")
-        logging.error(f"PermissionError: Unable to access the file '{pdf_path}'. The file may be open or in use by another process. Please close any applications that may be using the file and try again.")
+        logging.error(f"{e} - PermissionError: Unable to access the file '{pdf_path}'. ")
         sys.exit()
 
 
@@ -270,9 +301,9 @@ def generate_mod_pdf(mod_info_data):
     total_mods = len(mod_info_data)
     logging.info(f"Preparing data for {total_mods} mods.")
 
-    # Utilisation de Rich Progress
+    # Use of Rich Progress
     with Progress(
-            "[progress.description]" + global_cache.global_cache.language_cache['pdf_creation'],
+            "[progress.description]" + f"[green]{global_cache.global_cache.language_cache['pdf_creation']}[/green]",
             BarColumn(bar_width=30, finished_style="green",
                       complete_style="bold green"),
             "[progress.percentage]{task.percentage:>3.0f}%",
@@ -281,12 +312,12 @@ def generate_mod_pdf(mod_info_data):
             transient=False,
     ) as progress:
         task = progress.add_task(
-            global_cache.global_cache.language_cache['pdf_creation'], total=total_mods,
+            f"{global_cache.global_cache.language_cache['pdf_creation']}", total=total_mods,
             mod_name="")
 
         for mod, mod_info in mod_info_data.items():
             mod_name = mod_info['name']
-            progress.update(task, advance=1, mod_name=mod_name)  # Met à jour mod_name
+            progress.update(task, advance=1, mod_name=mod_name)  # Update mod_name
 
             logging.debug(f"Processing mod: {mod} - {mod_name}")
             mod_zip_path = str(
@@ -303,14 +334,10 @@ def generate_mod_pdf(mod_info_data):
             except Exception as e:
                 logging.error(f"Error processing mod: {mod} - {e}")
 
-            # Avancer la barre de progression
-            # progress.update(task, advance=1, mod_name=mod_name)
-
     global_cache.global_cache.total_mods = total_mods
     logging.info(f"Total mods processed: {total_mods}")
 
     logging.info("Generating PDF document.")
 
     create_pdf_with_table(mod_info_for_pdf, output_pdf_path)
-    print(f"{global_cache.global_cache.language_cache['pdf_creation_finished']}")
     logging.info(f"PDF generation complete: {output_pdf_path}")
