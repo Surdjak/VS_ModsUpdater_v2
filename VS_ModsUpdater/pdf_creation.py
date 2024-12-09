@@ -23,7 +23,7 @@ Vintage Story mod management:
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"
-__date__ = "2024-12-05"  # Last update
+__date__ = "2024-12-09"  # Last update
 
 
 # pdf_creation.py
@@ -80,24 +80,51 @@ def resize_image(image_data, max_width=100, max_height=100):
 def extract_icon(zip_path):
     """
     Extracts and resizes 'modicon.png' from the ZIP archive.
-    If not found, returns None.
-    If found, resizes and returns the icon as a ReportLab-compatible object.
+    If the file is not a ZIP file or doesn't contain 'modicon.png', returns a default icon ('assets/no_icon.png').
+    If the file is a ZIP and contains 'modicon.png', resizes and returns the icon.
     """
     try:
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            if 'modicon.png' in zip_ref.namelist():
-                # Read 'modicon.png'
+        # Check if the file is a ZIP file
+        if zip_path.suffix.lower() == '.zip':
+            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                # If 'modicon.png' is not in the ZIP, treat it like a non-ZIP file and use default icon
+                if 'modicon.png' not in zip_ref.namelist():
+                    logging.debug(
+                        f"'modicon.png' not found in {zip_path}, using default icon.")
+                    return get_default_icon()
+
+                # Read 'modicon.png' from the ZIP
                 icon_data = zip_ref.read('modicon.png')
                 logging.debug(f"Found 'modicon.png' in {zip_path}.")
                 # Resize the image (adjust max width/height as needed)
                 resized_icon = resize_image(icon_data, max_width=100, max_height=100)
                 if resized_icon:
                     return resized_icon
-            else:
-                logging.debug(f"'modicon.png' not found in {zip_path}.")
+
+        # If it's not a ZIP file or 'modicon.png' was not found, use the default icon
+        return get_default_icon()
+
     except Exception as e:
         logging.error(f"Error extracting icon from {zip_path}: {e}")
-    return None
+        return get_default_icon()
+
+
+def get_default_icon():
+    """
+    Loads and resizes the default icon ('assets/no_icon.png').
+    """
+    default_icon_path = Path(config.APPLICATION_PATH).parent / 'assets' / 'no_icon.png'
+    if default_icon_path.exists():
+        with open(default_icon_path, 'rb') as f:
+            icon_data = f.read()
+        logging.debug(f"Using default icon from {default_icon_path}.")
+        # Resize the default icon
+        resized_icon = resize_image(icon_data, max_width=100, max_height=100)
+        if resized_icon:
+            return resized_icon
+    else:
+        logging.debug(f"Default icon 'no_icon.png' not found at {default_icon_path}.")
+        return None  # Return None if default icon is not found
 
 
 # Function to create the PDF with Platypus.Table
@@ -319,8 +346,7 @@ def generate_mod_pdf(mod_info_data):
             progress.update(task, advance=1, mod_name=mod_name)  # Update mod_name
 
             logging.debug(f"Processing mod: {mod} - {mod_name}")
-            mod_zip_path = str(
-                f"{global_cache.global_cache.config_cache['ModsPath']['path']}/{mod}")
+            mod_zip_path = Path(global_cache.global_cache.config_cache['ModsPath']['path']) / mod
 
             try:
                 mod_info_for_pdf[mod] = {

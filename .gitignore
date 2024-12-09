@@ -51,6 +51,7 @@ ruff_cache/
 # Ajouts perso
 *.pdf
 *.ini
+*.zip
 /logs/
 /temp/
 /tests/

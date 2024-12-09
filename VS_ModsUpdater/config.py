@@ -23,7 +23,7 @@
 
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"  # Don't forget to change EXPECTED_VERSION
-__date__ = "2024-12-03"  # Last update
+__date__ = "2024-12-09"  # Last update
 
 
 # config.py
@@ -45,11 +45,11 @@ from rich.prompt import Prompt
 EXPECTED_VERSION = "2.0.0-dev1"
 
 # Constants for paths
-APPLICATION_PATH = os.getcwd()
-CONFIG_FILE = Path(APPLICATION_PATH).parent / Path('config.ini')
-TEMP_PATH = Path(APPLICATION_PATH).parent / Path('temp')
-LOGS_PATH = Path(APPLICATION_PATH).parent / Path('logs')
-LANG_PATH = Path(APPLICATION_PATH).parent / Path('lang')
+APPLICATION_PATH = Path.cwd()  # Utilise Path.cwd() directement pour obtenir le répertoire de travail actuel
+CONFIG_FILE = APPLICATION_PATH.parent / 'config.ini'
+TEMP_PATH = APPLICATION_PATH.parent / 'temp'
+LOGS_PATH = APPLICATION_PATH.parent / 'logs'
+LANG_PATH = APPLICATION_PATH.parent / 'lang'
 
 # Constants for supported languages
 SUPPORTED_LANGUAGES = {
