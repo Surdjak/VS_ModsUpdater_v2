@@ -33,7 +33,7 @@ from urllib.parse import urlparse
 import logging
 import requests
 from rich import print
-from rich.progress import Progress, BarColumn, FileSizeColumn, TextColumn
+from rich.progress import Progress, BarColumn, FileSizeColumn
 
 import config
 import global_cache
@@ -115,12 +115,13 @@ def auto_download_parallel():
             }
 
             for future in futures:
+                mod = futures[future]
                 try:
                     future.result()  # Wait for completion
                     progress.update(download_task, advance=1, mod_name=mod)
                 except Exception as e:
                     mod = futures[future]
-                    logging.error(f"Failed to download mod {mod}: {e}")
+                    logging.error(f"Failed to download mod {mod} : {e}\n")
 
 
 # Update mod_cache info

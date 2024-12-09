@@ -14,6 +14,7 @@ Features :
 
 
 * The ability to choose the update mode (automatic/manual). You can decide whether to update a mod or not.
+* Downgrading mods: use a lower game version + force_update = true
 * ~~A system for migrating old/custom configurations.~~ DONE
 * ~~Backup of mods before updating them.~~ DONE
 * ~~Improved logging and error management system~~. DONE
