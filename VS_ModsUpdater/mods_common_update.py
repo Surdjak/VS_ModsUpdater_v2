@@ -22,7 +22,7 @@ Vintage Story mod management:
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"
-__date__ = "2024-12-04"  # Last update
+__date__ = "2024-12-16"  # Last update
 
 # mods_common_update.py
 
@@ -291,7 +291,6 @@ def get_changelog(mod_asset_id):
         page = req_page_url.content
         soup = BeautifulSoup(page, features="html.parser")
         changelog_div = soup.find("div", {"class": "changelogtext"})
-        print(changelog_div)  # debug
 
     except requests.exceptions.ReadTimeout:
         logging.warning('ReadTimeout error: Server did not respond within the specified timeout.')
@@ -306,15 +305,24 @@ def process_and_display_changelog():
     pass
 
 
-mod_to_update = {}
-
-
 def check_mod_to_update():
+    mod_to_update = {}
+    # Récupération de l'option depuis config_cache
+    disable_mod_dev = global_cache.global_cache.config_cache['Options'].get('disable_mod_dev', 'false').lower() == 'true'
+
     for mod_filename, mod_details in global_cache.global_cache.mods.items():
         local_version = mod_details['local_version']
         modversion = mod_details.get('modversion')
-        if modversion and Version(modversion) > Version(local_version):
-            mod_to_update[mod_filename] = f'{config.URL_MODS}/{mod_details['mainfile']}'
+
+        if modversion:
+            version_obj = Version(modversion)
+            # Vérification si la version est plus récente
+            if version_obj > Version(local_version):
+                # Vérifie si les versions pré-release doivent être ignorées
+                if disable_mod_dev and version_obj.is_prerelease:
+                    continue
+                mod_to_update[mod_filename] = f"{config.URL_MODS}/{mod_details['mainfile']}"
+
     return mod_to_update
 
 

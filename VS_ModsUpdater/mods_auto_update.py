@@ -134,7 +134,6 @@ mods_to_update = mods_common_update.check_mod_to_update()
 # Filter mods to update
 mods_to_update = {mod: url for mod, url in mods_to_update.items() if mod not in excluded_mods}
 
-
 # Download Mods in Parallel
 if len(mods_to_update) > 0:
     print(f"\n{global_cache.global_cache.language_cache['auto_update_following_mods']}")
