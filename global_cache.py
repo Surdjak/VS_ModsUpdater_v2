@@ -20,15 +20,13 @@
 Global Cache Management for Vintage Story Mod Updater
 
 This module handles caching for various global data used throughout the script. It manages:
-- Configuration data loaded from config.ini
-- System information like paths and environment variables
+- Configuration data loaded from config.ini / System information like paths and environment variables
 - Language translations loaded from JSON files
 - Mod-related data (mod info, updates, etc.)
-- Logging data
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"
-__date__ = "2025-03-21"  # Last update
+__date__ = "2025-03-22"  # Last update
 
 
 # global_cache.py
@@ -36,6 +34,8 @@ __date__ = "2025-03-21"  # Last update
 
 config_cache = {}  # Configuration cache
 language_cache = {}  # Translation cache
-mods_data = {"Local_Mods": [],
-             "Distant_Mods": []}  # Mod cache
+mods_data = {"installed_mods": [],
+             "excluded_mods": [],
+             "mods_to_update": []
+             }  # Mod cache
 total_mods = 0

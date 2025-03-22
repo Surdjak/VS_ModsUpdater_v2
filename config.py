@@ -272,11 +272,13 @@ def load_config():
         config = configparser.ConfigParser()
         config.read(CONFIG_FILE)
 
+        # ### Populate global_cache ###
+        global_cache.config_cache['APPLICATION_PATH'] = APPLICATION_PATH
+        global_cache.config_cache["SYSTEM"] = platform.system()
         # Fill the global cache with config.ini data
         for section in config.sections():
             global_cache.config_cache[section] = {key: value for key, value in
                                                   config.items(section)}
-
         # Fill with constants
         global_cache.config_cache['SYSTEM'] = platform.system()
         global_cache.config_cache['HOME_PATH'] = Path.home()
@@ -285,9 +287,27 @@ def load_config():
         global_cache.config_cache['URL_BASE_MOD_DOWNLOAD'] = URL_BASE_MOD_DOWNLOAD
         global_cache.config_cache['URL_BASE_MODS'] = URL_BASE_MODS
         global_cache.config_cache['URL_MOD_DB'] = URL_MOD_DB
-
-        # Fill cahe with user-agent
+        # Paths
+        global_cache.config_cache["MODS_PATHS"] = {
+            "Windows": Path(
+                HOME_PATH) / 'AppData' / 'Roaming' / 'VintagestoryData' / 'Mods',
+            "Linux": Path(XDG_CONFIG_HOME_PATH) / 'VintagestoryData' / 'Mods'
+        }
+        global_cache.config_cache["MODS_PATHS"] = {
+            "Windows": Path(
+                HOME_PATH) / 'AppData' / 'Roaming' / 'VintagestoryData' / 'Mods',
+            "Linux": Path(XDG_CONFIG_HOME_PATH) / 'VintagestoryData' / 'Mods'
+        }
+        # Fill cache with user-agent
         global_cache.config_cache['USER_AGENTS'] = USER_AGENTS
+
+        # Retrieve excluded mods from the config file
+        excluded_mods = config.get("Mod_Exclusion", "mods", fallback="").split(", ")
+
+        # Ensure we don't have empty strings in the list
+        excluded_mods = [mod.strip() for mod in excluded_mods if mod.strip()]
+        for mod in excluded_mods:
+            global_cache.mods_data["excluded_mods"].append({"Filename": mod})
 
         # Handle the game version
         if not global_cache.config_cache.get('Game_Version', {}).get('version'):
@@ -390,7 +410,7 @@ def configure_logging(logging_level):
         log_file = Path(LOGS_PATH) / f'app_log.txt'
 
         # Créer un handler pour le fichier.
-        file_handler = logging.FileHandler(log_file, mode='w')
+        file_handler = logging.FileHandler(log_file, mode='w', encoding='utf-8')
         file_handler.setLevel(logging.DEBUG)  # Défini par défaut à DEBUG, mais mis à jour après
 
         # Créer un format de log.

@@ -32,6 +32,7 @@ import sys
 import random
 import time
 import zipfile
+from urllib.parse import urlparse, parse_qs
 from packaging.version import Version, InvalidVersion
 
 
@@ -57,6 +58,11 @@ def print_mods_data():
     print(global_cache.mods_data)
 
 # #### END ####
+
+
+def setup_directories(path_dir):
+    if not path_dir.exists():
+        path_dir.mkdir(parents=True, exist_ok=True)
 
 
 def get_random_headers():
@@ -99,11 +105,6 @@ def version_compare(local_version, online_version):
     else:
         new_version = False
         return new_version
-
-
-def setup_directories(path_dir):
-    if not path_dir.exists():
-        path_dir.mkdir(parents=True, exist_ok=True)
 
 
 def log_error(message):
@@ -151,6 +152,39 @@ def get_last_game_version(url_api='https://mods.vintagestory.at/api'):
         return None
 
 
+def extract_filename_from_url(url):
+    # Parse the URL and get the query parameters
+    parsed_url = urlparse(url)
+    query_params = parse_qs(parsed_url.query)
+    # Extract the filename from the 'dl' parameter
+    filename = query_params.get('dl', [None])[0]
+    return filename
+
+
+def check_excluded_mods():
+    """
+    Retrieve excluded mods from the config file and ensure they exist in the mods folder.
+    """
+    # Correct usage of the get method
+    excluded_mods = global_cache.config_cache.get("Mod_Exclusion", {}).get("mods", "").split(", ")
+
+    # Ensure we don't have empty strings in the list
+    excluded_mods = [mod.strip() for mod in excluded_mods if mod.strip()]
+
+    # Retrieve the absolute path of the mods folder
+    mods_folder_path = global_cache.config_cache["MODS_PATHS"][global_cache.config_cache["SYSTEM"]].resolve()
+
+    # Clear the previous excluded mods in global_cache
+    # global_cache.mods_data["excluded_mods"] = []
+
+    for mod in excluded_mods:
+        # Check if the file exists in the mods folder
+        mod_file_path = mods_folder_path / mod  # Build the path to the mod file
+        if mod_file_path.exists():
+            global_cache.mods_data["excluded_mods"].append({"Filename": mod})
+            logging.info(f"Excluded mod added: {mod}")
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="ModsUpdater options")
 
@@ -165,6 +199,8 @@ def parse_args():
     return parser.parse_args()
 
 
-def exit_program():
+def exit_program(msg="Program terminated"):
+    print(f"{msg}")
+    logging.info(msg)
     time.sleep(2)  # 2-second delay to give the user time to read the message.
     sys.exit()

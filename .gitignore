@@ -65,3 +65,7 @@ ruff_cache/
 /new_features.txt
 /TODO_LIST.txt
 /ROADMAP.txt
+/PyInstaller/spec/file_version_info.txt
+/PyInstaller/spec/vintagestory.ico
+/VS_ModsUpdater.exe
+/PyInstaller/spec/VS_ModsUpdater.spec

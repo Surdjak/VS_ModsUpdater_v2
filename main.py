@@ -41,6 +41,7 @@ import fetch_mod_info
 import global_cache
 import lang
 from utils import exit_program
+import mods_auto_update
 
 console = Console()
 
@@ -85,7 +86,7 @@ def initialize_config():
                 return
             elif user_confirms_update == global_cache.language_cache["no"][0].lower():
                 print(global_cache.language_cache["exiting_program"])
-                exit_program()
+                exit_program("User chose to exit the update process.")
 
             else:
                 pass
@@ -133,6 +134,19 @@ if __name__ == "__main__":
     print("\n\n")
 
     # Fetch mods info
-    fetch_mod_info.list_mods(fetch_mod_info.get_mod_path())
-    # print(global_cache.mods_data)
+    fetch_mod_info.scan_and_fetch_mod_info(fetch_mod_info.get_mod_path())
+
+    # Auto update mods
+    mods_auto_update.get_mods_to_update(global_cache.mods_data)
+
+    # Backup mods before Download
+    mods_to_backup = [mod['Filename'] for mod in global_cache.mods_data.get('mods_to_update', [])]
+    mods_auto_update.backup_mods(mods_to_backup)
+
+    # Download Mods
+    mods_to_download = global_cache.mods_data.get('mods_to_update', [])
+    mods_auto_update.download_mods_to_update(mods_to_download)
+
+    # print(global_cache.mods_data)  # debug
+    # End of programm
     exit_program()
