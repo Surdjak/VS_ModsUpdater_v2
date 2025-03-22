@@ -18,7 +18,7 @@
 
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"
-__date__ = "2024-11-27"  # Last update
+__date__ = "2025-03-22"  # Last update
 
 
 # utils.py
@@ -29,14 +29,49 @@ import re
 import logging
 import requests
 import sys
+import random
 import time
+import zipfile
 from packaging.version import Version, InvalidVersion
 
 
-def print_dict(dictionary):  # For test and debug
+# #### For test and debug ####
+def print_dict(dictionary):
     """Print a dictionary in a structured format."""
     for key, value in dictionary.items():
         print(f"{key}: {value}")
+
+
+def print_config_cache():
+    """ Print the global_cache"""
+    print(global_cache.config_cache)
+
+
+def print_language_cache():
+    """ Print the global_cache"""
+    print(global_cache.language_cache)
+
+
+def print_mods_data():
+    """ Print the global_cache"""
+    print(global_cache.mods_data)
+
+# #### END ####
+
+
+def get_random_headers():
+    """Returns a random User-Agent from the predefined list."""
+    return {"User-Agent": random.choice(global_cache.config_cache['USER_AGENTS'])}
+
+
+def is_zip_valid(zip_path):
+    """Checks if a zip file is valid and not corrupted."""
+    try:
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.testzip()  # Tests the integrity of the zip file
+        return True
+    except (zipfile.BadZipFile, zipfile.LargeZipFile):
+        return False
 
 
 def normalize_keys(d):
@@ -53,8 +88,6 @@ def fix_json(json_data):
     # Correction 1 : Remove final commas
     json_data = re.sub(r",\s*([}\]])", r"\1", json_data)
 
-    # Correction 2 : Add missing quotation marks around keys
-    json_data = re.sub(r'(?<!")(\b\w+\b)(?=\s*:)', r'"\1"', json_data)
     return json_data
 
 
@@ -130,23 +163,6 @@ def parse_args():
     parser.add_argument('--disable_mod_dev', type=lambda x: x.lower() == 'true', default=False, help='Enable/Disable mod dev updates (default=false)')
 
     return parser.parse_args()
-
-
-def update_cache_from_args(args):
-    if args.modspath:
-        global_cache.global_cache.modspath = args.modspath
-    if args.language:
-        global_cache.global_cache.language = args.language
-    if args.nopause:
-        global_cache.global_cache.nopause = args.nopause == 'true'
-    if args.exclusion:
-        global_cache.global_cache.exclusion = args.exclusion
-    if args.forceupdate:
-        global_cache.global_cache.forceupdate = args.forceupdate == 'true'
-    if args.makepdf:
-        global_cache.global_cache.makepdf = args.makepdf == 'true'
-    if args.disable_mod_dev:
-        global_cache.global_cache.disable_mod_dev = args.disable_mod_dev == 'true'
 
 
 def exit_program():

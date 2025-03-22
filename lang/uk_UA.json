@@ -13,7 +13,7 @@
 	"first_launch_manual_update": "Ручне",
 	"first_launch_auto_update": "Автоматичне",
 	"first_launch_confirms_update_info": "Ви можете продовжити оновлення або вийти, щоб змінити файл config.ini (наприклад, для виключення деяких модів з оновлення)",
-	"first_launch_confirms_update": "Чи бажаєте продовжити (так/ні)?",
+	"first_launch_confirms_update": "Чи бажаєте продовжити ?",
 
 	"exiting_program": "Вихід з програми",
 

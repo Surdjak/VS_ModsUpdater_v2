@@ -23,20 +23,18 @@
 
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"  # Don't forget to change EXPECTED_VERSION
-__date__ = "2024-12-09"  # Last update
+__date__ = "2025-03-22"  # Last update
 
 
 # config.py
 
-
-# from global_cache import global_cache
-import global_cache
 import configparser
+import global_cache
+import platform
 import os
 import logging
 import utils
 from pathlib import Path
-import datetime as dt
 from rich import print
 from rich.prompt import Prompt
 
@@ -44,12 +42,22 @@ from rich.prompt import Prompt
 # The target version after migration
 EXPECTED_VERSION = "2.0.0-dev1"
 
+# Constant for os
+SYSTEM = platform.system()
+HOME_PATH = Path.home()
+XDG_CONFIG_HOME_PATH = os.getenv('XDG_CONFIG_HOME', os.path.expanduser('~/.config'))
+
+MODS_PATHS = {
+    "Windows": Path(HOME_PATH) / 'AppData' / 'Roaming' / 'VintagestoryData' / 'Mods',
+    "Linux": Path(XDG_CONFIG_HOME_PATH) / 'VintagestoryData' / 'Mods'
+}
+
 # Constants for paths
-APPLICATION_PATH = Path.cwd()  # Utilise Path.cwd() directement pour obtenir le répertoire de travail actuel
-CONFIG_FILE = APPLICATION_PATH.parent / 'config.ini'
-TEMP_PATH = APPLICATION_PATH.parent / 'temp'
-LOGS_PATH = APPLICATION_PATH.parent / 'logs'
-LANG_PATH = APPLICATION_PATH.parent / 'lang'
+APPLICATION_PATH = Path.cwd()
+CONFIG_FILE = APPLICATION_PATH / 'config.ini'
+TEMP_PATH = APPLICATION_PATH / 'temp'
+LOGS_PATH = APPLICATION_PATH / 'logs'
+LANG_PATH = APPLICATION_PATH / 'lang'
 
 # Constants for supported languages
 SUPPORTED_LANGUAGES = {
@@ -60,8 +68,10 @@ SUPPORTED_LANGUAGES = {
 DEFAULT_LANGUAGE = "en_US"
 
 # Constants for url
-URL_MODS = 'https://mods.vintagestory.at'
-URL_API = 'https://mods.vintagestory.at/api'
+URL_BASE_MOD_API = "https://mods.vintagestory.at/api/mod/"
+URL_BASE_MOD_DOWNLOAD = "https://moddbcdn.vintagestory.at/"
+URL_BASE_MODS = 'https://mods.vintagestory.at/'
+URL_MOD_DB = "https://mods.vintagestory.at/show/mod/"
 URL_SCRIPT = {
     "windows": 'https://mods.vintagestory.at/modsupdater#tab-files',
     "linux": 'https://mods.vintagestory.at/modsupdaterforlinux#tab-files'
@@ -73,43 +83,11 @@ DEFAULT_CONFIG = {
     "Logging": {"log_level": "INFO"},
     "Options": {"force_update": "false", "disable_mod_dev": "false", "auto_update": "true", "max_workers": 4},
     "Backup_Mods": {"backup_folder": "backup_mods", "max_backups": 3},
-    "ModsPath": {"path": str(global_cache.MODS_PATHS[global_cache.SYSTEM])},
+    "ModsPath": {"path": str(MODS_PATHS[SYSTEM])},
     "Language": {"language": DEFAULT_LANGUAGE},
     "Game_Version": {"version": ""},
     "Mod_Exclusion": {'mods': ""}
 }
-
-# Maximum number of files to process simultaneously, best = nb of core of the processor
-# MAX_WORKERS = 10  # à changer par valeur de config.ini
-
-
-# Checks the configuration version in the cache
-def get_config_version_from_cache():
-    try:
-        return global_cache.global_cache.config_cache['ModsUpdater']['version']
-    except KeyError:
-        return None  # If the version is not present in the cache
-
-
-def read_version_from_config_file():
-    config = configparser.ConfigParser()
-    config.read(CONFIG_FILE)  # Read the configuration file
-    return config.get('ModsUpdater', 'version', fallback=None)
-
-
-def migrate_config_if_needed():
-    # Check the current version of the configuration file
-    current_version = get_config_version_from_cache()  # Retrieve the config version from the global cache
-
-    # If the current version is None (cache doesn't exist), read directly from config.ini
-    if current_version is None:
-        current_version = read_version_from_config_file()  # Function to read the version from config.ini
-    if current_version != EXPECTED_VERSION:
-        # If the configuration version is outdated, initiate the migration
-        old_config = configparser.ConfigParser()
-        old_config.read(CONFIG_FILE)  # Read the current configuration file
-        migrate_config(old_config)  # Migrate the configuration to the new version
-
 
 # Mapping for renamed sections or options
 RENAME_MAP = {
@@ -127,6 +105,33 @@ RENAME_MAP = {
     "mod9": "mods",
     "mod10": "mods",
 }
+
+# Static list of User-Agents
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:115.0) Gecko/20100101 Firefox/115.0",
+]
+
+# Maximum number of files to process simultaneously, best = nb of core of the processor
+# MAX_WORKERS = 10  # à changer par valeur de config.ini
+
+
+def read_version_from_config_file():
+    config = configparser.ConfigParser()
+    config.read(CONFIG_FILE)  # Read the configuration file
+    return config.get('ModsUpdater', 'version', fallback=None)
+
+
+def migrate_config_if_needed():
+    current_version = read_version_from_config_file()  # Function to read the version from config.ini
+    if current_version != EXPECTED_VERSION:
+        # If the configuration version is outdated, initiate the migration
+        old_config = configparser.ConfigParser()
+        old_config.read(CONFIG_FILE)  # Read the current configuration file
+        migrate_config(old_config)  # Migrate the configuration to the new version
 
 
 def migrate_config(old_config):
@@ -234,23 +239,6 @@ def migrate_config(old_config):
         print(f"Configuration migrated successfully to version {EXPECTED_VERSION}.")
     except Exception as e:
         logging.error("Error occurred while writing the migrated config: %s", str(e))
-    # After creating or updating the config.ini file.
-    reload_global_cache_config()
-
-
-def reload_global_cache_config():
-    """
-    Reload the configuration into the global cache after creating or migrating config.ini.
-    """
-    global_cache.global_cache.config_cache.clear()  # Vider l'ancien cache
-    config = configparser.ConfigParser()
-    try:
-        config.read(CONFIG_FILE)
-        for section in config.sections():
-            global_cache.global_cache.config_cache[section] = dict(config.items(section))
-        logging.debug("Global cache updated with new configuration.")
-    except Exception as e:
-        logging.error(f"Failed to reload configuration into global cache: {e}")
 
 
 def create_config(language, mod_folder, game_version, auto_update):
@@ -276,37 +264,48 @@ def create_config(language, mod_folder, game_version, auto_update):
 
 
 def load_config():
-    """
-    Load configuration into the global cache.
-    """
-
-    # Check if the cache is already populated
-    if global_cache.global_cache.config_cache:
-        return global_cache.global_cache.config_cache
-
-    # Check the existence of the configuration file
+    # Check if the configuration file exists
     if not CONFIG_FILE.exists():
-        raise FileNotFoundError("config.ini file not found.")
+        raise FileNotFoundError(f"The configuration file {CONFIG_FILE} was not found.")
 
-    config = configparser.ConfigParser()
-    config.read(CONFIG_FILE)
+    try:
+        config = configparser.ConfigParser()
+        config.read(CONFIG_FILE)
 
-    # Populate the config_cache
-    for section in config.sections():
-        global_cache.global_cache.config_cache[section] = {
-            key: value for key, value in config.items(section)
-        }
+        # Fill the global cache with config.ini data
+        for section in config.sections():
+            global_cache.config_cache[section] = {key: value for key, value in
+                                                  config.items(section)}
 
-    # Retrieve the latest game version if not provided
-    if not global_cache.global_cache.config_cache.get('Game_Version', {}).get('version'):
-        latest_game_version = utils.get_last_game_version()
-        if latest_game_version:
-            global_cache.global_cache.config_cache.setdefault('Game_Version', {})['version'] = latest_game_version
-            logging.info(f"Game version set to latest: {latest_game_version}")
-        else:
-            logging.warning("Unable to fetch the latest game version. Leaving it blank.")
+        # Fill with constants
+        global_cache.config_cache['SYSTEM'] = platform.system()
+        global_cache.config_cache['HOME_PATH'] = Path.home()
+        global_cache.config_cache['XDG_CONFIG_HOME_PATH'] = os.getenv('XDG_CONFIG_HOME', str(global_cache.config_cache['HOME_PATH'] / '.config'))
+        global_cache.config_cache['URL_BASE_MOD_API'] = URL_BASE_MOD_API
+        global_cache.config_cache['URL_BASE_MOD_DOWNLOAD'] = URL_BASE_MOD_DOWNLOAD
+        global_cache.config_cache['URL_BASE_MODS'] = URL_BASE_MODS
+        global_cache.config_cache['URL_MOD_DB'] = URL_MOD_DB
 
-    return global_cache.global_cache.config_cache
+        # Fill cahe with user-agent
+        global_cache.config_cache['USER_AGENTS'] = USER_AGENTS
+
+        # Handle the game version
+        if not global_cache.config_cache.get('Game_Version', {}).get('version'):
+            latest_game_version = utils.get_last_game_version()
+            if latest_game_version:
+                global_cache.config_cache.setdefault('Game_Version', {})[
+                    'version'] = latest_game_version
+                logging.info(
+                    f"Game version set to the latest available version: {latest_game_version}")
+            else:
+                logging.warning(
+                    "Unable to retrieve the latest game version. The version is left empty.")
+
+    except Exception as e:
+        logging.error(f"Error occurred while loading the config.ini file: {e}")
+        raise
+
+    return global_cache.config_cache
 
 
 def config_exists():
@@ -320,7 +319,7 @@ def ask_mods_directory():
     """Ask the user to choose a folder for the mods."""
     mods_directory = Prompt.ask(
         'Enter the path to your mods folder. Leave blank for default path',
-        default=global_cache.MODS_PATHS[global_cache.SYSTEM]
+        default=MODS_PATHS[SYSTEM]
         )
     # Check if path exists
     if os.path.isdir(mods_directory):
@@ -363,6 +362,12 @@ def ask_game_version():
             'What version of the game are you using? (Format: major.minor.patch, e.g., 1.19.8 or leave blank to use the latest game version)',
             default=""
             )
+
+        # If the user left the input empty, get the last game version
+        if game_version == "":
+            game_version = None
+            return game_version
+
         # If valid, complete and return the version
         if utils.is_valid_version(game_version):
             return utils.complete_version(game_version)
@@ -370,16 +375,6 @@ def ask_game_version():
             # If the format is invalid, display an error message and ask for the version again.
             print(
                 "[bold red]Error: Please provide a valid version in the format major.minor.patch (e.g., 1.2.3).[/bold red]")
-
-
-def ask_auto_update():
-    """Ask the user if he wants to perform updates manually or automatically."""
-    auto_update = Prompt.ask(
-        'Do you want to perform updates manually or automatically ?)',
-        choices=['auto', 'manual'],
-        default='auto'
-        )
-    return auto_update
 
 
 def configure_logging(logging_level):
@@ -392,11 +387,10 @@ def configure_logging(logging_level):
         # S'assurer que les répertoires existent avant de configurer le logging.
         utils.setup_directories(LOGS_PATH)
 
-        timestamp = dt.datetime.today().strftime("%Y%m%d%H%M%S")
-        log_file = Path(LOGS_PATH) / f'log_{timestamp}.txt'
+        log_file = Path(LOGS_PATH) / f'app_log.txt'
 
         # Créer un handler pour le fichier.
-        file_handler = logging.FileHandler(log_file)
+        file_handler = logging.FileHandler(log_file, mode='w')
         file_handler.setLevel(logging.DEBUG)  # Défini par défaut à DEBUG, mais mis à jour après
 
         # Créer un format de log.
@@ -421,9 +415,6 @@ def configure_logging(logging_level):
     else:
         # If FileHandler is already present, do nothing.
         pass
-
-
-logging.debug(f"Loaded configuration: {global_cache.global_cache.config_cache}")
 
 
 if __name__ == "__main__":

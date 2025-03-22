@@ -48,7 +48,8 @@ from PIL import Image as PILImage
 from io import BytesIO
 
 
-config.configure_logging(global_cache.global_cache.config_cache["Logging"]['log_level'].upper())
+config.configure_logging(
+    global_cache.global_cache.config_cache["Logging"]['log_level'].upper())
 # Suppress Pillow debug messages
 logging.getLogger("PIL").setLevel(logging.WARNING)
 
@@ -113,7 +114,7 @@ def get_default_icon():
     """
     Loads and resizes the default icon ('assets/no_icon.png').
     """
-    default_icon_path = Path(config.APPLICATION_PATH).parent / 'assets' / 'no_icon.png'
+    default_icon_path = Path(config.APPLICATION_PATH) / 'assets' / 'no_icon.png'
     if default_icon_path.exists():
         with open(default_icon_path, 'rb') as f:
             icon_data = f.read()
@@ -144,9 +145,10 @@ def create_pdf_with_table(modsdata, pdf_path):
                             )
 
     # Add a cyrillic font (for example, DejaVu Sans)
-    freesans_path = Path(config.APPLICATION_PATH).parent / 'fonts' / 'FreeSans.ttf'
+    freesans_path = Path(config.APPLICATION_PATH) / 'fonts' / 'FreeSans.ttf'
     pdfmetrics.registerFont(TTFont('FreeSans', freesans_path))
-    bold_freesans_path = Path(config.APPLICATION_PATH).parent / 'fonts' / 'FreeSansBold.ttf'
+    bold_freesans_path = Path(
+        config.APPLICATION_PATH) / 'fonts' / 'FreeSansBold.ttf'
     pdfmetrics.registerFont(TTFont('FreeSansBold', bold_freesans_path))
 
     styles = getSampleStyleSheet()
@@ -162,7 +164,7 @@ def create_pdf_with_table(modsdata, pdf_path):
 
     # Add the banner image
     try:
-        path_img = Path(config.APPLICATION_PATH).parent / 'assets' / 'banner.png'
+        path_img = Path(config.APPLICATION_PATH) / 'assets' / 'banner.png'
         banner = Image(str(path_img))  # Path to your image
         banner.drawWidth = A4[0] - 40  # Adjust width to fit the page minus margins
         banner.drawHeight = 120  # Adjust height as needed
@@ -177,7 +179,7 @@ def create_pdf_with_table(modsdata, pdf_path):
     def draw_background(canvas, doc):
         # Path to the background image
         background_path = Path(
-            config.APPLICATION_PATH).parent / 'assets' / 'background.jpg'
+            config.APPLICATION_PATH) / 'assets' / 'background.jpg'
 
         if background_path.exists():
             try:
@@ -320,7 +322,7 @@ def generate_mod_pdf(mod_info_data):
     month = current_datetime.strftime("%m")
     day = current_datetime.strftime("%d")
     pdf_name = f"VS_Mods_{year}_{month}_{day}.pdf"
-    output_pdf_path = str(Path(config.APPLICATION_PATH).parent / pdf_name)
+    output_pdf_path = str(Path(config.APPLICATION_PATH) / pdf_name)
     logging.debug(f"Output PDF will be saved at: {output_pdf_path}")
 
     mod_info_for_pdf = {}
@@ -346,7 +348,8 @@ def generate_mod_pdf(mod_info_data):
             progress.update(task, advance=1, mod_name=mod_name)  # Update mod_name
 
             logging.debug(f"Processing mod: {mod} - {mod_name}")
-            mod_zip_path = Path(global_cache.global_cache.config_cache['ModsPath']['path']) / mod
+            mod_zip_path = Path(
+                global_cache.global_cache.config_cache['ModsPath']['path']) / mod
 
             try:
                 mod_info_for_pdf[mod] = {

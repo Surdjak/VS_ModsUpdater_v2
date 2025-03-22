@@ -51,7 +51,8 @@ mod_dic = global_cache.global_cache.mods
 # Access translations through the cache
 cache_lang = global_cache.global_cache.language_cache
 
-config.configure_logging(global_cache.global_cache.config_cache["Logging"]['log_level'].upper())
+config.configure_logging(
+    global_cache.global_cache.config_cache["Logging"]['log_level'].upper())
 
 
 # Creation of the mods list in a dictionary
@@ -215,7 +216,7 @@ def get_mod_api_data(modid):
     return None
 
 
-def update_mod_cache_with_api_ata():
+def update_mod_cache_with_api_data():
     # Retrieve mods list from mods folder
     list_mods()
 
@@ -310,6 +311,7 @@ def check_mod_to_update():
     # Récupération de l'option depuis config_cache
     disable_mod_dev = global_cache.global_cache.config_cache['Options'].get('disable_mod_dev', 'false').lower() == 'true'
 
+    print(f"global_cache.global_cache.mods: {global_cache.global_cache.mods}")  # debug
     for mod_filename, mod_details in global_cache.global_cache.mods.items():
         local_version = mod_details['local_version']
         modversion = mod_details.get('modversion')
@@ -330,9 +332,10 @@ def backup_mods(mods_to_backup):
     """
     Create a backup of the ZIP mods before download and manage a retention policy.
     """
-    max_backups = int(global_cache.global_cache.config_cache['Backup_Mods']['max_backups'])
+    max_backups = int(
+        global_cache.global_cache.config_cache['Backup_Mods']['max_backups'])
     backup_folder_name = global_cache.global_cache.config_cache['Backup_Mods']['backup_folder']
-    backup_folder = Path(config.APPLICATION_PATH).parent / backup_folder_name
+    backup_folder = Path(config.APPLICATION_PATH) / backup_folder_name
 
     # Ensure the backup directory exists
     utils.setup_directories(backup_folder)

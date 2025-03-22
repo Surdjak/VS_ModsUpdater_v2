@@ -19,28 +19,28 @@
 """
 Vintage Story mod management
 
-TO do list:
-    -> arguments pour ligne de commande
-    -> test linux
-    -> manual update
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"
-__date__ = "2024-12-04"  # Last update
+__date__ = "2025-03-22"  # Last update
 
 
 # main.py
 
-import config
-import lang
-import global_cache
-from utils import parse_args, update_cache_from_args, exit_program
+
+import logging
+import os
+from pathlib import Path
+
 from rich import print
 from rich.console import Console
 from rich.prompt import Prompt
-from pathlib import Path
-import os
 
+import config
+import fetch_mod_info
+import global_cache
+import lang
+from utils import exit_program
 
 console = Console()
 
@@ -55,10 +55,9 @@ def initialize_config():
         # Load translations
         path = Path(f'{config.LANG_PATH}/{language[0]}.json')
         cache_lang = lang.load_translations(path)
-
         mods_dir = config.ask_mods_directory()
         game_version = config.ask_game_version()
-        auto_update = config.ask_auto_update()
+        auto_update = 'True'
         print(f"\n{cache_lang['first_launch_language']}{language[1]}")
         print(f"{cache_lang['first_launch_mods_location']}{mods_dir}")
         print(f"{cache_lang['first_launch_game_version']}{game_version}")
@@ -73,18 +72,19 @@ def initialize_config():
         print(f"\n{cache_lang['first_launch_config_created']}")
 
         # Ask for going on or exit to modify config.ini (e.g. add some mods to exception.)
-        print(global_cache.global_cache.language_cache["first_launch_confirms_update_info"])
+        print(global_cache.language_cache["first_launch_confirms_update_info"])
         while True:
             user_confirms_update = Prompt.ask(
-                global_cache.global_cache.language_cache["first_launch_confirms_update"],
-                default=global_cache.global_cache.language_cache["yes"]
+                global_cache.language_cache["first_launch_confirms_update"],
+                choices=[global_cache.language_cache['yes'][0],
+                         global_cache.language_cache['no'][0]], default=global_cache.language_cache['no'][0]
             )
             user_confirms_update = user_confirms_update.strip().lower()
 
-            if user_confirms_update == global_cache.global_cache.language_cache["yes"].lower():
+            if user_confirms_update == global_cache.language_cache["yes"][0].lower():
                 return
-            elif user_confirms_update == global_cache.global_cache.language_cache["no"].lower():
-                print(global_cache.global_cache.language_cache["exiting_program"])
+            elif user_confirms_update == global_cache.language_cache["no"][0].lower():
+                print(global_cache.language_cache["exiting_program"])
                 exit_program()
 
             else:
@@ -92,32 +92,33 @@ def initialize_config():
 
     config.migrate_config_if_needed()
 
-    # Update the global cache with the config settings
-    global_cache.global_cache.config_cache.update(config.load_config())
+    # Load the configuration into the global cache
+    config.load_config()
 
     # Configure the logging
-    config.configure_logging(global_cache.global_cache.config_cache["Logging"]['log_level'].upper())
+    config.configure_logging(
+        global_cache.config_cache["Logging"]['log_level'].upper())
 
     # Load the language translations from the config file into the global cache
-    lang_path = Path(f"{config.LANG_PATH}/{global_cache.global_cache.config_cache['Language']['language']}.json")
-    global_cache.global_cache.language_cache.update(lang.load_translations(lang_path))
-
-    return global_cache.global_cache.language_cache
+    lang_path = Path(f"{config.LANG_PATH}/{global_cache.config_cache['Language']['language']}.json")
+    global_cache.language_cache.update(lang.load_translations(lang_path))
 
 
 def welcome_display():
     # look for script update
-    new_version, urlscript = mu_script_update.fetch_page()
+    new_version, urlscript, latest_version = mu_script_update.modsupdater_update()
     if new_version:
-        text_script_new_version = f'[red]- {global_cache.global_cache.language_cache["title_new_version"]} -[/red]\n{urlscript} -'
+        text_script_new_version = f'[red]- {global_cache.language_cache["title_new_version"]} -[/red]\n{urlscript} -'
+        logging.info(f"Latest version: {latest_version} | Download: {urlscript}")
     else:
-        text_script_new_version = f'[bold cyan]- {global_cache.global_cache.language_cache["title_no_new_version"]} - [/bold cyan]'
+        text_script_new_version = f'[bold cyan]- {global_cache.language_cache["title_no_new_version"]} - [/bold cyan]'
+        logging.info(f"ModsUpdater - No new version")
     # to center text
     try:
         column, row = os.get_terminal_size()
     except OSError:
         column, row = 300, 50  # Default values
-    txt_title = f'\n\n[bold cyan]{global_cache.global_cache.language_cache["title_modsupdater_title"].format(mu_ver=__version__)}[/bold cyan]'
+    txt_title = f'\n\n[bold cyan]{global_cache.language_cache["title_modsupdater_title"].format(mu_ver=__version__)}[/bold cyan]'
 
     lines = txt_title.splitlines() + text_script_new_version.splitlines()
     for line in lines:
@@ -125,34 +126,13 @@ def welcome_display():
 
 
 if __name__ == "__main__":
-    # Initialize config before calling mods update
+    # Initialize config
     initialize_config()
     import mu_script_update
-
-    # Retrieve the arguments
-    args = parse_args()
-    # Update the cache with the arguments
-    update_cache_from_args(args)
-
     welcome_display()
+    print("\n\n")
 
-    if global_cache.global_cache.config_cache['Options']['auto_update']:
-        import mods_auto_update  # noqa: F401 - Used for its side effects
-
-    else:
-        import mods_manual_update  # noqa: F401 - Used for its side effects
-
-    # Ask for pdf creation
-    create_pdf = Prompt.ask(
-        global_cache.global_cache.language_cache['pdf_request'],
-        choices=[global_cache.global_cache.language_cache['yes'][0], global_cache.global_cache.language_cache['no'][0]], default=global_cache.global_cache.language_cache['no'][0])
-    if create_pdf == global_cache.global_cache.language_cache['yes'][0].lower():
-        import pdf_creation  # noqa: F401 - Used for its side effects
-        mods_data = global_cache.global_cache.mods
-        pdf_creation.generate_mod_pdf(mods_data)
-        console.print(f"\n[green]{global_cache.global_cache.language_cache['pdf_creation_finished']}[/green]")
-
-    console.print(f"\n{global_cache.global_cache.language_cache['exiting_program']}")
+    # Fetch mods info
+    fetch_mod_info.list_mods(fetch_mod_info.get_mod_path())
+    # print(global_cache.mods_data)
     exit_program()
-
-    # tests

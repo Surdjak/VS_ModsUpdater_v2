@@ -13,7 +13,7 @@
     "first_launch_manual_update": "Manual",
     "first_launch_auto_update": "Automatic",
     "first_launch_confirms_update_info": "You can proceed with the update or exit to modify the config.ini file (e.g., to exclude mods from the update).",
-    "first_launch_confirms_update": "Do you want to continue (yes/no)?",
+    "first_launch_confirms_update": "Do you want to continue ?",
 
     "exiting_program": "Exiting the program",
 

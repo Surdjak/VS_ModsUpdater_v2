@@ -13,7 +13,7 @@
 	"first_launch_manual_update": "Manuelle",
 	"first_launch_auto_update": "Automatique",
 	"first_launch_confirms_update_info": "Vous pouvez poursuivre la mise à jour, ou quitter afin de modifier le fichier config.ini (par ex. pour exclure des mods de la mise à jour)",
-	"first_launch_confirms_update": "Voulez-vous continuer (oui/non)?",
+	"first_launch_confirms_update": "Voulez-vous continuer ?",
 
 	"exiting_program": "Arrêt du programme",
 

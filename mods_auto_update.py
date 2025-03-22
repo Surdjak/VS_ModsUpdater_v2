@@ -17,37 +17,17 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-
+Vintage Story mod management:
+-
 
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"
-__date__ = "2024-11-27"  # Last update
-
-import platform
-from pathlib import Path
-import os
-
-# global_cache.py
-
-# Constant for os
-SYSTEM = platform.system()
-HOME_PATH = Path.home()
-XDG_CONFIG_HOME_PATH = os.getenv('XDG_CONFIG_HOME', os.path.expanduser('~/.config'))
-
-MODS_PATHS = {
-    "Windows": Path(HOME_PATH) / 'AppData' / 'Roaming' / 'VintagestoryData' / 'Mods',
-    "Linux": Path(XDG_CONFIG_HOME_PATH) / 'VintagestoryData' / 'Mods'
-}
+__date__ = "2025-03-21"  # Last update
 
 
-class GlobalCache:
-    def __init__(self):
-        self.config_cache = {}  # Configuration cache
-        self.language_cache = {}  # Translation cache
-        self.mods = {}  # Mod cache
-        self.logs = {}  # For any internal log if needed
-        self.total_mods = 0
+# mods_auto_update.py
 
 
-global_cache = GlobalCache()
+if __name__ == "__main__":
+    pass
