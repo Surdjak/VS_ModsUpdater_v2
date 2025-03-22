@@ -29,19 +29,22 @@ __date__ = "2025-03-22"  # Last update
 # mods_auto_update.py
 
 
-import global_cache
+import datetime
 import logging
-from utils import exit_program, version_compare, check_excluded_mods, get_random_headers, setup_directories, extract_filename_from_url
+import os
+import random
+import time
+import zipfile
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+
 import requests
 from requests.exceptions import RequestException
-import datetime
-import time
-import random
-from pathlib import Path
-import os
-import zipfile
 from rich.progress import Progress
-from concurrent.futures import ThreadPoolExecutor
+
+import global_cache
+from utils import version_compare, check_excluded_mods, get_random_headers, \
+    setup_directories, extract_filename_from_url
 
 
 def get_mods_to_update(mods_data):

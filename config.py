@@ -29,15 +29,16 @@ __date__ = "2025-03-22"  # Last update
 # config.py
 
 import configparser
-import global_cache
-import platform
-import os
 import logging
-import utils
+import os
+import platform
 from pathlib import Path
+
 from rich import print
 from rich.prompt import Prompt
 
+import global_cache
+import utils
 
 # The target version after migration
 EXPECTED_VERSION = "2.0.0-dev1"

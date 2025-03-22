@@ -40,8 +40,8 @@ import config
 import fetch_mod_info
 import global_cache
 import lang
-from utils import exit_program
 import mods_auto_update
+from utils import exit_program
 
 console = Console()
 

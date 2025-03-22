@@ -23,17 +23,19 @@ __date__ = "2025-03-22"  # Last update
 
 # utils.py
 
-import global_cache
 import argparse
-import re
 import logging
-import requests
-import sys
 import random
+import re
+import sys
 import time
 import zipfile
 from urllib.parse import urlparse, parse_qs
+
+import requests
 from packaging.version import Version, InvalidVersion
+
+import global_cache
 
 
 # #### For test and debug ####

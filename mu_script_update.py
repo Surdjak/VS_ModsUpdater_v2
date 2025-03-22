@@ -26,15 +26,16 @@ __date__ = "2025-03-21"  # Last update
 
 # mu_script_update.py
 
-import config
-from global_cache import config_cache
-import utils
 import logging
-import requests
-from requests.exceptions import RequestException
-from bs4 import BeautifulSoup
 import re
 
+import requests
+from bs4 import BeautifulSoup
+from requests.exceptions import RequestException
+
+import config
+import utils
+from global_cache import config_cache
 
 # mu_script_update.py
 
