@@ -69,3 +69,6 @@ ruff_cache/
 /PyInstaller/spec/vintagestory.ico
 /VS_ModsUpdater.exe
 /PyInstaller/spec/VS_ModsUpdater.spec
+/nuitka-crash-report.xml
+/vintagestory.ico
+/VS_ModsUpdater.rc
