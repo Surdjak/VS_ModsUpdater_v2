@@ -30,6 +30,7 @@ import re
 import sys
 import time
 import zipfile
+import json
 from urllib.parse import urlparse, parse_qs
 
 import requests
@@ -92,16 +93,43 @@ def normalize_keys(d):
         return d
 
 
+def sanitize_json_data(data):
+    """Recursively replace None values with empty strings."""
+    if isinstance(data, dict):
+        return {k: sanitize_json_data(v) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [sanitize_json_data(item) for item in data]
+    elif data is None:
+        return ""
+    return data
+
+
 def fix_json(json_data):
-    """Fix the JSON string by removing comments and trailing commas."""
+    """Fix the JSON string by removing comments, trailing commas, and ignoring the 'website' key."""
 
-    # Remove single-line comments (everything after // in a line)
-    json_data = re.sub(r'//.*', '', json_data)
+    # Remove single-line comments (lines starting with //)
+    json_data = re.sub(r'^\s*//[^\n]*$', '', json_data, flags=re.MULTILINE)
 
-    # Correction 1: Remove final commas before closing braces/brackets
-    json_data = re.sub(r",\s*([}\]])", r"\1", json_data)
+    # Remove trailing commas before closing braces/brackets
+    json_data = re.sub(r',\s*([}\]])', r'\1', json_data)
 
-    return json_data
+    # Try to load the JSON string into a Python dictionary
+    try:
+        data = json.loads(json_data)
+    except json.JSONDecodeError as e:
+        logging.error(f"Error parsing JSON: {e}")
+        return "Error: Invalid JSON data"
+
+    # Sanitize the data: replace None with empty strings
+    data = sanitize_json_data(data)
+
+    # Remove the 'website' key if it exists
+    if "website" in data:
+        del data["website"]
+
+    # Convert the dictionary back into a formatted JSON string
+    json_data_fixed = json.dumps(data, indent=2)
+    return json_data_fixed
 
 
 def version_compare(local_version, online_version):

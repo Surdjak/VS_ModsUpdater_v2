@@ -69,7 +69,11 @@ def get_mods_to_update(mods_data):
                 logging.info(f"Skipping excluded mod: {mod['Name']} - Filename: {mod['Filename']}")
                 continue  # Skip this mod if it's in the excluded list
             # Proceed with the version comparison
-            mod_update = version_compare(mod["Local_Version"], mod["mod_latest_version_for_game_version"])
+            if mod.get("mod_latest_version_for_game_version"):
+                mod_update = version_compare(mod["Local_Version"],
+                                             mod["mod_latest_version_for_game_version"])
+            else:
+                mod_update = False
             if mod_update:
                 mods_data["mods_to_update"].append({
                     "Name": mod['Name'],

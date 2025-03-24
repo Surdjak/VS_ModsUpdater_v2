@@ -323,7 +323,6 @@ def load_config():
             else:
                 logging.warning(
                     "Unable to retrieve the latest game version. The version is left empty.")
-
     except Exception as e:
         logging.error(f"Error occurred while loading the config.ini file: {e}")
         raise

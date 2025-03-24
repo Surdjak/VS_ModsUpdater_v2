@@ -179,43 +179,42 @@ def process_mod_file(file, mods_data, invalid_files):
             invalid_files.append(file.name)  # Add invalid .cs file name
 
 
-def get_latest_mainfile_for_version(mod_json, user_game_version):
+def get_compatible_releases(mod_json, user_game_version):
     """
-    Retrieve the latest mainfile URL for the highest compatible game version.
+    Retrieve all compatible releases for the mod based on the user_game_version.
 
-    - Keeps only releases where at least one tag version is <= user_game_version.
-    - Among them, selects the newest release based on 'created' date.
+    A release is considered compatible if at least one of its tag versions has the same major and minor version
+    as user_game_version and is less than or equal to user_game_version.
+    The releases are then sorted in descending order (by modversion and creation date).
     """
     releases = mod_json.get("mod", {}).get("releases", [])
-    game_version_parsed = Version(user_game_version.lstrip("v"))
-
-    # Filter releases with at least one tag version <= user_game_version
+    user_ver = Version(user_game_version.lstrip("v"))
     compatible_releases = []
     for release in releases:
         for tag in release.get("tags", []):
+            if not tag:
+                continue
             try:
-                tag_version = Version(tag.lstrip("v"))
-                if tag_version <= game_version_parsed:
+                tag_ver = Version(tag.lstrip("v"))
+                # Only include the release if the tag is exactly equal to the user's game version.
+                if tag_ver == user_ver:
                     compatible_releases.append(release)
-                    break  # Stop checking tags for this release
-            except ValueError:
-                continue  # Ignore tags that are not valid versions
+                    break  # Stop checking other tags for this release.
+            except Exception:
+                continue  # Ignore invalid version tags.
 
     if not compatible_releases:
-        logging.warning(f"No compatible release found for game version {user_game_version}.")
-        return None
+        logging.info(
+            f"{mod_json['mod']['name']}: No compatible release found for game version {user_game_version}.")
+        return []
 
-    # Sort by 'modversion' (as a Version object) and 'created' date (newest first)
-    latest_release = sorted(
+    # Sort compatible releases by modversion (including patch) and creation date in descending order.
+    sorted_releases = sorted(
         compatible_releases,
-        key=lambda r: (Version(r["modversion"]), r["created"]),
-        reverse=True  # Sort in descending order
-    )[0]
-
-    logging.info(
-        f"Latest release found: {latest_release['filename']} ({latest_release['created']})")
-
-    return latest_release["mainfile"], latest_release["modversion"]
+        key=lambda r: (Version(r.get("modversion") or "0.0.0"), r.get("created") or ""),
+        reverse=True
+    )
+    return sorted_releases
 
 
 def get_mod_api_data(mod):
@@ -232,7 +231,11 @@ def get_mod_api_data(mod):
         mod_json = response.json()
         mod_assetid = mod_json["mod"]["assetid"]
         mod_url = f"{global_cache.config_cache['URL_MOD_DB']}{mod_assetid}"
-        mainfile_url, mod_latest_version_for_game_version = get_latest_mainfile_for_version(mod_json, global_cache.config_cache['Game_Version']['user_game_version'])
+
+        sorted_releases = get_compatible_releases(mod_json, global_cache.config_cache['Game_Version']['user_game_version'])
+        mainfile_url = sorted_releases[0]['mainfile']
+
+        mod_latest_version_for_game_version = sorted_releases[0]['modversion']
         return mod_assetid, mod_url, mainfile_url, mod_latest_version_for_game_version
     except requests.exceptions.HTTPError as http_err:
         logging.error(f'HTTP error occurred: {http_err}')
