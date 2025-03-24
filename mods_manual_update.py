@@ -26,10 +26,6 @@ __date__ = "2024-11-21"  # Last update
 
 # mods_manual_update.py
 
-import mods_common_update
-
-print('Manual Update')
-
 
 def manual_update():
     pass

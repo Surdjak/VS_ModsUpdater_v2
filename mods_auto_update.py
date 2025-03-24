@@ -22,8 +22,8 @@ Vintage Story mod management:
 
 """
 __author__ = "Laerinok"
-__version__ = "2.0.0-dev1"
-__date__ = "2025-03-22"  # Last update
+__version__ = "2.0.0-dev2"
+__date__ = "2025-03-24"  # Last update
 
 
 # mods_auto_update.py
@@ -58,7 +58,6 @@ def get_mods_to_update(mods_data):
     # Extract filenames from excluded_mods to compare correctly
     excluded_filenames = [mod['Filename'] for mod in mods_data.get("excluded_mods", [])]
     logging.info(f"Excluded filenames: {excluded_filenames}")
-
     for mod in mods_data.get("installed_mods", []):
         try:
             # Log mod Filename to verify
@@ -69,7 +68,6 @@ def get_mods_to_update(mods_data):
             if mod['Filename'] in excluded_filenames:
                 logging.info(f"Skipping excluded mod: {mod['Name']} - Filename: {mod['Filename']}")
                 continue  # Skip this mod if it's in the excluded list
-
             # Proceed with the version comparison
             mod_update = version_compare(mod["Local_Version"], mod["mod_latest_version_for_game_version"])
             if mod_update:
@@ -148,10 +146,11 @@ def download_file(url, destination_path, progress_bar, task):
     except RequestException as e:
         # Catch any request-related exceptions (e.g., connection issues, timeout)
         print(f"[bold red]Error: Failed to download the file. {e}[/bold red]")
+        logging.error(f"Error: Failed to download the file. {e}")
 
     except Exception as e:
         # Catch any other unforeseen errors
-        print(f"[bold red]An unexpected error occurred: {e}[/bold red]")
+        logging.error(f"[bold red]An unexpected error occurred: {e}[/bold red]")
 
     finally:
         # Wait for a random time between 0.5 and 1.5 seconds.
@@ -208,6 +207,14 @@ def download_mods_to_update(mods_data):
             # Wait for all downloads to finish
             for future in futures:
                 future.result()  # This will raise an exception if something went wrong
+
+
+def resume_mods_updated():
+    print(f"\nFollowings mods have been updated:")
+    logging.info("Followings mods have been updated:")
+    for mod in global_cache.mods_data.get('mods_to_update'):
+        print(f"\t- {mod['Name']} to v{mod['New_version']}")
+        logging.info(f"\t{mod['Name']} to v{mod['New_version']}")
 
 
 if __name__ == "__main__":

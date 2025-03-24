@@ -23,8 +23,8 @@ Vintage Story mod management - Fetching mods information
 """
 
 __author__ = "Laerinok"
-__version__ = "2.0.0-dev1"
-__date__ = "2025-03-22"  # Last update
+__version__ = "2.0.0-dev2"
+__date__ = "2025-03-24"  # Last update
 
 # fetch_mod_info.py
 
@@ -64,27 +64,45 @@ def get_mod_path():
 
 
 def get_modinfo_from_zip(zip_path):
-    """Gets modid, name, and version information from modinfo.json in a zip file."""
+    """Gets modid, name, version, and description from modinfo.json in a zip file."""
     try:
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            # Opens modinfo.json inside the zip file
-            if 'modinfo.json' not in zip_ref.namelist():
-                print(f"Warning: No modinfo.json found in {zip_path}")
-                return None, None, None
-            with zip_ref.open('modinfo.json') as modinfo_file:
+            file_list = zip_ref.namelist()
+
+            # Check if modinfo.json is at the root of the zip file
+            if 'modinfo.json' in file_list:
+                modinfo_path = 'modinfo.json'
+            else:
+                # Search for modinfo.json in any subdirectory and stop at the first match
+                modinfo_path = next(
+                    (f for f in file_list if f.endswith('/modinfo.json')), None)
+
+                if not modinfo_path:
+                    return None, None, None, None
+
+            # Open and read modinfo.json
+            with zip_ref.open(modinfo_path) as modinfo_file:
                 raw_json = modinfo_file.read().decode('utf-8-sig')
-                fixed_json = fix_json(raw_json)
+                fixed_json = fix_json(raw_json)  # Fix potential JSON formatting issues
                 modinfo = json.loads(fixed_json)
-                # Convert all keys to lowercase to ignore case
+
+                # Convert all keys to lowercase to avoid case sensitivity issues
                 modinfo_lower = {k.lower(): v for k, v in modinfo.items()}
-                return modinfo_lower.get('modid'), modinfo_lower.get('name'), modinfo_lower.get('version'), modinfo_lower.get('description')
+                return (
+                    modinfo_lower.get('modid'),
+                    modinfo_lower.get('name'),
+                    modinfo_lower.get('version'),
+                    modinfo_lower.get('description')
+                )
+
     except zipfile.BadZipFile:
-        print(f"Error: {zip_path} is not a valid zip file.")
+        logging.error(f"Error: {zip_path} is not a valid zip file.")
     except json.JSONDecodeError:
-        print(f"Error: Failed to parse modinfo.json in {zip_path}")
+        logging.error(f"Error: Failed to parse modinfo.json in {zip_path}")
     except Exception as e:
-        print(f"Unexpected error processing {zip_path}: {e}")
-    return None, None, None
+        logging.error(f"Unexpected error processing {zip_path}: {e}")
+
+    return None, None, None, None
 
 
 def get_cs_info(cs_path):
@@ -103,27 +121,6 @@ def get_cs_info(cs_path):
         return version, namespace, modid, description
 
 
-def get_mainfile_for_version(mod_version, api_response):
-    """
-    Retrieves the 'mainfile' link for the given version in modinfo and compares it with the versions in the API file.
-
-    mod_version: the mod version extracted from modinfo.json or a .cs file.
-    api_response: the API response containing the version information and 'mainfile'.
-
-    Returns the link for the corresponding 'mainfile'.
-    """
-
-    for release in api_response:
-        modversion = release.get('modversion', [])
-        # Check if the modinfo version is in the tags
-        if mod_version == modversion:
-            return release.get('mainfile')
-
-    # If no match is found
-    print(f"No link found for version {mod_version}.")
-    return None
-
-
 def get_api_info(modid):
     """Gets, via the API, the assetid and download link for the file corresponding to the mod version."""
     url_api_mod = f"{global_cache.config_cache['URL_BASE_MOD_API']}{modid}"
@@ -136,13 +133,13 @@ def get_api_info(modid):
         side = data['mod']['side']
         return mod_asset_id, side, releases
     except requests.exceptions.Timeout:
-        print(f"Timeout when fetching API info for {modid}")
+        logging.error(f"Timeout when fetching API info for {modid}")
     except requests.exceptions.HTTPError as err:
-        print(f"HTTP error when fetching API info for {modid}: {err}")
+        logging.error(f"HTTP error when fetching API info for {modid}: {err}")
     except requests.RequestException as err:
-        print(f"Error fetching API info for {modid}: {err}")
+        logging.error(f"Error fetching API info for {modid}: {err}")
     except KeyError:
-        print(f"Unexpected API response format for {modid}")
+        logging.error(f"Unexpected API response format for {modid}")
         return None, None, None
     finally:
         # Wait for a random time between 1 and 5 seconds.
@@ -182,17 +179,17 @@ def process_mod_file(file, mods_data, invalid_files):
             invalid_files.append(file.name)  # Add invalid .cs file name
 
 
-def get_latest_mainfile_for_version(mod_json, game_version):
+def get_latest_mainfile_for_version(mod_json, user_game_version):
     """
     Retrieve the latest mainfile URL for the highest compatible game version.
 
-    - Keeps only releases where at least one tag version is <= game_version.
-    - Among them, selects the newest release based on 'created'.
+    - Keeps only releases where at least one tag version is <= user_game_version.
+    - Among them, selects the newest release based on 'created' date.
     """
     releases = mod_json.get("mod", {}).get("releases", [])
-    game_version_parsed = Version(game_version.lstrip("v"))
+    game_version_parsed = Version(user_game_version.lstrip("v"))
 
-    # Filter releases with at least one tag version <= game_version
+    # Filter releases with at least one tag version <= user_game_version
     compatible_releases = []
     for release in releases:
         for tag in release.get("tags", []):
@@ -205,11 +202,15 @@ def get_latest_mainfile_for_version(mod_json, game_version):
                 continue  # Ignore tags that are not valid versions
 
     if not compatible_releases:
-        logging.warning(f"No compatible release found for game version {game_version}.")
+        logging.warning(f"No compatible release found for game version {user_game_version}.")
         return None
 
-    # Sort by 'created' date (newest first)
-    latest_release = max(compatible_releases, key=lambda r: r["created"])
+    # Sort by 'modversion' (as a Version object) and 'created' date (newest first)
+    latest_release = sorted(
+        compatible_releases,
+        key=lambda r: (Version(r["modversion"]), r["created"]),
+        reverse=True  # Sort in descending order
+    )[0]
 
     logging.info(
         f"Latest release found: {latest_release['filename']} ({latest_release['created']})")
@@ -231,7 +232,7 @@ def get_mod_api_data(mod):
         mod_json = response.json()
         mod_assetid = mod_json["mod"]["assetid"]
         mod_url = f"{global_cache.config_cache['URL_MOD_DB']}{mod_assetid}"
-        mainfile_url, mod_latest_version_for_game_version = get_latest_mainfile_for_version(mod_json, global_cache.config_cache['Game_Version']['version'])
+        mainfile_url, mod_latest_version_for_game_version = get_latest_mainfile_for_version(mod_json, global_cache.config_cache['Game_Version']['user_game_version'])
         return mod_assetid, mod_url, mainfile_url, mod_latest_version_for_game_version
     except requests.exceptions.HTTPError as http_err:
         logging.error(f'HTTP error occurred: {http_err}')
@@ -294,7 +295,7 @@ def scan_and_fetch_mod_info(mods_folder):
                     logging.warning(f"Failed to retrieve assetid and mod_url for mod: {mod['Name']}")
 
                 # Update the progress bar with the mod name.
-                progress.update(api_task, advance=1, description=f"Fetching: {mod['Name']}")
+                progress.update(api_task, advance=1, description=f"[cyan]Fetching: {mod['Name']}")
 
 
 if __name__ == "__main__":

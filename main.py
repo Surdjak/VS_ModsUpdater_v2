@@ -21,7 +21,7 @@ Vintage Story mod management
 
 """
 __author__ = "Laerinok"
-__version__ = "2.0.0-dev1"
+__version__ = "2.0.0-dev2"
 __date__ = "2025-03-22"  # Last update
 
 
@@ -57,11 +57,11 @@ def initialize_config():
         path = Path(f'{config.LANG_PATH}/{language[0]}.json')
         cache_lang = lang.load_translations(path)
         mods_dir = config.ask_mods_directory()
-        game_version = config.ask_game_version()
+        user_game_version = config.ask_game_version()
         auto_update = 'True'
         print(f"\n{cache_lang['first_launch_language']}{language[1]}")
         print(f"{cache_lang['first_launch_mods_location']}{mods_dir}")
-        print(f"{cache_lang['first_launch_game_version']}{game_version}")
+        print(f"{cache_lang['first_launch_game_version']}{user_game_version}")
         if auto_update.lower() == 'manual':
             choice_update = cache_lang['first_launch_manual_update']
         else:
@@ -69,7 +69,7 @@ def initialize_config():
         print(f"{cache_lang['first_launch_set_update']}{choice_update}")
 
         # Create the config.ini file
-        config.create_config(language, mods_dir, game_version, auto_update)
+        config.create_config(language, mods_dir, user_game_version, auto_update)
         print(f"\n{cache_lang['first_launch_config_created']}")
 
         # Ask for going on or exit to modify config.ini (e.g. add some mods to exception.)
@@ -140,12 +140,19 @@ if __name__ == "__main__":
     mods_auto_update.get_mods_to_update(global_cache.mods_data)
 
     # Backup mods before Download
-    mods_to_backup = [mod['Filename'] for mod in global_cache.mods_data.get('mods_to_update', [])]
-    mods_auto_update.backup_mods(mods_to_backup)
+    if global_cache.mods_data.get('mods_to_update'):
+        mods_to_backup = [mod['Filename'] for mod in global_cache.mods_data.get('mods_to_update', [])]
+        mods_auto_update.backup_mods(mods_to_backup)
 
-    # Download Mods
-    mods_to_download = global_cache.mods_data.get('mods_to_update', [])
-    mods_auto_update.download_mods_to_update(mods_to_download)
+        # Download Mods
+        mods_to_download = global_cache.mods_data.get('mods_to_update', [])
+        mods_auto_update.download_mods_to_update(mods_to_download)
+
+        # Display mods updated
+        mods_auto_update.resume_mods_updated()
+    else:
+        print(f"No updates needed for mods.")
+        logging.info("No updates needed for mods.")
 
     # print(global_cache.mods_data)  # debug
     # End of programm

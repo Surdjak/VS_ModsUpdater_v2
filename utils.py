@@ -93,7 +93,12 @@ def normalize_keys(d):
 
 
 def fix_json(json_data):
-    # Correction 1 : Remove final commas
+    """Fix the JSON string by removing comments and trailing commas."""
+
+    # Remove single-line comments (everything after // in a line)
+    json_data = re.sub(r'//.*', '', json_data)
+
+    # Correction 1: Remove final commas before closing braces/brackets
     json_data = re.sub(r",\s*([}\]])", r"\1", json_data)
 
     return json_data
@@ -107,11 +112,6 @@ def version_compare(local_version, online_version):
     else:
         new_version = False
         return new_version
-
-
-def log_error(message):
-    print(message)
-    logging.error(message)
 
 
 def is_valid_version(version_string):
@@ -140,7 +140,7 @@ def complete_version(version_string):
 
 
 # Retrieve the last game version
-def get_last_game_version(url_api='https://mods.vintagestory.at/api'):
+def get_latest_game_version(url_api='https://mods.vintagestory.at/api'):
     gameversions_api_url = f'{url_api}/gameversions'
     try:
         response = requests.get(gameversions_api_url)
@@ -202,7 +202,7 @@ def parse_args():
 
 
 def exit_program(msg="Program terminated"):
-    print(f"{msg}")
-    logging.info(msg)
+    print(f"\n*** {msg} ***")
+    logging.info(f"*** {msg} ***")
     time.sleep(2)  # 2-second delay to give the user time to read the message.
     sys.exit()

@@ -22,7 +22,7 @@
 
 
 __author__ = "Laerinok"
-__version__ = "2.0.0-dev1"  # Don't forget to change EXPECTED_VERSION
+__version__ = "1.0.0-dev2"  # Don't forget to change EXPECTED_VERSION
 __date__ = "2025-03-22"  # Last update
 
 
@@ -41,7 +41,7 @@ import global_cache
 import utils
 
 # The target version after migration
-EXPECTED_VERSION = "2.0.0-dev1"
+EXPECTED_VERSION = "1.0.0-dev2"
 
 # Constant for os
 SYSTEM = platform.system()
@@ -81,18 +81,18 @@ URL_SCRIPT = {
 # Default configuration
 DEFAULT_CONFIG = {
     "ModsUpdater": {"version": __version__},
-    "Logging": {"log_level": "INFO"},
+    "Logging": {"log_level": "DEBUG"},  # Debug Set to INFO for full release !!
     "Options": {"force_update": "false", "disable_mod_dev": "false", "auto_update": "true", "max_workers": 4},
     "Backup_Mods": {"backup_folder": "backup_mods", "max_backups": 3},
     "ModsPath": {"path": str(MODS_PATHS[SYSTEM])},
     "Language": {"language": DEFAULT_LANGUAGE},
-    "Game_Version": {"version": ""},
+    "Game_Version": {"user_game_version": ""},
     "Mod_Exclusion": {'mods': ""}
 }
 
 # Mapping for renamed sections or options
 RENAME_MAP = {
-    "Game_Version_max": "Game_Version",
+    "Game_Version_max": "user_game_version",
     "ModPath": "ModsPath",
     "ver": "version",
     "mod1": "mods",
@@ -169,14 +169,14 @@ def migrate_config(old_config):
     }
     logging.debug("Options section migrated successfully")
 
-    # Step 3: Handle Game_Version_max -> Game_Version migration
+    # Step 3: Handle Game_Version_max -> user_game_version migration
     if "Game_Version_max" in old_config:
-        game_version = old_config["Game_Version_max"].get("version")
-        new_config["Game_Version"] = {"version": game_version or DEFAULT_CONFIG["Game_Version"]["version"]}
-        logging.debug("Migrating Game_Version_max to Game_Version: %s", game_version)
+        user_game_version = old_config["Game_Version_max"].get("version")
+        new_config["user_game_version"] = {"version": user_game_version or DEFAULT_CONFIG["user_game_version"]["version"]}
+        logging.debug("Migrating Game_Version_max to user_game_version: %s", user_game_version)
     else:
-        new_config["Game_Version"] = DEFAULT_CONFIG["Game_Version"]
-        logging.debug("Using default Game_Version: %s", DEFAULT_CONFIG["Game_Version"]["version"])
+        new_config["user_game_version"] = DEFAULT_CONFIG["Game_Version"]
+        logging.debug("Using default user_game_version: %s", DEFAULT_CONFIG["Game_Version"]["user_game_version"])
 
     # Step 4: Handle ModPath -> ModsPath migration
     if "ModPath" in old_config:
@@ -242,13 +242,13 @@ def migrate_config(old_config):
         logging.error("Error occurred while writing the migrated config: %s", str(e))
 
 
-def create_config(language, mod_folder, game_version, auto_update):
+def create_config(language, mod_folder, user_game_version, auto_update):
     """
     Create the config.ini file with default or user-specified values.
     """
     DEFAULT_CONFIG["Language"]["language"] = language[0]
     DEFAULT_CONFIG["ModsPath"]["path"] = mod_folder
-    DEFAULT_CONFIG["Game_Version"]["version"] = game_version
+    DEFAULT_CONFIG["Game_Version"]["user_game_version"] = user_game_version
     DEFAULT_CONFIG["Options"]["auto_update"] = 'True' if auto_update == "auto" else 'False'
 
     config = configparser.ConfigParser()
@@ -311,11 +311,13 @@ def load_config():
             global_cache.mods_data["excluded_mods"].append({"Filename": mod})
 
         # Handle the game version
-        if not global_cache.config_cache.get('Game_Version', {}).get('version'):
-            latest_game_version = utils.get_last_game_version()
+        user_game_version = global_cache.config_cache.get("Game_Version", {}).get("user_game_version")
+        if user_game_version == "None":
+            user_game_version = None
+        if not user_game_version:
+            latest_game_version = utils.get_latest_game_version()
             if latest_game_version:
-                global_cache.config_cache.setdefault('Game_Version', {})[
-                    'version'] = latest_game_version
+                global_cache.config_cache.setdefault("Game_Version", {})["user_game_version"] = latest_game_version
                 logging.info(
                     f"Game version set to the latest available version: {latest_game_version}")
             else:
@@ -325,7 +327,6 @@ def load_config():
     except Exception as e:
         logging.error(f"Error occurred while loading the config.ini file: {e}")
         raise
-
     return global_cache.config_cache
 
 
@@ -379,19 +380,19 @@ def ask_language_choice():
 def ask_game_version():
     """Ask the user to select the game version the first script launch."""
     while True:
-        game_version = Prompt.ask(
+        user_game_version = Prompt.ask(
             'What version of the game are you using? (Format: major.minor.patch, e.g., 1.19.8 or leave blank to use the latest game version)',
             default=""
             )
 
-        # If the user left the input empty, get the last game version
-        if game_version == "":
-            game_version = None
-            return game_version
+        # If the user left the input empty, it will use the last game version
+        if user_game_version == "":
+            user_game_version = None
+            return user_game_version
 
         # If valid, complete and return the version
-        if utils.is_valid_version(game_version):
-            return utils.complete_version(game_version)
+        if utils.is_valid_version(user_game_version):
+            return utils.complete_version(user_game_version)
         else:
             # If the format is invalid, display an error message and ask for the version again.
             print(
