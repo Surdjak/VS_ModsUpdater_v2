@@ -30,7 +30,7 @@ For now, it is far from complete; many features are still missing, but it can al
 * Planned but not guaranteed: the ability to downgrade mods for a given game version
 
 
-(updated 2025-03-22)
+(updated 2025-03-24)
 
 ## migration function for config.ini
 I’ve added a migration function from the old config to v2. Just put VS_ModsUpdater_v2.0.0-dev1.exe in the same folder as the previous version or copy the config.ini file next to VS_ModsUpdater_v2.0.0-dev1.exe.
