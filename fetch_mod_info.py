@@ -24,7 +24,7 @@ Vintage Story mod management - Fetching mods information
 
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev2"
-__date__ = "2025-03-24"  # Last update
+__date__ = "2025-03-25"  # Last update
 
 # fetch_mod_info.py
 
@@ -44,6 +44,7 @@ from rich.progress import Progress
 
 import config
 import global_cache
+import utils
 from utils import fix_json, get_random_headers, is_zip_valid
 
 
@@ -179,13 +180,13 @@ def process_mod_file(file, mods_data, invalid_files):
             invalid_files.append(file.name)  # Add invalid .cs file name
 
 
-def get_compatible_releases(mod_json, user_game_version):
+def get_compatible_releases(mod_json, user_game_version, exclude_prerelease):
     """
     Retrieve all compatible releases for the mod based on the user_game_version.
 
     A release is considered compatible if at least one of its tag versions has the same major and minor version
     as user_game_version and is less than or equal to user_game_version.
-    The releases are then sorted in descending order (by modversion and creation date).
+    Optionally, pre-release versions (-rc, -dev, etc.) can be excluded.
     """
     releases = mod_json.get("mod", {}).get("releases", [])
     user_ver = Version(user_game_version.lstrip("v"))
@@ -196,8 +197,11 @@ def get_compatible_releases(mod_json, user_game_version):
                 continue
             try:
                 tag_ver = Version(tag.lstrip("v"))
-                # Only include the release if the tag is exactly equal to the user's game version.
-                if tag_ver == user_ver:
+                # Exclude pre-releases if the option is enabled
+                if exclude_prerelease.lower() == "true" and Version(release['modversion']).is_prerelease:
+                    continue
+                    # Include release if the tag is compatible
+                if tag_ver <= user_ver and (tag_ver.major, tag_ver.minor) == (user_ver.major, user_ver.minor):
                     compatible_releases.append(release)
                     break  # Stop checking other tags for this release.
             except Exception:
@@ -231,8 +235,8 @@ def get_mod_api_data(mod):
         mod_json = response.json()
         mod_assetid = mod_json["mod"]["assetid"]
         mod_url = f"{global_cache.config_cache['URL_MOD_DB']}{mod_assetid}"
-
-        sorted_releases = get_compatible_releases(mod_json, global_cache.config_cache['Game_Version']['user_game_version'])
+        exclude_prerelease = global_cache.config_cache['Options']['exclude_prerelease_mods']
+        sorted_releases = get_compatible_releases(mod_json, global_cache.config_cache['Game_Version']['user_game_version'], exclude_prerelease)
         mainfile_url = sorted_releases[0]['mainfile']
 
         mod_latest_version_for_game_version = sorted_releases[0]['modversion']
@@ -251,11 +255,13 @@ def get_mod_api_data(mod):
 def scan_and_fetch_mod_info(mods_folder):
     invalid_files = []  # List of invalid or corrupted files.
 
+    max_workers = utils.calculate_max_workers()
+
     mod_files = list(mods_folder.iterdir())
     total_files = len(mod_files)
     with Progress() as progress:
         task = progress.add_task("[cyan]Scanning mods...", total=total_files)
-        with ThreadPoolExecutor() as executor:
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = []
             for file in mods_folder.iterdir():
                 futures.append(
@@ -277,7 +283,7 @@ def scan_and_fetch_mod_info(mods_folder):
     with Progress() as progress:
         api_task = progress.add_task("[green]Fetching mod info from API...",
                                      total=len(mod_ids))
-        with ThreadPoolExecutor() as executor:
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
             api_futures = []
             # Use a dictionary to associate the mod with the future.
             future_to_mod = {}

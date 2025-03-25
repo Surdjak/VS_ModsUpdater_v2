@@ -23,7 +23,7 @@ Vintage Story mod management:
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev2"
-__date__ = "2025-03-24"  # Last update
+__date__ = "2025-03-25"  # Last update
 
 
 # mods_auto_update.py
@@ -44,7 +44,7 @@ from rich.progress import Progress
 
 import global_cache
 from utils import version_compare, check_excluded_mods, get_random_headers, \
-    setup_directories, extract_filename_from_url
+    setup_directories, extract_filename_from_url, calculate_max_workers
 
 
 def get_mods_to_update(mods_data):
@@ -172,7 +172,8 @@ def download_mods_to_update(mods_data):
         task = progress.add_task("[cyan]Downloading mods...", total=len(mods_data))
 
         # Create a thread pool executor for parallel downloads
-        with ThreadPoolExecutor() as executor:
+        max_workers = calculate_max_workers()
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = []
             for mod in mods_data:
                 url = mod['url_download']

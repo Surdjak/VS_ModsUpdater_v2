@@ -22,8 +22,8 @@
 
 
 __author__ = "Laerinok"
-__version__ = "1.0.0-dev2"  # Don't forget to change EXPECTED_VERSION
-__date__ = "2025-03-22"  # Last update
+__version__ = "2.0.0-dev2"  # Don't forget to change EXPECTED_VERSION
+__date__ = "2025-03-25"  # Last update
 
 
 # config.py
@@ -41,7 +41,7 @@ import global_cache
 import utils
 
 # The target version after migration
-EXPECTED_VERSION = "1.0.0-dev2"
+EXPECTED_VERSION = "2.0.0-dev2"
 
 # Constant for os
 SYSTEM = platform.system()
@@ -82,7 +82,7 @@ URL_SCRIPT = {
 DEFAULT_CONFIG = {
     "ModsUpdater": {"version": __version__},
     "Logging": {"log_level": "DEBUG"},  # Debug Set to INFO for full release !!
-    "Options": {"force_update": "false", "disable_mod_dev": "false", "auto_update": "true", "max_workers": 4},
+    "Options": {"force_update": "false", "exclude_prerelease_mods": "false", "auto_update": "true", "max_workers": os.cpu_count()},
     "Backup_Mods": {"backup_folder": "backup_mods", "max_backups": 3},
     "ModsPath": {"path": str(MODS_PATHS[SYSTEM])},
     "Language": {"language": DEFAULT_LANGUAGE},
@@ -95,6 +95,7 @@ RENAME_MAP = {
     "Game_Version_max": "user_game_version",
     "ModPath": "ModsPath",
     "ver": "version",
+    "disable_mod_dev": "exclude_prerelease_mods",
     "mod1": "mods",
     "mod2": "mods",
     "mod3": "mods",
@@ -156,10 +157,17 @@ def migrate_config(old_config):
     # Step 2: Handle Options migration
     options_section = {}
     if "ModsUpdater" in old_config:
-        for option in ["force_update", "disable_mod_dev"]:  # Only migrate valid options
+        for option in ["force_update",
+                       "auto_update"]:  # Only migrate valid options from the old config
             if option in old_config["ModsUpdater"]:
                 options_section[option] = old_config["ModsUpdater"][option]
                 logging.debug("Migrating option '%s' to new config", option)
+
+        # Handle 'disable_mod_dev' explicitly: replace it with 'exclude_prerelease_mods' in the new config
+        if "disable_mod_dev" in old_config["ModsUpdater"]:
+            options_section["exclude_prerelease_mods"] = old_config["ModsUpdater"][
+                "disable_mod_dev"]
+            logging.debug("'disable_mod_dev' replaced with 'exclude_prerelease_mods'.")
 
     # Merge with defaults, excluding unnecessary keys (e.g., log_level if already elsewhere)
     new_config["Options"] = {
@@ -172,7 +180,8 @@ def migrate_config(old_config):
     # Step 3: Handle Game_Version_max -> user_game_version migration
     if "Game_Version_max" in old_config:
         user_game_version = old_config["Game_Version_max"].get("version")
-        new_config["user_game_version"] = {"version": user_game_version or DEFAULT_CONFIG["user_game_version"]["version"]}
+        user_game_version = None if str(user_game_version) == "100.0.0" else user_game_version
+        new_config["Game_Version"] = {"user_game_version": user_game_version or 'None'}
         logging.debug("Migrating Game_Version_max to user_game_version: %s", user_game_version)
     else:
         new_config["user_game_version"] = DEFAULT_CONFIG["Game_Version"]
@@ -380,7 +389,7 @@ def ask_game_version():
     """Ask the user to select the game version the first script launch."""
     while True:
         user_game_version = Prompt.ask(
-            'What version of the game are you using? (Format: major.minor.patch, e.g., 1.19.8 or leave blank to use the latest game version)',
+            'Which version of the game are you using? You can set a game version to limit mod updates. Leave it empty to always use the latest available game version. If you enter a version, it will need to be updated when new game versions are released. Use a valid semver format: e.g., 1.2.3)',
             default=""
             )
 

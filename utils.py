@@ -17,24 +17,27 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 __author__ = "Laerinok"
-__version__ = "2.0.0-dev1"
-__date__ = "2025-03-22"  # Last update
+__version__ = "2.0.0-dev2"
+__date__ = "2025-03-25"  # Last update
 
 
 # utils.py
 
 import argparse
+import json
 import logging
+import os
 import random
 import re
 import sys
 import time
 import zipfile
-import json
+from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
 import requests
 from packaging.version import Version, InvalidVersion
+from rich import print
 
 import global_cache
 
@@ -66,6 +69,51 @@ def print_mods_data():
 def setup_directories(path_dir):
     if not path_dir.exists():
         path_dir.mkdir(parents=True, exist_ok=True)
+
+
+def check_mods_directory(mods_dir):
+    mods_dir_path = Path(mods_dir)
+
+    # Check if the directory is empty
+    if not any(mods_dir_path.iterdir()):
+        print("[red]Warning: The Mods directory is empty![/red] Please add your mod files.")
+        logging.error("Warning: The Mods directory is empty!")
+        exit_program(extra_msg="Empty folder")
+
+    found_valid_file = False
+
+    # Loop through all files in the 'Mods' directory
+    for item in mods_dir_path.iterdir():
+        if item.is_dir():
+            print(f"[red]Warning: Directory found in Mods folder: {item.name}.[/red] Please ensure you have .zip files, not folders.")
+            logging.error(f"Warning: Directory found in Mods folder: {item.name}. Please ensure you have .zip files, not folders.")
+        elif item.suffix.lower() in ['.zip', '.cs']:
+            found_valid_file = True  # We found at least one valid file
+
+    # If no valid files were found, exit the program
+    if not found_valid_file:
+        exit_program(extra_msg="No valid mod files found in the Mods folder.")
+
+
+def calculate_max_workers():
+    """
+    Calculate the maximum number of workers based on CPU cores and the user's max_workers value.
+    Allows a factor of 2.5 times the number of CPU cores.
+    :return: The validated max_workers value
+    """
+    user_max_workers = int(global_cache.config_cache["Options"]["max_workers"])
+    cpu_cores = os.cpu_count()
+
+    # Define the maximum workers allowed as 2.5 times the number of cores
+    max_workers = cpu_cores * 2.5
+
+    # If the user has set max_workers, validate it
+    if user_max_workers:
+        # Never exceed the max_workers limit
+        return min(user_max_workers, max_workers)
+    else:
+        # If the user hasn't set max_workers, use the calculated max_workers
+        return int(max_workers)  # We return an integer value for consistency
 
 
 def get_random_headers():
@@ -224,13 +272,14 @@ def parse_args():
     parser.add_argument('--exclusion', nargs='*', type=str, help='Filenames of mods to exclude (in quotes)')
     parser.add_argument('--forceupdate', type=lambda x: x.lower() == 'true', default=False, help='Force update all mods (default=false)')
     parser.add_argument('--makepdf', type=lambda x: x.lower() == 'true', default=False, help='Create a PDF file (default=false)')
-    parser.add_argument('--disable_mod_dev', type=lambda x: x.lower() == 'true', default=False, help='Enable/Disable mod dev updates (default=false)')
+    parser.add_argument('--exclude_prerelease_mods', type=lambda x: x.lower() == 'true', default=False, help='Enable/Disable prerelease mod updates (default=false)')
 
     return parser.parse_args()
 
 
-def exit_program(msg="Program terminated"):
-    print(f"\n*** {msg} ***")
-    logging.info(f"*** {msg} ***")
+def exit_program(msg="Program terminated", extra_msg=None):
+    full_msg = msg if not extra_msg else f"{msg}: {extra_msg}"
+    print(f"\n*** {full_msg} ***")
+    logging.info(f"*** {full_msg} ***")
     time.sleep(2)  # 2-second delay to give the user time to read the message.
     sys.exit()

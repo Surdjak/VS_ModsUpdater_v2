@@ -22,7 +22,7 @@ Vintage Story mod management
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev2"
-__date__ = "2025-03-22"  # Last update
+__date__ = "2025-03-25"  # Last update
 
 
 # main.py
@@ -41,6 +41,7 @@ import fetch_mod_info
 import global_cache
 import lang
 import mods_auto_update
+import utils
 from utils import exit_program
 
 console = Console()
@@ -83,10 +84,10 @@ def initialize_config():
             user_confirms_update = user_confirms_update.strip().lower()
 
             if user_confirms_update == global_cache.language_cache["yes"][0].lower():
-                return
+                break
             elif user_confirms_update == global_cache.language_cache["no"][0].lower():
                 print(global_cache.language_cache["exiting_program"])
-                exit_program("User chose to exit the update process.")
+                exit_program(extra_msg="User chose to exit the update process.")
 
             else:
                 pass
@@ -129,12 +130,16 @@ def welcome_display():
 if __name__ == "__main__":
     # Initialize config
     initialize_config()
+
     import mu_script_update
     welcome_display()
     print("\n\n")
 
+    mods_path = fetch_mod_info.get_mod_path()
+    # Check if the 'Mods' folder is not empty and contains only archive files, not extracted archive folders.
+    utils.check_mods_directory(mods_path)
     # Fetch mods info
-    fetch_mod_info.scan_and_fetch_mod_info(fetch_mod_info.get_mod_path())
+    fetch_mod_info.scan_and_fetch_mod_info(mods_path)
 
     # Auto update mods
     mods_auto_update.get_mods_to_update(global_cache.mods_data)
@@ -154,6 +159,5 @@ if __name__ == "__main__":
         print(f"No updates needed for mods.")
         logging.info("No updates needed for mods.")
 
-    # print(global_cache.mods_data)  # debug
     # End of programm
-    exit_program()
+    exit_program(extra_msg="All of your mods are up to date.")

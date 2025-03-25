@@ -22,7 +22,7 @@
 
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"
-__date__ = "2025-03-24"  # Last update
+__date__ = "2025-03-25"  # Last update
 
 # mu_script_update.py
 
@@ -34,14 +34,13 @@ from bs4 import BeautifulSoup
 from requests.exceptions import RequestException
 
 import config
+import global_cache
 import utils
-from global_cache import config_cache
 
 # mu_script_update.py
 
-
 logging.info(f'OS: {config.SYSTEM} - ModsUpdater v{__version__}')
-logging.info(f"For Vintage Story v{config_cache['Game_Version']['user_game_version']}")
+logging.info(f"For Vintage Story v{global_cache.config_cache['Game_Version']['user_game_version']}")
 logging.info(f'Checking for ModsUpdater script update')
 
 
