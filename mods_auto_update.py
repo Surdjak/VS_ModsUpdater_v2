@@ -23,7 +23,7 @@ Vintage Story mod management:
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev2"
-__date__ = "2025-03-25"  # Last update
+__date__ = "2025-03-26"  # Last update
 
 
 # mods_auto_update.py
@@ -32,19 +32,18 @@ __date__ = "2025-03-25"  # Last update
 import datetime
 import logging
 import os
-import random
-import time
 import zipfile
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-import requests
-from requests.exceptions import RequestException
 from rich.progress import Progress
 
 import global_cache
-from utils import version_compare, check_excluded_mods, get_random_headers, \
+from http_client import HTTPClient
+from utils import version_compare, check_excluded_mods, \
     setup_directories, extract_filename_from_url, calculate_max_workers
+
+client = HTTPClient
 
 
 def get_mods_to_update(mods_data):
@@ -93,7 +92,7 @@ def backup_mods(mods_to_backup):
     """
     max_backups = int(global_cache.config_cache['Backup_Mods']['max_backups'])
     backup_folder_name = global_cache.config_cache['Backup_Mods']['backup_folder']
-    backup_folder = Path(global_cache.config_cache['APPLICATION_PATH']) / backup_folder_name
+    backup_folder = (Path(global_cache.config_cache['APPLICATION_PATH']) / backup_folder_name).resolve()
 
     # Ensure the backup directory exists
     setup_directories(backup_folder)
@@ -128,38 +127,21 @@ def download_file(url, destination_path, progress_bar, task):
     Download the file from the given URL and save it to the destination path with a progress bar using Rich.
     Implements error handling and additional security measures.
     """
-    try:
-        # Fetches the URL with a randomized User-Agent.
-        headers = get_random_headers()
-        response = requests.get(url, stream=True, headers=headers, timeout=10)  # Increased timeout to 10 seconds
-        response.raise_for_status()  # Will raise an HTTPError for bad responses (4xx, 5xx)
+    response = client.get(url, stream=True, timeout=10)  # Increased timeout to 10 seconds
+    response.raise_for_status()  # Will raise an HTTPError for bad responses (4xx, 5xx)
 
-        # Get the total size of the file (if available)
-        total_size = int(response.headers.get('content-length', 0))
+    # Get the total size of the file (if available)
+    total_size = int(response.headers.get('content-length', 0))
 
-        if total_size == 0:
-            print("[bold red]Warning: The file size is unknown or zero. Download may not complete properly.[/bold red]")
+    if total_size == 0:
+        print("[bold red]Warning: The file size is unknown or zero. Download may not complete properly.[/bold red]")
 
-        with open(destination_path, 'wb') as file:
-            for data in response.iter_content(chunk_size=1024):
-                file.write(data)
-                progress_bar.update(task, advance=len(data))  # Update progress bar in the same task
+    with open(destination_path, 'wb') as file:
+        for data in response.iter_content(chunk_size=1024):
+            file.write(data)
+            progress_bar.update(task, advance=len(data))  # Update progress bar in the same task
 
-        logging.info(f"Download completed: {destination_path}")
-
-    except RequestException as e:
-        # Catch any request-related exceptions (e.g., connection issues, timeout)
-        print(f"[bold red]Error: Failed to download the file. {e}[/bold red]")
-        logging.error(f"Error: Failed to download the file. {e}")
-
-    except Exception as e:
-        # Catch any other unforeseen errors
-        logging.error(f"[bold red]An unexpected error occurred: {e}[/bold red]")
-
-    finally:
-        # Wait for a random time between 0.5 and 1.5 seconds.
-        delay = random.uniform(0.5, 1.5)
-        time.sleep(delay)
+    logging.info(f"Download completed: {destination_path}")
 
 
 def download_mods_to_update(mods_data):

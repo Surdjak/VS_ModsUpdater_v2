@@ -18,7 +18,7 @@
 
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev2"
-__date__ = "2025-03-25"  # Last update
+__date__ = "2025-03-26"  # Last update
 
 
 # utils.py
@@ -35,11 +35,15 @@ import zipfile
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
-import requests
 from packaging.version import Version, InvalidVersion
 from rich import print
+from rich.console import Console
 
 import global_cache
+from http_client import HTTPClient
+
+console = Console()
+client = HTTPClient()
 
 
 # #### For test and debug ####
@@ -72,13 +76,13 @@ def setup_directories(path_dir):
 
 
 def check_mods_directory(mods_dir):
-    mods_dir_path = Path(mods_dir)
+    mods_dir_path = Path(mods_dir).resolve()
 
     # Check if the directory is empty
     if not any(mods_dir_path.iterdir()):
-        print("[red]Warning: The Mods directory is empty![/red] Please add your mod files.")
-        logging.error("Warning: The Mods directory is empty!")
-        exit_program(extra_msg="Empty folder")
+        console.print(f"[red]Warning: The Mods directory [magenta]{mods_dir_path}[/magenta] is empty![/red]\nPlease add your mod files.")
+        logging.error(f"Warning: The Mods directory {mods_dir_path} is empty!")
+        exit_program(extra_msg="Empty mods folder")
 
     found_valid_file = False
 
@@ -218,16 +222,12 @@ def complete_version(version_string):
 # Retrieve the last game version
 def get_latest_game_version(url_api='https://mods.vintagestory.at/api'):
     gameversions_api_url = f'{url_api}/gameversions'
-    try:
-        response = requests.get(gameversions_api_url)
-        response.raise_for_status()  # Checks that the request was successful (status code 200)
-        gameversion_data = response.json()  # Retrieves JSON content
-        logging.info(f"Game version data retrieved.")
-        # Retrieve the latest version
-        return gameversion_data['gameversions'][0]['name'][1:]
-    except:
-        logging.warning(f"Cannot reach gameversion api.")
-        return None
+    response = client.get(gameversions_api_url)
+    response.raise_for_status()  # Checks that the request was successful (status code 200)
+    gameversion_data = response.json()  # Retrieves JSON content
+    logging.info(f"Game version data retrieved.")
+    # Retrieve the latest version
+    return gameversion_data['gameversions'][0]['name'][1:]
 
 
 def extract_filename_from_url(url):

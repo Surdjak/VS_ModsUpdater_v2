@@ -22,12 +22,15 @@ Vintage Story mod management
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev2"
-__date__ = "2025-03-25"  # Last update
+__license__ = "GNU GPL v3"
+__description__ = "Mods Updater for Vintage Story"
+__date__ = "2025-03-26"  # Last update
 
 
 # main.py
 
 
+import ctypes
 import logging
 import os
 from pathlib import Path
@@ -47,6 +50,9 @@ from utils import exit_program
 console = Console()
 
 
+ctypes.windll.kernel32.SetConsoleTitleW("VS Mods Updater")
+
+
 def initialize_config():
     # Create config.ini if not present
     if not config.config_exists():
@@ -55,7 +61,7 @@ def initialize_config():
         print(f'\n\t[yellow]First run detected - Set up config.ini -[/yellow]')
         language = config.ask_language_choice()
         # Load translations
-        path = Path(f'{config.LANG_PATH}/{language[0]}.json')
+        path = Path(f'{config.LANG_PATH}/{language[0]}.json').resolve()
         cache_lang = lang.load_translations(path)
         mods_dir = config.ask_mods_directory()
         user_game_version = config.ask_game_version()
@@ -102,7 +108,7 @@ def initialize_config():
         global_cache.config_cache["Logging"]['log_level'].upper())
 
     # Load the language translations from the config file into the global cache
-    lang_path = Path(f"{config.LANG_PATH}/{global_cache.config_cache['Language']['language']}.json")
+    lang_path = Path(f"{config.LANG_PATH}/{global_cache.config_cache['Language']['language']}.json").resolve()
     global_cache.language_cache.update(lang.load_translations(lang_path))
 
 
@@ -140,6 +146,7 @@ if __name__ == "__main__":
     utils.check_mods_directory(mods_path)
     # Fetch mods info
     fetch_mod_info.scan_and_fetch_mod_info(mods_path)
+    # print(global_cache.mods_data)  # debug
 
     # Auto update mods
     mods_auto_update.get_mods_to_update(global_cache.mods_data)

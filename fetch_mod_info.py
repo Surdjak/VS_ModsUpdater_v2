@@ -24,13 +24,12 @@ Vintage Story mod management - Fetching mods information
 
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev2"
-__date__ = "2025-03-25"  # Last update
+__date__ = "2025-03-26"  # Last update
 
 # fetch_mod_info.py
 
 import json
 import logging
-import random
 import re
 import sys
 import time
@@ -38,14 +37,17 @@ import zipfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-import requests
 from packaging.version import Version
 from rich.progress import Progress
 
 import config
+import fetch_changelog
 import global_cache
 import utils
-from utils import fix_json, get_random_headers, is_zip_valid
+from http_client import HTTPClient
+from utils import fix_json, is_zip_valid
+
+client = HTTPClient()
 
 
 def get_mod_path():
@@ -120,32 +122,6 @@ def get_cs_info(cs_path):
         namespace = namespace_match.group(1) if namespace_match else None
         modid = namespace.lower().replace(" ", "") if namespace else None
         return version, namespace, modid, description
-
-
-def get_api_info(modid):
-    """Gets, via the API, the assetid and download link for the file corresponding to the mod version."""
-    url_api_mod = f"{global_cache.config_cache['URL_BASE_MOD_API']}{modid}"
-    try:
-        response = requests.get(url_api_mod, headers=get_random_headers(), timeout=5)
-        response.raise_for_status()
-        data = response.json()
-        mod_asset_id = data['mod']['assetid']
-        releases = data['mod']['releases']
-        side = data['mod']['side']
-        return mod_asset_id, side, releases
-    except requests.exceptions.Timeout:
-        logging.error(f"Timeout when fetching API info for {modid}")
-    except requests.exceptions.HTTPError as err:
-        logging.error(f"HTTP error when fetching API info for {modid}: {err}")
-    except requests.RequestException as err:
-        logging.error(f"Error fetching API info for {modid}: {err}")
-    except KeyError:
-        logging.error(f"Unexpected API response format for {modid}")
-        return None, None, None
-    finally:
-        # Wait for a random time between 1 and 5 seconds.
-        delay = random.uniform(0.5, 1.5)
-        time.sleep(delay)
 
 
 def process_mod_file(file, mods_data, invalid_files):
@@ -229,27 +205,20 @@ def get_mod_api_data(mod):
     logging.debug(f"Attempting to fetch data for mod '{modid}' from API.")
     mod_url_api = f'{config.URL_BASE_MOD_API}{modid}'
     logging.debug(f"Retrieving mod info from: {mod_url_api}")
-    try:
-        response = requests.get(mod_url_api, headers=get_random_headers(), timeout=5)
-        response.raise_for_status()
-        mod_json = response.json()
-        mod_assetid = mod_json["mod"]["assetid"]
-        mod_url = f"{global_cache.config_cache['URL_MOD_DB']}{mod_assetid}"
-        exclude_prerelease = global_cache.config_cache['Options']['exclude_prerelease_mods']
-        sorted_releases = get_compatible_releases(mod_json, global_cache.config_cache['Game_Version']['user_game_version'], exclude_prerelease)
-        mainfile_url = sorted_releases[0]['mainfile']
+    response = client.get(mod_url_api, timeout=5)
+    response.raise_for_status()
+    mod_json = response.json()
+    mod_assetid = mod_json["mod"]["assetid"]
+    mod_url = f"{global_cache.config_cache['URL_MOD_DB']}{mod_assetid}"
+    exclude_prerelease = global_cache.config_cache['Options']['exclude_prerelease_mods']
+    sorted_releases = get_compatible_releases(mod_json, global_cache.config_cache['Game_Version']['user_game_version'], exclude_prerelease)
+    mainfile_url = sorted_releases[0]['mainfile']
+    mod_latest_version_for_game_version = sorted_releases[0]['modversion']
 
-        mod_latest_version_for_game_version = sorted_releases[0]['modversion']
-        return mod_assetid, mod_url, mainfile_url, mod_latest_version_for_game_version
-    except requests.exceptions.HTTPError as http_err:
-        logging.error(f'HTTP error occurred: {http_err}')
-    except Exception as err:
-        logging.error(f'Error occurred: {err}')
-    finally:
-        # Wait for a random time between 0.5 and 1.5 seconds.
-        delay = random.uniform(0.5, 1.5)
-        time.sleep(delay)
-    return None, None, None, None
+    # Fetch changelog
+    mod_name = mod_json["mod"]["name"]
+    changelog = fetch_changelog.get_raw_changelog(mod_name, mod_assetid, mod_latest_version_for_game_version)
+    return mod_assetid, mod_url, mainfile_url, mod_latest_version_for_game_version
 
 
 def scan_and_fetch_mod_info(mods_folder):

@@ -20,10 +20,76 @@
 # Manage configuration using a global cache.
 """
 
+# fetch_changelog.py
+
 
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev2"
-__date__ = "2025-03-25"  # Last update
+__date__ = "2025-03-26"  # Last update
+
+import logging
+
+import html2text
+from bs4 import BeautifulSoup
+
+import config
+from http_client import HTTPClient
+
+client = HTTPClient()
 
 
-# fetch_changelog.py
+def convert_html_to_markdown(html_content):
+    """
+    Convert HTML content to Markdown.
+    """
+    converter = html2text.HTML2Text()
+    converter.ignore_links = False  # Keep links
+    converter.ignore_images = False  # Keep images
+    converter.body_width = 0  # Prevent forced line breaks
+    return converter.handle(html_content)
+
+
+def get_raw_changelog(modname, mod_assetid, modversion):
+    """
+    Retrieve raw changelog from modDB for a specific mod version.
+    Converts the changelog to Markdown.
+    """
+    logging.debug(f"Attempting to fetch changelog for mod '{modname}' (version {modversion}) from modDB.")
+    mod_url_api = f'{config.URL_MOD_DB}{mod_assetid}'
+    logging.debug(f"Retrieving changelog from: {mod_url_api}")
+
+    response = client.get(mod_url_api, timeout=5)
+    response.raise_for_status()
+
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    # Find all divs containing changelogs
+    changelog_divs = soup.find_all("div", class_="changelogtext")
+
+    for div in changelog_divs:
+        # Extract version (inside <strong>)
+        version_tag = div.find("strong")
+        version = version_tag.text.strip() if version_tag else "Unknown Version"
+
+        # Check if this version matches modversion
+        if version.lower() == modversion.lower():
+            # Remove the version tag from the changelog content
+            version_tag.extract()
+
+            # Extract the raw changelog text
+            changelog_text = div.encode_contents().decode()  # Keep raw HTML
+            changelog_markdown = convert_html_to_markdown(changelog_text)
+
+            logging.debug(f"Changelog found for version {version}:\n{changelog_markdown}")
+            return changelog_markdown  # Return Markdown version
+
+    logging.info(f"No changelog found for version {modversion}")
+    return None
+
+
+if __name__ == "__main__":
+    # for test
+    modname = 'fendragonbcs'
+    mod_assetid = 13229
+    modversion = "V0.1.7"
+    print(f"{modname} {modversion}:{get_raw_changelog(modname, mod_assetid, modversion)}")

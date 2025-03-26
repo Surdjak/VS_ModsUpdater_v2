@@ -303,11 +303,6 @@ def load_config():
                 HOME_PATH) / 'AppData' / 'Roaming' / 'VintagestoryData' / 'Mods',
             "Linux": Path(XDG_CONFIG_HOME_PATH) / 'VintagestoryData' / 'Mods'
         }
-        global_cache.config_cache["MODS_PATHS"] = {
-            "Windows": Path(
-                HOME_PATH) / 'AppData' / 'Roaming' / 'VintagestoryData' / 'Mods',
-            "Linux": Path(XDG_CONFIG_HOME_PATH) / 'VintagestoryData' / 'Mods'
-        }
         # Fill cache with user-agent
         global_cache.config_cache['USER_AGENTS'] = USER_AGENTS
 
