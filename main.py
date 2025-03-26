@@ -33,6 +33,7 @@ __date__ = "2025-03-26"  # Last update
 import ctypes
 import logging
 import os
+import sys
 from pathlib import Path
 
 from rich import print
@@ -168,4 +169,7 @@ if __name__ == "__main__":
         logging.info("No updates needed for mods.")
 
     # End of programm
-    exit_program(extra_msg="All of your mods are up to date.")
+
+    exit_program(extra_msg="All of your mods are up to date.", do_exit=False)
+    input("\nPress Enter to exit...")  # Attend que l'utilisateur appuie sur Entrée
+    sys.exit()

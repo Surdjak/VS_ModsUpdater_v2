@@ -277,9 +277,10 @@ def parse_args():
     return parser.parse_args()
 
 
-def exit_program(msg="Program terminated", extra_msg=None):
+def exit_program(msg="Program terminated", extra_msg=None, do_exit=True):
     full_msg = msg if not extra_msg else f"{msg}: {extra_msg}"
     print(f"\n*** {full_msg} ***")
     logging.info(f"*** {full_msg} ***")
-    time.sleep(2)  # 2-second delay to give the user time to read the message.
-    sys.exit()
+    time.sleep(2)
+    if do_exit:
+        sys.exit()
