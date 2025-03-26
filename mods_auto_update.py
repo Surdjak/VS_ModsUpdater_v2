@@ -33,20 +33,25 @@ import datetime
 import logging
 import os
 import zipfile
-import config
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 from rich import print
+from rich.console import Console
 from rich.progress import Progress
 
+import config
 import fetch_changelog
 import global_cache
 from http_client import HTTPClient
 from utils import version_compare, check_excluded_mods, \
     setup_directories, extract_filename_from_url, calculate_max_workers
 
-client = HTTPClient
+client = HTTPClient()
+console = Console()
+
+# Variable to enable/disable the download - for my test
+download_enabled = True  # Set to False to disable downloads
 
 
 def get_mods_to_update(mods_data):
@@ -58,41 +63,74 @@ def get_mods_to_update(mods_data):
     - Returns a list of mods that require updates.
     """
     # Extract filenames from excluded_mods to compare correctly
+    check_excluded_mods()
     excluded_filenames = [mod['Filename'] for mod in mods_data.get("excluded_mods", [])]
     logging.info(f"Excluded filenames: {excluded_filenames}")
-    for mod in mods_data.get("installed_mods", []):
-        try:
-            # Log mod Filename to verify
-            logging.info(f"Processing mod: {mod['Name']} - Filename: {mod['Filename']}")
 
-            # Skip the mod if its Filename is in excluded_filenames
-            check_excluded_mods()
-            if mod['Filename'] in excluded_filenames:
-                logging.info(f"Skipping excluded mod: {mod['Name']} - Filename: {mod['Filename']}")
-                continue  # Skip this mod if it's in the excluded list
-            # Proceed with the version comparison
-            if mod.get("mod_latest_version_for_game_version"):
-                mod_update = version_compare(mod["Local_Version"],
-                                             mod["mod_latest_version_for_game_version"])
-            else:
-                mod_update = False
-            if mod_update:
-                mod_name = mod['Name']
-                mod_assetid = mod['AssetId']
-                modversion = mod['mod_latest_version_for_game_version']
-                changelog = fetch_changelog.get_raw_changelog(mod_name, mod_assetid, modversion)
-                mods_data["mods_to_update"].append({
-                    "Name": mod['Name'],
-                    "Old_version": mod['Local_Version'],
-                    "New_version": mod['mod_latest_version_for_game_version'],
-                    "Changelog": changelog,
-                    "Filename": mod['Filename'],
-                    "url_download": mod['Latest_version_mod_url']})
+    # Initialize a list to store the mods that need to be updated
+    mods_to_update = []
 
-        except ValueError:
-            # Skip mods with invalid version formats
-            logging.warning(f"Invalid version format for mod: {mod['Name']}")
-            continue
+    with Progress() as progress:
+        task = progress.add_task("[cyan]Checking mods for updates...",
+                                 total=len(mods_data.get("installed_mods", [])))
+
+        # Use ThreadPoolExecutor to parallelize the changelog retrieval
+        with ThreadPoolExecutor() as executor:
+            futures = []
+
+            for mod in mods_data.get("installed_mods", []):
+                futures.append(executor.submit(process_mod, mod, excluded_filenames,
+                                               mods_to_update))
+
+            for future in as_completed(futures):
+                future.result()  # Wait for completion of each task
+                progress.update(task, advance=1)  # Update the progress bar
+
+    # Sort mods_to_update before returning
+    mods_to_update.sort(key=lambda mod: mod["Name"].lower())  # Sort by Name (or any other criteria)
+    mods_data["mods_to_update"] = mods_to_update
+    return mods_to_update
+
+
+def process_mod(mod, excluded_filenames, mods_to_update):
+    """
+    Process each mod to check if it needs an update and fetch its changelog.
+    """
+    try:
+        # Log mod Filename to verify
+        logging.info(f"Processing mod: {mod['Name']} - Filename: {mod['Filename']}")
+
+        # Skip the mod if its Filename is in excluded_filenames
+        if mod['Filename'] in excluded_filenames:
+            logging.info(
+                f"Skipping excluded mod: {mod['Name']} - Filename: {mod['Filename']}")
+            return  # Skip this mod if it's in the excluded list
+
+        # Proceed with the version comparison
+        if mod.get("mod_latest_version_for_game_version"):
+            mod_update = version_compare(mod["Local_Version"],
+                                         mod["mod_latest_version_for_game_version"])
+        else:
+            mod_update = False
+
+        if mod_update:
+            mod_name = mod['Name']
+            mod_assetid = mod['AssetId']
+            modversion = mod['mod_latest_version_for_game_version']
+            changelog = fetch_changelog.get_raw_changelog(mod_name, mod_assetid,
+                                                          modversion)
+            mods_to_update.append({
+                "Name": mod['Name'],
+                "Old_version": mod['Local_Version'],
+                "New_version": mod['mod_latest_version_for_game_version'],
+                "Changelog": changelog,
+                "Filename": mod['Filename'],
+                "url_download": mod['Latest_version_mod_url']})
+
+    except ValueError:
+        # Skip mods with invalid version formats
+        logging.warning(f"Invalid version format for mod: {mod['Name']}")
+        return
 
 
 def backup_mods(mods_to_backup):
@@ -129,10 +167,6 @@ def backup_mods(mods_to_backup):
         for old_backup in backups[max_backups:]:
             old_backup.unlink()
             logging.info(f"Deleted old backup: {old_backup}")
-
-
-# Variable to enable/disable the download
-download_enabled = True  # Set to False to disable downloads
 
 
 def download_file(url, destination_path, progress_bar, task):
@@ -229,21 +263,19 @@ def resume_mods_updated():
     mod_updated_logger = config.configure_mod_updated_logging()
 
     for mod in global_cache.mods_data.get('mods_to_update', []):
-        name_version = f"{mod['Name']} (v{mod['Old_version']} to v{mod['New_version']})"
+        name_version = f"*** {mod['Name']} (v{mod['Old_version']} to v{mod['New_version']}) ***"
+        mod_updated_logger.info("================================")
+        mod_updated_logger.info(name_version)
+        if mod.get('Changelog'):
+            # Formatage simple pour rendre le changelog lisible
+            changelog = mod['Changelog']
 
-        # Définir la largeur de l'encadrement
-        line_length = max(len(name_version) + 8, 60)  # Minimum 60 caractères
-        border = "#" * line_length
-        padding = (line_length - len(name_version) - 2) // 2  # Centrage
-        title = f"# {' ' * padding}{name_version}{' ' * (padding + (line_length % 2))} #"
+            # Si tu veux organiser par section, tu peux ajouter des sauts de ligne ou autres
+            changelog = changelog.replace("\n",
+                                          "\n\t")  # Ajouter une tabulation pour chaque nouvelle ligne
+            mod_updated_logger.info(f"Changelog:\n\t{changelog}")
 
-        # Écrire dans le log
-        mod_updated_logger.info(border)
-        mod_updated_logger.info(title)
-        mod_updated_logger.info(border)
-        mod_updated_logger.info("")  # Ligne vide pour espacement
-        mod_updated_logger.info(mod['Changelog'])
-        mod_updated_logger.info("")  # Ligne vide pour espacement
+        mod_updated_logger.info("\n\n")  # Ligne vide pour espacement
 
 
 if __name__ == "__main__":

@@ -211,6 +211,8 @@ def get_mod_api_data(mod):
     mod_url = f"{global_cache.config_cache['URL_MOD_DB']}{mod_assetid}"
     exclude_prerelease = global_cache.config_cache['Options']['exclude_prerelease_mods']
     sorted_releases = get_compatible_releases(mod_json, global_cache.config_cache['Game_Version']['user_game_version'], exclude_prerelease)
+    if not sorted_releases:
+        return None, None, None, None
     mainfile_url = sorted_releases[0]['mainfile']
     mod_latest_version_for_game_version = sorted_releases[0]['modversion']
     return mod_assetid, mod_url, mainfile_url, mod_latest_version_for_game_version
@@ -257,7 +259,12 @@ def scan_and_fetch_mod_info(mods_folder):
                 future_to_mod[future] = mod  # Associate each future with its mod.
             for future in as_completed(api_futures):
                 mod = future_to_mod[future]  # Retrieve the mod linked to the future.
-                mod_assetid, mod_url, mainfile_url, mod_latest_version_for_game_version = future.result()  # Retrieve the result of each API call.
+                result = future.result()  # Retrieve the result of each API call.
+                if result is None:
+                    logging.warning(
+                        f"Skipping mod {mod['Name']} due to missing API data.")
+                    continue  # Passe au mod suivant
+                mod_assetid, mod_url, mainfile_url, mod_latest_version_for_game_version = result
                 if mod_assetid and mod_url:
                     mod["AssetId"] = mod_assetid
                     mod["Mod_url"] = mod_url
