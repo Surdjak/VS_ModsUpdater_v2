@@ -41,7 +41,6 @@ from packaging.version import Version
 from rich.progress import Progress
 
 import config
-import fetch_changelog
 import global_cache
 import utils
 from http_client import HTTPClient
@@ -214,10 +213,6 @@ def get_mod_api_data(mod):
     sorted_releases = get_compatible_releases(mod_json, global_cache.config_cache['Game_Version']['user_game_version'], exclude_prerelease)
     mainfile_url = sorted_releases[0]['mainfile']
     mod_latest_version_for_game_version = sorted_releases[0]['modversion']
-
-    # Fetch changelog
-    mod_name = mod_json["mod"]["name"]
-    changelog = fetch_changelog.get_raw_changelog(mod_name, mod_assetid, mod_latest_version_for_game_version)
     return mod_assetid, mod_url, mainfile_url, mod_latest_version_for_game_version
 
 

@@ -66,13 +66,18 @@ def get_raw_changelog(modname, mod_assetid, modversion):
     # Find all divs containing changelogs
     changelog_divs = soup.find_all("div", class_="changelogtext")
 
+    # Clean modversion (remove spaces, lowercase, ensure it starts with 'v')
+    clean_modversion = modversion.strip().lower()
+    if not clean_modversion.startswith('v'):
+        clean_modversion = 'v' + clean_modversion  # Ensure version starts with 'v'
+
     for div in changelog_divs:
         # Extract version (inside <strong>)
         version_tag = div.find("strong")
-        version = version_tag.text.strip() if version_tag else "Unknown Version"
+        version = version_tag.text.strip().lower() if version_tag else "unknown version"
 
         # Check if this version matches modversion
-        if version.lower() == modversion.lower():
+        if version == clean_modversion:
             # Remove the version tag from the changelog content
             version_tag.extract()
 
@@ -80,16 +85,11 @@ def get_raw_changelog(modname, mod_assetid, modversion):
             changelog_text = div.encode_contents().decode()  # Keep raw HTML
             changelog_markdown = convert_html_to_markdown(changelog_text)
 
-            logging.debug(f"Changelog found for version {version}:\n{changelog_markdown}")
-            return changelog_markdown  # Return Markdown version
+            return changelog_markdown.strip()  # Return Markdown version
 
-    logging.info(f"No changelog found for version {modversion}")
+    logging.debug(f"{modname}: No changelog found for version {modversion}")
     return None
 
 
 if __name__ == "__main__":
-    # for test
-    modname = 'fendragonbcs'
-    mod_assetid = 13229
-    modversion = "V0.1.7"
-    print(f"{modname} {modversion}:{get_raw_changelog(modname, mod_assetid, modversion)}")
+    pass

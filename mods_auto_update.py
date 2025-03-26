@@ -33,11 +33,14 @@ import datetime
 import logging
 import os
 import zipfile
+import config
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+from rich import print
 from rich.progress import Progress
 
+import fetch_changelog
 import global_cache
 from http_client import HTTPClient
 from utils import version_compare, check_excluded_mods, \
@@ -74,9 +77,15 @@ def get_mods_to_update(mods_data):
             else:
                 mod_update = False
             if mod_update:
+                mod_name = mod['Name']
+                mod_assetid = mod['AssetId']
+                modversion = mod['mod_latest_version_for_game_version']
+                changelog = fetch_changelog.get_raw_changelog(mod_name, mod_assetid, modversion)
                 mods_data["mods_to_update"].append({
                     "Name": mod['Name'],
+                    "Old_version": mod['Local_Version'],
                     "New_version": mod['mod_latest_version_for_game_version'],
+                    "Changelog": changelog,
                     "Filename": mod['Filename'],
                     "url_download": mod['Latest_version_mod_url']})
 
@@ -122,11 +131,19 @@ def backup_mods(mods_to_backup):
             logging.info(f"Deleted old backup: {old_backup}")
 
 
+# Variable to enable/disable the download
+download_enabled = True  # Set to False to disable downloads
+
+
 def download_file(url, destination_path, progress_bar, task):
     """
     Download the file from the given URL and save it to the destination path with a progress bar using Rich.
     Implements error handling and additional security measures.
     """
+    if not download_enabled:
+        logging.info(f"Skipping download for: {url}")
+        return  # Skip download if disabled
+
     response = client.get(url, stream=True, timeout=10)  # Increased timeout to 10 seconds
     response.raise_for_status()  # Will raise an HTTPError for bad responses (4xx, 5xx)
 
@@ -174,6 +191,9 @@ def download_mods_to_update(mods_data):
                 file_to_erase = mod['Filename']
                 filename_value = Path(global_cache.config_cache['ModsPath']['path']) / file_to_erase
                 filename_value = filename_value.resolve()
+                if not download_enabled:
+                    logging.info(f"Skipping download for: {url}")
+                    break  # Skip download (and erase) if disabled
                 try:
                     os.remove(filename_value)
                     logging.info(f"Old file {file_to_erase} has been deleted successfully.")
@@ -197,11 +217,33 @@ def download_mods_to_update(mods_data):
 
 
 def resume_mods_updated():
+    # app_log.txt
     print(f"\nFollowings mods have been updated:")
-    logging.info("Followings mods have been updated:")
+    logging.info("Followings mods have been updated (More details in updated_mods_changelog.txt):")
     for mod in global_cache.mods_data.get('mods_to_update'):
-        print(f"\t- {mod['Name']} to v{mod['New_version']}")
-        logging.info(f"\t{mod['Name']} to v{mod['New_version']}")
+        print(f"- [green]{mod['Name']} (v{mod['Old_version']} to v{mod['New_version']}):[/green]")
+        print(f"[bold][yellow]{mod['Changelog']}[/bold][yellow]\n")
+        logging.info(f"\t- {mod['Name']} (v{mod['Old_version']} to v{mod['New_version']})")
+
+    # mod_updated_log.txt
+    mod_updated_logger = config.configure_mod_updated_logging()
+
+    for mod in global_cache.mods_data.get('mods_to_update', []):
+        name_version = f"{mod['Name']} (v{mod['Old_version']} to v{mod['New_version']})"
+
+        # Définir la largeur de l'encadrement
+        line_length = max(len(name_version) + 8, 60)  # Minimum 60 caractères
+        border = "#" * line_length
+        padding = (line_length - len(name_version) - 2) // 2  # Centrage
+        title = f"# {' ' * padding}{name_version}{' ' * (padding + (line_length % 2))} #"
+
+        # Écrire dans le log
+        mod_updated_logger.info(border)
+        mod_updated_logger.info(title)
+        mod_updated_logger.info(border)
+        mod_updated_logger.info("")  # Ligne vide pour espacement
+        mod_updated_logger.info(mod['Changelog'])
+        mod_updated_logger.info("")  # Ligne vide pour espacement
 
 
 if __name__ == "__main__":

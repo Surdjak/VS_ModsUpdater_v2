@@ -117,9 +117,6 @@ USER_AGENTS = [
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:115.0) Gecko/20100101 Firefox/115.0",
 ]
 
-# Maximum number of files to process simultaneously, best = nb of core of the processor
-# MAX_WORKERS = 10  # à changer par valeur de config.ini
-
 
 def read_version_from_config_file():
     config = configparser.ConfigParser()
@@ -440,6 +437,30 @@ def configure_logging(logging_level):
     else:
         # If FileHandler is already present, do nothing.
         pass
+
+
+def configure_mod_updated_logging():
+    # Créer un logger distinct pour le fichier mod_updated_log.txt
+    mod_updated_logger = logging.getLogger('mod_updated_logger')
+
+    # Vérifier si un FileHandler est déjà présent pour éviter la duplication
+    if not any(isinstance(handler, logging.FileHandler) for handler in mod_updated_logger.handlers):
+        log_file = Path(LOGS_PATH) / 'updated_mods_changelog.txt'
+
+        file_handler = logging.FileHandler(log_file, mode='w', encoding='utf-8')
+        file_handler.setLevel(logging.INFO)  # Niveau INFO
+
+        # Format simple sans timestamp ni niveau
+        formatter = logging.Formatter("%(message)s")
+        file_handler.setFormatter(formatter)
+
+        mod_updated_logger.addHandler(file_handler)
+
+        # Désactiver la propagation vers le logger global
+        mod_updated_logger.propagate = False
+
+    return mod_updated_logger
+
 
 
 if __name__ == "__main__":

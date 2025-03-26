@@ -146,7 +146,7 @@ if __name__ == "__main__":
     utils.check_mods_directory(mods_path)
     # Fetch mods info
     fetch_mod_info.scan_and_fetch_mod_info(mods_path)
-    # print(global_cache.mods_data)  # debug
+    # print(f"installed_mods: {global_cache.mods_data['installed_mods']}")  # debug
 
     # Auto update mods
     mods_auto_update.get_mods_to_update(global_cache.mods_data)
@@ -160,6 +160,7 @@ if __name__ == "__main__":
         mods_to_download = global_cache.mods_data.get('mods_to_update', [])
         mods_auto_update.download_mods_to_update(mods_to_download)
 
+        # print(f"mods_to_update: {global_cache.mods_data['mods_to_update']}")  # debug
         # Display mods updated
         mods_auto_update.resume_mods_updated()
     else:
