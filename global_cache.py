@@ -25,7 +25,7 @@ This module handles caching for various global data used throughout the script. 
 - Mod-related data (mod info, updates, etc.)
 """
 __author__ = "Laerinok"
-__version__ = "2.0.0-dev1"
+__version__ = "2.0.0-dev3"
 __date__ = "2025-03-22"  # Last update
 
 

@@ -22,8 +22,8 @@ Vintage Story mod management:
 
 """
 __author__ = "Laerinok"
-__version__ = "2.0.0-dev1"
-__date__ = "2024-12-09"  # Last update
+__version__ = "2.0.0-dev3"
+__date__ = "2025-03-26"  # Last update
 
 
 # pdf_creation.py
@@ -31,29 +31,25 @@ __date__ = "2024-12-09"  # Last update
 
 import logging
 import sys
-
-import global_cache
-import config
 import zipfile
 from datetime import datetime
-from pathlib import Path
-from rich.progress import Progress, BarColumn, TextColumn
-from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfbase import pdfmetrics
-from PIL import Image as PILImage
 from io import BytesIO
+from pathlib import Path
 
+from PIL import Image as PILImage
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image, Paragraph, \
+    Spacer
+from rich.progress import Progress, BarColumn, TextColumn
 
-config.configure_logging(
-    global_cache.global_cache.config_cache["Logging"]['log_level'].upper())
-# Suppress Pillow debug messages
-logging.getLogger("PIL").setLevel(logging.WARNING)
+import config
+import global_cache
 
-mods_path = global_cache.MODS_PATHS[global_cache.SYSTEM]
+mods_path = Path(global_cache.config_cache['ModsPath']['path']).resolve()
 
 
 def resize_image(image_data, max_width=100, max_height=100):
@@ -134,7 +130,7 @@ def create_pdf_with_table(modsdata, pdf_path):
     Create a PDF listing all the mods with their icons, names, versions, and descriptions using Platypus.Table.
     """
     logging.info(f"Starting PDF creation: {pdf_path}")
-    num_mods = global_cache.global_cache.total_mods
+    num_mods = len(global_cache.mods_data['installed_mods'])
     # Initialize the PDF document
     doc = SimpleDocTemplate(pdf_path,
                             pagesize=A4,
@@ -164,7 +160,7 @@ def create_pdf_with_table(modsdata, pdf_path):
 
     # Add the banner image
     try:
-        path_img = Path(config.APPLICATION_PATH) / 'assets' / 'banner.png'
+        path_img = (Path(config.APPLICATION_PATH) / 'assets' / 'banner.png').resolve()
         banner = Image(str(path_img))  # Path to your image
         banner.drawWidth = A4[0] - 40  # Adjust width to fit the page minus margins
         banner.drawHeight = 120  # Adjust height as needed
@@ -178,8 +174,8 @@ def create_pdf_with_table(modsdata, pdf_path):
 
     def draw_background(canvas, doc):
         # Path to the background image
-        background_path = Path(
-            config.APPLICATION_PATH) / 'assets' / 'background.jpg'
+        background_path = (Path(
+            config.APPLICATION_PATH) / 'assets' / 'background.jpg').resolve()
 
         if background_path.exists():
             try:
@@ -235,7 +231,7 @@ def create_pdf_with_table(modsdata, pdf_path):
                               y_position + (footer_height - text_height) / 2)
 
     # Title
-    elements.append(Paragraph(f"{num_mods} {global_cache.global_cache.language_cache['pdf_title']}", style_title))
+    elements.append(Paragraph(f"{num_mods} {global_cache.language_cache['pdf_title']}", style_title))
 
     # Add a space below the title
     elements.append(Spacer(1, 10))
@@ -331,7 +327,7 @@ def generate_mod_pdf(mod_info_data):
 
     # Use of Rich Progress
     with Progress(
-            "[progress.description]" + f"[green]{global_cache.global_cache.language_cache['pdf_creation']}[/green]",
+            "[progress.description]" + f"[green]{global_cache.language_cache['pdf_creation']}[/green]",
             BarColumn(bar_width=30, finished_style="green",
                       complete_style="bold green"),
             "[progress.percentage]{task.percentage:>3.0f}%",
@@ -340,7 +336,7 @@ def generate_mod_pdf(mod_info_data):
             transient=False,
     ) as progress:
         task = progress.add_task(
-            f"{global_cache.global_cache.language_cache['pdf_creation']}", total=total_mods,
+            f"{global_cache.language_cache['pdf_creation']}", total=total_mods,
             mod_name="")
 
         for mod, mod_info in mod_info_data.items():
@@ -349,7 +345,7 @@ def generate_mod_pdf(mod_info_data):
 
             logging.debug(f"Processing mod: {mod} - {mod_name}")
             mod_zip_path = Path(
-                global_cache.global_cache.config_cache['ModsPath']['path']) / mod
+                global_cache.config_cache['ModsPath']['path']) / mod
 
             try:
                 mod_info_for_pdf[mod] = {
@@ -362,7 +358,7 @@ def generate_mod_pdf(mod_info_data):
             except Exception as e:
                 logging.error(f"Error processing mod: {mod} - {e}")
 
-    global_cache.global_cache.total_mods = total_mods
+    global_cache.total_mods = total_mods
     logging.info(f"Total mods processed: {total_mods}")
 
     logging.info("Generating PDF document.")

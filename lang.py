@@ -22,15 +22,16 @@
 #
 """
 __author__ = "Laerinok"
-__version__ = "2.0.0-dev1"
+__version__ = "2.0.0-dev3"
 __date__ = "2025-03-21"  # Last update
 
 # lang.py
 
-import config
-import global_cache
 import json
 from pathlib import Path
+
+import global_cache
+
 
 # config.load_config()
 

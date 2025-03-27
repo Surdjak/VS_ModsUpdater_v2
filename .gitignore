@@ -75,3 +75,4 @@ ruff_cache/
 /readme.txt
 /pyoxidizer/
 /main.exe
+/main.dist/VS_ModsUpdater.exe
