@@ -22,8 +22,8 @@
 
 
 __author__ = "Laerinok"
-__version__ = "2.0.0-dev2"  # Don't forget to change EXPECTED_VERSION
-__date__ = "2025-03-25"  # Last update
+__version__ = "2.0.0-dev3"  # Don't forget to change EXPECTED_VERSION
+__date__ = "2025-03-27"  # Last update
 
 
 # config.py
@@ -41,7 +41,7 @@ import global_cache
 import utils
 
 # The target version after migration
-EXPECTED_VERSION = "2.0.0-dev2"
+EXPECTED_VERSION = "2.0.0-dev3"
 
 # Constant for os
 SYSTEM = platform.system()
@@ -82,7 +82,7 @@ URL_SCRIPT = {
 DEFAULT_CONFIG = {
     "ModsUpdater": {"version": __version__},
     "Logging": {"log_level": "DEBUG"},  # Debug Set to INFO for full release !!
-    "Options": {"force_update": "false", "exclude_prerelease_mods": "false", "auto_update": "true", "max_workers": os.cpu_count()},
+    "Options": {"force_update": "false", "exclude_prerelease_mods": "false", "auto_update": "true", "max_workers": 4},
     "Backup_Mods": {"backup_folder": "backup_mods", "max_backups": 3},
     "ModsPath": {"path": str(MODS_PATHS[SYSTEM])},
     "Language": {"language": DEFAULT_LANGUAGE},
@@ -136,113 +136,80 @@ def migrate_config_if_needed():
 def migrate_config(old_config):
     """
     Migrate the configuration from an old version to the new format.
-    This function:
-      - Updates the version field.
-      - Removes unnecessary legacy options (e.g., `system`).
-      - Migrates renamed sections and options.
-      - Preserves the order of sections as defined in `DEFAULT_CONFIG`.
-      - Ensures all sections and options from the default config are present.
+    - Ensures all sections and options from DEFAULT_CONFIG are present.
+    - Preserves user-defined values when possible.
+    - Renames or modifies settings when necessary.
+    - Removes obsolete keys.
+    - Keeps the order of sections and keys as defined in DEFAULT_CONFIG.
     """
     new_config = configparser.ConfigParser()
 
     logging.info("Starting migration process of old config.ini...")
 
-    # Step 1: Handle ModsUpdater version migration
-    new_config["ModsUpdater"] = {"version": EXPECTED_VERSION}  # Always set to latest version
-    logging.debug("Migrating ModsUpdater section: version set to %s", EXPECTED_VERSION)
+    # Step 1: Update the version
+    new_config["ModsUpdater"] = {"version": EXPECTED_VERSION}
+    logging.debug("Set ModsUpdater version to %s", EXPECTED_VERSION)
 
-    # Step 2: Handle Options migration
-    options_section = {}
-    if "ModsUpdater" in old_config:
-        for option in ["force_update",
-                       "auto_update"]:  # Only migrate valid options from the old config
-            if option in old_config["ModsUpdater"]:
-                options_section[option] = old_config["ModsUpdater"][option]
-                logging.debug("Migrating option '%s' to new config", option)
+    # Step 2: Copy existing values and add missing ones while maintaining order
+    for section, default_options in DEFAULT_CONFIG.items():
+        new_config[section] = {}
 
-        # Handle 'disable_mod_dev' explicitly: replace it with 'exclude_prerelease_mods' in the new config
-        if "disable_mod_dev" in old_config["ModsUpdater"]:
-            options_section["exclude_prerelease_mods"] = old_config["ModsUpdater"][
-                "disable_mod_dev"]
-            logging.debug("'disable_mod_dev' replaced with 'exclude_prerelease_mods'.")
+        if section in old_config:
+            # Copy existing values while keeping the order from DEFAULT_CONFIG
+            for key in default_options.keys():
+                new_config[section][key] = old_config[section].get(key,
+                                                                   default_options[key])
+        else:
+            # Add missing sections with default values
+            new_config[section] = default_options.copy()
 
-    # Merge with defaults, excluding unnecessary keys (e.g., log_level if already elsewhere)
-    new_config["Options"] = {
-        k: v
-        for k, v in {**DEFAULT_CONFIG["Options"], **options_section}.items()
-        if k != "log_level"  # Exclude log_level (already in [Logging])
-    }
-    logging.debug("Options section migrated successfully")
+    # Step 3: Apply specific migration rules
+    # - Rename sections/keys if necessary
 
-    # Step 3: Handle Game_Version_max -> user_game_version migration
+    # Migration: Game_Version_max → user_game_version
     if "Game_Version_max" in old_config:
         user_game_version = old_config["Game_Version_max"].get("version")
-        user_game_version = None if str(user_game_version) == "100.0.0" else user_game_version
-        new_config["Game_Version"] = {"user_game_version": user_game_version or 'None'}
-        logging.debug("Migrating Game_Version_max to user_game_version: %s", user_game_version)
-    else:
-        new_config["user_game_version"] = DEFAULT_CONFIG["Game_Version"]
-        logging.debug("Using default user_game_version: %s", DEFAULT_CONFIG["Game_Version"]["user_game_version"])
+        user_game_version = None if str(
+            user_game_version) == "100.0.0" else user_game_version
+        new_config["Game_Version"]["user_game_version"] = user_game_version or 'None'
+        logging.debug("Migrated Game_Version_max to user_game_version: %s",
+                      user_game_version)
 
-    # Step 4: Handle ModPath -> ModsPath migration
+    # Migration: ModPath → ModsPath
     if "ModPath" in old_config:
-        mods_path = old_config["ModPath"].get("path")
-        if mods_path:  # Use existing path if available
-            new_config["ModsPath"] = {"path": mods_path}
-            logging.debug("Migrating ModPath to ModsPath: %s", mods_path)
-        else:  # Fallback to cache value
-            new_config["ModsPath"] = DEFAULT_CONFIG["ModsPath"]
-            logging.debug("Using default ModsPath: %s", DEFAULT_CONFIG["ModsPath"]["path"])
-    else:
-        new_config["ModsPath"] = DEFAULT_CONFIG["ModsPath"]
-        logging.debug("Using default ModsPath: %s", DEFAULT_CONFIG["ModsPath"]["path"])
+        mods_path = old_config["ModPath"].get("path", "").strip()
+        if mods_path:
+            new_config["ModsPath"]["path"] = mods_path
+            logging.debug("Migrated ModPath to ModsPath: %s", mods_path)
 
-    # Step 5: Handle Mod_Exclusion migration (dictionary to list)
+    # Migration: Mod_Exclusion (dictionary to list format)
     if "Mod_Exclusion" in old_config:
         mods_list = [
             value.strip()
             for key, value in old_config["Mod_Exclusion"].items()
-            if value.strip()  # Ignore empty values
+            if value.strip()
         ]
-        if mods_list:  # Only add if valid mods exist
-            new_config["Mod_Exclusion"] = {"mods": ", ".join(mods_list)}
-            logging.debug("Migrating Mod_Exclusion with %d mods", len(mods_list))
-    else:
-        new_config["Mod_Exclusion"] = DEFAULT_CONFIG["Mod_Exclusion"]
-        logging.debug("Using default Mod_Exclusion")
+        if mods_list:
+            new_config["Mod_Exclusion"]["mods"] = ", ".join(mods_list)
+            logging.debug("Migrated Mod_Exclusion with %d mods", len(mods_list))
 
-    # Step 6: Handle Language migration
-    if "Language" in old_config:
-        language = old_config["Language"].get("language")
-        if language:
-            new_config["Language"] = {"language": language}
-            logging.debug("Migrating Language: %s", language)
-    else:
-        new_config["Language"] = DEFAULT_CONFIG["Language"]
-        logging.debug("Using default Language: %s", DEFAULT_CONFIG["Language"]["language"])
+    # Step 4: Remove obsolete sections
+    for section in list(new_config.keys()):
+        if section != "DEFAULT" and section not in DEFAULT_CONFIG:
+            del new_config[section]
+            logging.debug("Removed obsolete section: %s", section)
 
-    # Step 7: Add any missing sections or options from DEFAULT_CONFIG
-    for section, defaults in DEFAULT_CONFIG.items():
-        if section not in new_config:
-            new_config[section] = defaults
-            logging.debug("Adding missing section: %s", section)
-        else:
-            for key, value in defaults.items():
-                if key not in new_config[section]:
-                    new_config[section][key] = value
-                    logging.debug("Adding missing option '%s' to section '%s'", key, section)
-
-    # Step 8: Write the migrated configuration to the file, preserving the order of sections
+    # Step 5: Write the updated configuration while preserving section order
     try:
         with open(CONFIG_FILE, "w") as configfile:
-            # Write each section in the order of DEFAULT_CONFIG
-            for section, _ in DEFAULT_CONFIG.items():
+            for section in DEFAULT_CONFIG.keys():
                 if section in new_config:
                     configfile.write(f"[{section}]\n")
-                    for key, value in new_config[section].items():
-                        configfile.write(f"{key} = {value}\n")
+                    for key in DEFAULT_CONFIG[section].keys():
+                        if key in new_config[section]:
+                            configfile.write(f"{key} = {new_config[section][key]}\n")
                     configfile.write("\n")
-        logging.info("Migration completed and configuration file written successfully.")
+        logging.info("Configuration migration completed successfully.")
         print(f"Configuration migrated successfully to version {EXPECTED_VERSION}.")
     except Exception as e:
         logging.error("Error occurred while writing the migrated config: %s", str(e))
@@ -460,7 +427,6 @@ def configure_mod_updated_logging():
         mod_updated_logger.propagate = False
 
     return mod_updated_logger
-
 
 
 if __name__ == "__main__":
