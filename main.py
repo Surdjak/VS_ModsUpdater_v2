@@ -21,10 +21,10 @@ Vintage Story mod management
 
 """
 __author__ = "Laerinok"
-__version__ = "2.0.0-dev2"
+__version__ = "2.0.0-dev3"
 __license__ = "GNU GPL v3"
 __description__ = "Mods Updater for Vintage Story"
-__date__ = "2025-03-26"  # Last update
+__date__ = "2025-03-27"  # Last update
 
 
 # main.py
@@ -39,6 +39,7 @@ from pathlib import Path
 from rich import print
 from rich.console import Console
 from rich.prompt import Prompt
+import json_export
 
 import config
 import fetch_mod_info
@@ -161,15 +162,19 @@ if __name__ == "__main__":
         mods_to_download = global_cache.mods_data.get('mods_to_update', [])
         mods_auto_update.download_mods_to_update(mods_to_download)
 
-        # print(f"mods_to_update: {global_cache.mods_data['mods_to_update']}")  # debug
         # Display mods updated
         mods_auto_update.resume_mods_updated()
     else:
         print(f"No updates needed for mods.")
         logging.info("No updates needed for mods.")
 
-    # End of programm
+    print(f"\nAll of your mods are up to date.\n")
 
-    exit_program(extra_msg="All of your mods are up to date.", do_exit=False)
-    input("\nPress Enter to exit...")  # Attend que l'utilisateur appuie sur Entrée
+    # Modlist creation
+    json_export.format_mods_data(global_cache.mods_data['installed_mods'])
+    print(f"A modlist has been exported in JSON format to the following location: {global_cache.config_cache['Backup_Mods']['modlist_folder']}")
+
+    # End of programm
+    exit_program(extra_msg="", do_exit=False)
+    input("\nPress Enter to exit...")
     sys.exit()

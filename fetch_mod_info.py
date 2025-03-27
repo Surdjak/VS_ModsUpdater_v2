@@ -23,8 +23,8 @@ Vintage Story mod management - Fetching mods information
 """
 
 __author__ = "Laerinok"
-__version__ = "2.0.0-dev2"
-__date__ = "2025-03-26"  # Last update
+__version__ = "2.0.0-dev3"
+__date__ = "2025-03-27"  # Last update
 
 # fetch_mod_info.py
 
@@ -56,7 +56,7 @@ def get_mod_path():
         time.sleep(2)
         sys.exit(1)  # Stop the script with an error code
 
-    mods_path = Path(global_cache.config_cache['ModsPath']['path'])
+    mods_path = Path(global_cache.config_cache['ModsPath']['path']).resolve()
     if not mods_path.exists():
         print(f"Error: The mods path is not found.")
         time.sleep(2)
@@ -208,14 +208,15 @@ def get_mod_api_data(mod):
     response.raise_for_status()
     mod_json = response.json()
     mod_assetid = mod_json["mod"]["assetid"]
+    side = mod_json["mod"]["side"]
     mod_url = f"{global_cache.config_cache['URL_MOD_DB']}{mod_assetid}"
     exclude_prerelease = global_cache.config_cache['Options']['exclude_prerelease_mods']
     sorted_releases = get_compatible_releases(mod_json, global_cache.config_cache['Game_Version']['user_game_version'], exclude_prerelease)
     if not sorted_releases:
-        return None, None, None, None
+        return None, None, None, None, None
     mainfile_url = sorted_releases[0]['mainfile']
     mod_latest_version_for_game_version = sorted_releases[0]['modversion']
-    return mod_assetid, mod_url, mainfile_url, mod_latest_version_for_game_version
+    return mod_assetid, mod_url, mainfile_url, mod_latest_version_for_game_version, side
 
 
 def scan_and_fetch_mod_info(mods_folder):
@@ -264,12 +265,13 @@ def scan_and_fetch_mod_info(mods_folder):
                     logging.warning(
                         f"Skipping mod {mod['Name']} due to missing API data.")
                     continue  # Passe au mod suivant
-                mod_assetid, mod_url, mainfile_url, mod_latest_version_for_game_version = result
+                mod_assetid, mod_url, mainfile_url, mod_latest_version_for_game_version, side = result
                 if mod_assetid and mod_url:
                     mod["AssetId"] = mod_assetid
                     mod["Mod_url"] = mod_url
                     mod["mod_latest_version_for_game_version"] = mod_latest_version_for_game_version
                     mod["Latest_version_mod_url"] = mainfile_url
+                    mod["Side"] = side
                     logging.debug(f"Received assetid: {mod_assetid} and mod_url: {mod_url} for mod: {mod['Name']}")
                 else:
                     logging.warning(f"Failed to retrieve assetid and mod_url for mod: {mod['Name']}")
