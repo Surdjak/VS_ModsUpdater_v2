@@ -76,3 +76,4 @@ ruff_cache/
 /pyoxidizer/
 /main.exe
 /main.dist/VS_ModsUpdater.exe
+/modlist/modlist.json
