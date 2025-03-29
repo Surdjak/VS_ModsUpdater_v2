@@ -26,16 +26,20 @@ This module handles caching for various global data used throughout the script. 
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev3"
-__date__ = "2025-03-22"  # Last update
+__date__ = "2025-03-28"  # Last update
 
 
 # global_cache.py
 
 
 config_cache = {}  # Configuration cache
+# set the defaut timeout in globcal_cache:
+config_cache.setdefault("Options", {"timeout": 10})
+
 language_cache = {}  # Translation cache
 mods_data = {"installed_mods": [],
              "excluded_mods": [],
              "mods_to_update": []
              }  # Mod cache
+modinfo_json_cache = {}
 total_mods = 0
