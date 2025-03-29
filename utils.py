@@ -18,7 +18,7 @@
 
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev3"
-__date__ = "2025-03-26"  # Last update
+__date__ = "2025-03-28"  # Last update
 
 
 # utils.py
@@ -26,7 +26,6 @@ __date__ = "2025-03-26"  # Last update
 import argparse
 import json
 import logging
-import os
 import random
 import re
 import sys
@@ -106,18 +105,19 @@ def calculate_max_workers():
     :return: The validated max_workers value
     """
     user_max_workers = int(global_cache.config_cache["Options"]["max_workers"])
-    cpu_cores = os.cpu_count()
+    # abandoned, setting now a fixed maximum value.
+    # cpu_cores = os.cpu_count()
 
-    # Define the maximum workers allowed as 2.5 times the number of cores
-    max_workers = cpu_cores * 2.5
+    # Define the maximum workers allowed
+    max_workers = 10
 
     # If the user has set max_workers, validate it
     if user_max_workers:
         # Never exceed the max_workers limit
         return min(user_max_workers, max_workers)
     else:
-        # If the user hasn't set max_workers, use the calculated max_workers
-        return int(max_workers)  # We return an integer value for consistency
+        # If the user hasn't set max_workers, use the defaut max_workers
+        return 4  # We return an integer value for consistency
 
 
 def get_random_headers():
@@ -253,8 +253,7 @@ def check_excluded_mods():
     mods_folder_path = global_cache.config_cache["MODS_PATHS"][global_cache.config_cache["SYSTEM"]].resolve()
 
     # Clear the previous excluded mods in global_cache
-    # global_cache.mods_data["excluded_mods"] = []
-
+    global_cache.mods_data["excluded_mods"] = []
     for mod in excluded_mods:
         # Check if the file exists in the mods folder
         mod_file_path = mods_folder_path / mod  # Build the path to the mod file
