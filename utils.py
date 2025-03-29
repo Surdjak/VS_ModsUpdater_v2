@@ -102,6 +102,8 @@ def calculate_max_workers():
     """
     Calculate the maximum number of workers based on CPU cores and the user's max_workers value.
     Allows a factor of 2.5 times the number of CPU cores.
+    => abandoned, setting now a fixed maximum value.
+
     :return: The validated max_workers value
     """
     user_max_workers = int(global_cache.config_cache["Options"]["max_workers"])
