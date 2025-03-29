@@ -42,7 +42,9 @@ import global_cache
 from http_client import HTTPClient
 
 console = Console()
-client = HTTPClient()
+
+timeout = global_cache.config_cache["Options"].get("timeout", 10)
+client = HTTPClient(timeout=timeout)
 
 
 # #### For test and debug ####

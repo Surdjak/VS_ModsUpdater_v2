@@ -46,7 +46,8 @@ import utils
 from http_client import HTTPClient
 from utils import fix_json, is_zip_valid
 
-client = HTTPClient()
+timeout = global_cache.config_cache["Options"].get("timeout", 10)
+client = HTTPClient(timeout=timeout)
 
 
 def get_mod_path():
@@ -113,14 +114,17 @@ def get_cs_info(cs_path):
         content = cs_file.read()
         # Using regex to extract the values
         version_match = re.search(r'Version\s*=\s*"([^"]+)"', content)
+        side_match = re.search(r'Side\s*=\s*"([^"]+)"', content)
         namespace_match = re.search(r'namespace\s+([A-Za-z0-9_]+)', content)
         description_match = re.search(r'Description\s*=\s*"([^"]+)"', content)
         # If the information is found, return it
         version = version_match.group(1) if version_match else None
+        side = side_match.group(1) if side_match else None
         description = description_match.group(1) if description_match else None
         namespace = namespace_match.group(1) if namespace_match else None
         modid = namespace.lower().replace(" ", "") if namespace else None
-        return version, namespace, modid, description
+        mod_url_api = f'{config.URL_BASE_MOD_API}{modid}'
+        return version, side, namespace, modid, mod_url_api, description
 
 
 def process_mod_file(file, mods_data, invalid_files):
@@ -142,7 +146,7 @@ def process_mod_file(file, mods_data, invalid_files):
             invalid_files.append(
                 file.name)  # Add corrupted file name to invalid files list
     elif file.suffix == '.cs':
-        local_mod_version, namespace, modid, description = get_cs_info(file)
+        local_mod_version, side, namespace, modid, mod_url_dl, description = get_cs_info(file)
         if local_mod_version and namespace and modid:
             mods_data["installed_mods"].append({
                 "Name": namespace,
@@ -204,9 +208,14 @@ def get_mod_api_data(mod):
     logging.debug(f"Attempting to fetch data for mod '{modid}' from API.")
     mod_url_api = f'{config.URL_BASE_MOD_API}{modid}'
     logging.debug(f"Retrieving mod info from: {mod_url_api}")
-    response = client.get(mod_url_api, timeout=5)
+    response = client.get(mod_url_api, timeout=int(global_cache.config_cache["Options"]["timeout"]))
     response.raise_for_status()
     mod_json = response.json()
+    if mod_json['statuscode'] != '200':
+        logging.warning(f"Failed to retrieve mod info for mod: {modid} at link {mod_url_api}")
+        global_cache.mods_data["excluded_mods"].append({"Filename": mod['Filename']})
+        logging.info(f"{mod['Name']} added to excluded mods")
+        return None, None, None, None, None
     mod_assetid = mod_json["mod"]["assetid"]
     side = mod_json["mod"]["side"]
     mod_url = f"{global_cache.config_cache['URL_MOD_DB']}{mod_assetid}"
@@ -219,7 +228,9 @@ def get_mod_api_data(mod):
     return mod_assetid, mod_url, mainfile_url, mod_latest_version_for_game_version, side
 
 
+# Entry point of the module: scans the mods folder and retrieves mod information.
 def scan_and_fetch_mod_info(mods_folder):
+    """Scan the mods folder, extract basic mod information, and fetch additional details from the API."""
     invalid_files = []  # List of invalid or corrupted files.
 
     max_workers = utils.calculate_max_workers()

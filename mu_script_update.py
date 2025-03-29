@@ -41,7 +41,8 @@ logging.info(f'OS: {config.SYSTEM} - ModsUpdater v{__version__}')
 logging.info(f"For Vintage Story v{global_cache.config_cache['Game_Version']['user_game_version']}")
 logging.info(f'Checking for ModsUpdater script update')
 
-client = HTTPClient()
+timeout = global_cache.config_cache["Options"].get("timeout", 10)
+client = HTTPClient(timeout=timeout)
 
 
 def modsupdater_update():
@@ -50,7 +51,7 @@ def modsupdater_update():
     url_script = config.URL_SCRIPT[system]
 
     # Fetch the URL with a randomized User-Agent and timeout
-    response = client.get(url_script, timeout=5)
+    response = client.get(url_script, timeout=int(global_cache.config_cache["Options"]["timeout"]))
     response.raise_for_status()  # Check if the request was successful
 
     # Check if content indicates page not found

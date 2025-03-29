@@ -28,14 +28,15 @@ __version__ = "2.0.0-dev3"
 __date__ = "2025-03-26"  # Last update
 
 import logging
-
+import global_cache
 import html2text
 from bs4 import BeautifulSoup
 
 import config
 from http_client import HTTPClient
 
-client = HTTPClient()
+timeout = global_cache.config_cache["Options"].get("timeout", 10)
+client = HTTPClient(timeout=timeout)
 
 
 def convert_html_to_markdown(html_content):
@@ -58,7 +59,7 @@ def get_raw_changelog(modname, mod_assetid, modversion):
     mod_url_api = f'{config.URL_MOD_DB}{mod_assetid}'
     logging.debug(f"Retrieving changelog from: {mod_url_api}")
 
-    response = client.get(mod_url_api, timeout=5)
+    response = client.get(mod_url_api, timeout=int(global_cache.config_cache["Options"]["timeout"]))
     response.raise_for_status()
 
     soup = BeautifulSoup(response.text, "html.parser")

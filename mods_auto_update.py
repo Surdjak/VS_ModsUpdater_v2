@@ -47,7 +47,8 @@ from http_client import HTTPClient
 from utils import version_compare, check_excluded_mods, \
     setup_directories, extract_filename_from_url, calculate_max_workers
 
-client = HTTPClient()
+timeout = global_cache.config_cache["Options"].get("timeout", 10)
+client = HTTPClient(timeout=timeout)
 console = Console()
 
 # Variable to enable/disable the download - for my test
@@ -178,7 +179,7 @@ def download_file(url, destination_path, progress_bar, task):
         logging.info(f"Skipping download for: {url}")
         return  # Skip download if disabled
 
-    response = client.get(url, stream=True, timeout=10)  # Increased timeout to 10 seconds
+    response = client.get(url, stream=True, timeout=int(global_cache.config_cache["Options"]["timeout"]))
     response.raise_for_status()  # Will raise an HTTPError for bad responses (4xx, 5xx)
 
     # Get the total size of the file (if available)
