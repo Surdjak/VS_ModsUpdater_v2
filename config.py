@@ -82,7 +82,7 @@ URL_SCRIPT = {
 DEFAULT_CONFIG = {
     "ModsUpdater": {"version": __version__},
     "Logging": {"log_level": "DEBUG"},  # Debug Set to INFO for full release !!
-    "Options": {"force_update": "false", "exclude_prerelease_mods": "false", "auto_update": "true", "max_workers": 4},
+    "Options": {"force_update": "false", "exclude_prerelease_mods": "false", "auto_update": "true", "max_workers": 4, "timeout": 10},
     "Backup_Mods": {"backup_folder": "backup_mods", "max_backups": 3, "modlist_folder": "modlist"},
     "ModsPath": {"path": str(MODS_PATHS[SYSTEM])},
     "Language": {"language": DEFAULT_LANGUAGE},

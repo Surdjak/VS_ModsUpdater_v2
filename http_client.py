@@ -27,7 +27,7 @@ API calls, downloading files, and any HTTP requests requiring a persistent sessi
 
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev3"
-__date__ = "2025-03-26"  # Last update
+__date__ = "2025-03-28"  # Last update
 
 
 import time
@@ -46,17 +46,19 @@ class HTTPClient:
         delay (float): The delay between retries.
     """
 
-    def __init__(self, retry_attempts=3, delay=1.5):
+    def __init__(self, retry_attempts=3, delay=1.5, timeout=10):
         """
         Initializes the HTTPClient with default retry attempts and delay between retries.
 
         Args:
             retry_attempts (int): The number of retry attempts in case of failure (default is 3).
             delay (float): The delay in seconds between retries (default is 1.5 seconds).
+            timeout (int): The timeout for requests in seconds (default is 10 seconds).
         """
         self.session = requests.Session()
         self.retry_attempts = retry_attempts
         self.delay = delay
+        self.timeout = timeout
 
     @staticmethod
     def _get_random_headers():
@@ -98,7 +100,10 @@ class HTTPClient:
                 headers.update(self._get_random_headers())
                 kwargs['headers'] = headers
 
-                response = self.session.get(url, **kwargs)
+                # Supprimer 'timeout' de kwargs si présent
+                kwargs.pop('timeout', None)
+
+                response = self.session.get(url, timeout=int(self.timeout), **kwargs)
                 response.raise_for_status()  # Raise an exception for HTTP error codes
                 return response
             except requests.exceptions.RequestException as e:
