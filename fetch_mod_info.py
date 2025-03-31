@@ -24,7 +24,7 @@ Vintage Story mod management - Fetching mods information
 
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev3"
-__date__ = "2025-03-27"  # Last update
+__date__ = "2025-03-31"  # Last update
 
 # fetch_mod_info.py
 
@@ -211,7 +211,7 @@ def get_mod_api_data(mod):
     response = client.get(mod_url_api, timeout=int(global_cache.config_cache["Options"]["timeout"]))
     response.raise_for_status()
     mod_json = response.json()
-    if mod_json['statuscode'] != '200':
+    if mod_json['statuscode'] != '200':  # if mod not on modDB
         logging.warning(f"Failed to retrieve mod info for mod: {modid} at link {mod_url_api}")
         global_cache.mods_data["excluded_mods"].append({"Filename": mod['Filename']})
         logging.info(f"{mod['Name']} added to excluded mods")
@@ -222,7 +222,9 @@ def get_mod_api_data(mod):
     exclude_prerelease = global_cache.config_cache['Options']['exclude_prerelease_mods']
     sorted_releases = get_compatible_releases(mod_json, global_cache.config_cache['Game_Version']['user_game_version'], exclude_prerelease)
     if not sorted_releases:
-        return None, None, None, None, None
+        global_cache.mods_data["installed_mods"][-1]["Side"] = side
+        global_cache.mods_data["installed_mods"][-1]["Mod_url"] = mod_url
+        return mod_assetid, mod_url, None, None, side
     mainfile_url = sorted_releases[0]['mainfile']
     mod_latest_version_for_game_version = sorted_releases[0]['modversion']
     return mod_assetid, mod_url, mainfile_url, mod_latest_version_for_game_version, side
@@ -288,7 +290,7 @@ def scan_and_fetch_mod_info(mods_folder):
                     logging.warning(f"Failed to retrieve assetid and mod_url for mod: {mod['Name']}")
 
                 # Update the progress bar with the mod name.
-                progress.update(api_task, advance=1, description=f"[cyan]Fetching: {mod['Name']}")
+                progress.update(api_task, advance=1, description=f"[cyan]Fetching mod info: {mod['Name']}")
 
 
 if __name__ == "__main__":
