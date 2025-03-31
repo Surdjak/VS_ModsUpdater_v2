@@ -77,3 +77,7 @@ ruff_cache/
 /main.exe
 /main.dist/VS_ModsUpdater.exe
 /modlist/modlist.json
+/main.build/
+/main.dist/
+/main.onefile-build/
+/modlist/
