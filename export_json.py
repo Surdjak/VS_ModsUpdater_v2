@@ -5,7 +5,7 @@ Vintage Story - Creation of modlist from the mod folder (modlist.json)
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev3"
-__date__ = "2025-03-27"
+__date__ = "2025-03-31"
 
 
 from pathlib import Path
@@ -20,6 +20,7 @@ def save_json(data, filename):
     try:
         with open(filename, 'w', encoding='utf-8') as json_file:
             json.dump(data, json_file, indent=4, ensure_ascii=False)
+        print(f"A modlist has been exported in JSON format to the following location: {global_cache.config_cache['Backup_Mods']['modlist_folder']}")
         logging.info(f"{filename} has been created successfully.")
     except PermissionError:
         logging.error(f"Error: No write permission for {filename}. Try running as administrator.")
@@ -51,6 +52,8 @@ def format_mods_data(mods_data):
         "Mods": formatted_mods
     }
 
+    # Save json data to cache
+    global_cache.modinfo_json_cache = final_data
     # Save data to modlist.json
     filename = (Path(global_cache.config_cache['Backup_Mods']["modlist_folder"]) / 'modlist.json').resolve()
     save_json(final_data, filename)
