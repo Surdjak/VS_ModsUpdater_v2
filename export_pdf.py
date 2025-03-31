@@ -168,7 +168,7 @@ def create_pdf_with_table(modsdata, pdf_path):
     # Add a space of 50 points below the image
     elements.append(Spacer(1, 50))
 
-    def draw_background(canvas, doc1):
+    def draw_background(canvas):
         # Path to the background image
         background_path = Path(
             config.APPLICATION_PATH) / 'assets' / 'background.jpg'
@@ -199,7 +199,7 @@ def create_pdf_with_table(modsdata, pdf_path):
             canvas.rect(0, 0, A4[0], A4[1], fill=1)
 
     # Add a link at the bottom-right corner (footer) of the page
-    def draw_footer(canvas, doc2):
+    def draw_footer(canvas):
         # Creating the style for the link
         styles_local = getSampleStyleSheet()
         link_style_custom = styles_local["Normal"].clone("LinkStyle")
@@ -236,7 +236,6 @@ def create_pdf_with_table(modsdata, pdf_path):
     data = []  # no header (empty table. the first entry is the header)
 
     # Fill the table with mod data
-    row_colors = [(204/255, 221/255, 168/255), (240/255, 245/255, 230/255)]
     for idx, mod_info in enumerate(modsdata.values()):
         # Icon (with direct insertion, not HTML)
         icon = mod_info.get("icon")
@@ -290,12 +289,12 @@ def create_pdf_with_table(modsdata, pdf_path):
 
     try:
         # Build the PDF
-        def draw_background_and_footer(canvas, doc):
-            draw_background(canvas, doc)
-            draw_footer(canvas, doc)
+        def draw_background_and_footer(canvas):
+            draw_background(canvas)
+            draw_footer(canvas)
         doc.build(elements,
-                  onFirstPage=draw_background_and_footer,
-                  onLaterPages=draw_background_and_footer)
+                  onFirstPage=lambda canvas, document: draw_background_and_footer(canvas),
+                  onLaterPages=lambda canvas, document: draw_background_and_footer(canvas))
         print(f"A modlist has been exported in PDF format to the following location: {global_cache.config_cache['Backup_Mods']['modlist_folder']}")
         logging.info(f"PDF successfully created: {pdf_path}")
     except PermissionError as e:
@@ -304,11 +303,24 @@ def create_pdf_with_table(modsdata, pdf_path):
         sys.exit()
 
 
+def get_local_versions_of_excluded_mods(mods_data):
+    """
+    Retrieves the 'Local_Version' of excluded mods.
+    """
+    local_versions = {}  # Dictionary to store ModId: Local_Version pairs
+    excluded_filenames = {mod['Filename'] for mod in mods_data['excluded_mods']}  # Set of excluded filenames for fast lookup
+
+    for installed_mod in mods_data['installed_mods']:
+        if installed_mod['Filename'] in excluded_filenames:
+            local_versions[installed_mod['ModId']] = installed_mod['Local_Version']  # Store Local_Version if filename matches
+
+    return local_versions  # Return the dictionary of Local_Versions
+
+
 def process_mod(mod_info):
     """
     Process to extract mod information.
     """
-
     mod_name = mod_info["Name"]
     if mod_info["Mod_url"] != "Local mod":
         if mod_info['Latest_version_mod_url'] is not None:
@@ -320,6 +332,10 @@ def process_mod(mod_info):
     else:
         filename = mod_info['Filename']
         version = mod_info["Local_Version"]
+
+    excluded_local_versions = get_local_versions_of_excluded_mods(global_cache.mods_data)
+    if mod_info['ModId'] in excluded_local_versions:
+        version = excluded_local_versions[mod_info['ModId']]
 
     return {
         mod_info["ModId"]: {
@@ -334,7 +350,7 @@ def process_mod(mod_info):
 
 
 def normalize_string_case_insensitive(s):
-    """Normalise une chaîne de caractères pour un tri insensible à la casse."""
+    """Normalize a string for case-insensitive sorting."""
     s = s.lstrip()
     return ''.join(c for c in unicodedata.normalize('NFD', s.lower()) if unicodedata.category(c) != 'Mn')
 
