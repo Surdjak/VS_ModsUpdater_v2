@@ -23,16 +23,15 @@ Vintage Story mod management:
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev3"
-__date__ = "2025-03-26"  # Last update
+__date__ = "2025-03-31"  # Last update
 
 
-# pdf_creation.py
+# export_pdf.py
 
 
 import logging
 import sys
 import zipfile
-from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 
@@ -44,12 +43,12 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image, Paragraph, \
     Spacer
-from rich.progress import Progress, BarColumn, TextColumn
 
 import config
 import global_cache
 
-mods_path = Path(global_cache.config_cache['ModsPath']['path']).resolve()
+# Suppress Pillow debug messages
+logging.getLogger("PIL").setLevel(logging.WARNING)
 
 
 def resize_image(image_data, max_width=100, max_height=100):
@@ -129,8 +128,7 @@ def create_pdf_with_table(modsdata, pdf_path):
     """
     Create a PDF listing all the mods with their icons, names, versions, and descriptions using Platypus.Table.
     """
-    logging.info(f"Starting PDF creation: {pdf_path}")
-    num_mods = len(global_cache.mods_data['installed_mods'])
+    num_mods = global_cache.total_mods
     # Initialize the PDF document
     doc = SimpleDocTemplate(pdf_path,
                             pagesize=A4,
@@ -141,18 +139,14 @@ def create_pdf_with_table(modsdata, pdf_path):
                             )
 
     # Add a cyrillic font (for example, DejaVu Sans)
-    freesans_path = Path(config.APPLICATION_PATH) / 'fonts' / 'FreeSans.ttf'
-    pdfmetrics.registerFont(TTFont('FreeSans', freesans_path))
-    bold_freesans_path = Path(
-        config.APPLICATION_PATH) / 'fonts' / 'FreeSansBold.ttf'
-    pdfmetrics.registerFont(TTFont('FreeSansBold', bold_freesans_path))
+    font_path = Path(config.APPLICATION_PATH) / 'fonts' / 'NotoSansCJKsc-Regular.ttf'
+    pdfmetrics.registerFont(TTFont('NotoSansCJKsc-Regular', font_path))
 
     styles = getSampleStyleSheet()
     style_normal = styles["Normal"]
-    style_normal.fontName = "FreeSans"
+    style_normal.fontName = "NotoSansCJKsc-Regular"
     style_normal.fontSize = 8
     style_title = styles["Title"]
-    style_title.fontName = "FreeSansBold"
     style_title.textColor = colors.Color(47/255, 79/255, 79/255)  # Vert forêt en RGB normalisé
     style_title.fontSize = 14
 
@@ -160,7 +154,7 @@ def create_pdf_with_table(modsdata, pdf_path):
 
     # Add the banner image
     try:
-        path_img = (Path(config.APPLICATION_PATH) / 'assets' / 'banner.png').resolve()
+        path_img = Path(config.APPLICATION_PATH) / 'assets' / 'banner.png'
         banner = Image(str(path_img))  # Path to your image
         banner.drawWidth = A4[0] - 40  # Adjust width to fit the page minus margins
         banner.drawHeight = 120  # Adjust height as needed
@@ -172,10 +166,10 @@ def create_pdf_with_table(modsdata, pdf_path):
     # Add a space of 50 points below the image
     elements.append(Spacer(1, 50))
 
-    def draw_background(canvas, doc):
+    def draw_background(canvas, doc1):
         # Path to the background image
-        background_path = (Path(
-            config.APPLICATION_PATH) / 'assets' / 'background.jpg').resolve()
+        background_path = Path(
+            config.APPLICATION_PATH) / 'assets' / 'background.jpg'
 
         if background_path.exists():
             try:
@@ -203,7 +197,7 @@ def create_pdf_with_table(modsdata, pdf_path):
             canvas.rect(0, 0, A4[0], A4[1], fill=1)
 
     # Add a link at the bottom-right corner (footer) of the page
-    def draw_footer(canvas, doc):
+    def draw_footer(canvas, doc2):
         # Creating the style for the link
         styles_local = getSampleStyleSheet()
         link_style_custom = styles_local["Normal"].clone("LinkStyle")
@@ -259,12 +253,13 @@ def create_pdf_with_table(modsdata, pdf_path):
         # Modify the style for links
         link_style = styles["Normal"].clone("LinkStyle")
         link_style.textColor = colors.black  # Set your desired color here
-        link_style.fontName = "FreeSans"
+        link_style.fontName = "NotoSansCJKsc-Regular"
 
         # Name and version with hyperlink
         url = mod_info.get("url_moddb", "")
-        if url:
-            name_and_version = f'<b><a href="{url}">{mod_info["name"]}</a></b> (v{mod_info["version"]})'
+        # print(mod_info)  # debug
+        if url != 'Local mod':
+            name_and_version = f'<b><a href="{url}">{mod_info["name"]} (v{mod_info["version"]})</a></b>'
             name_and_version_paragraph = Paragraph(name_and_version,
                                                    link_style)  # Use the custom style for links
         else:
@@ -272,7 +267,7 @@ def create_pdf_with_table(modsdata, pdf_path):
             name_and_version_paragraph = Paragraph(name_and_version, style_normal)
 
         # Description
-        description = mod_info['description']
+        description = str(mod_info.get('description', ''))
         description_paragraph = Paragraph(description, style_normal)
 
         # Add the row
@@ -284,7 +279,7 @@ def create_pdf_with_table(modsdata, pdf_path):
         ('ALIGN', (0, 0), (0, -1), 'CENTER'),                       # Center horizontal align
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),                      # Middle vertical align
         ('GRID', (0, 0), (-1, -1), 1, colors.black),                 # Grid lines
-        ('FONTNAME', (0, 0), (-1, -1), 'FreeSans'),                 # Normal font for rows
+        ('FONTNAME', (0, 0), (-1, -1), 'NotoSansCJKsc-Regular'),                 # Normal font for rows
         ('FONTSIZE', (0, 0), (-1, -1), 8),                          # Font size
         ('BACKGROUND', (0, 0), (-1, -1), (240/255, 245/255, 220/255)),  # Alternating row background (light soft green)
     ]))
@@ -294,9 +289,14 @@ def create_pdf_with_table(modsdata, pdf_path):
 
     try:
         # Build the PDF
+        def draw_background_and_footer(canvas, doc):
+            draw_background(canvas, doc)
+            draw_footer(canvas, doc)
         doc.build(elements,
-                  onFirstPage=draw_background,
-                  onLaterPages=lambda canvas, doc: [draw_background(canvas, doc), draw_footer(canvas, doc)])
+                  onFirstPage=draw_background_and_footer,
+                  # Affiche les deux sur la première page
+                  onLaterPages=draw_background_and_footer)
+        print(f"A modlist has been exported in PDF format to the following location: {global_cache.config_cache['Backup_Mods']['modlist_folder']}")
         logging.info(f"PDF successfully created: {pdf_path}")
     except PermissionError as e:
         print(f"PermissionError: Unable to access the file '{pdf_path}'. The file may be open or in use by another process.\nPlease close any applications that may be using the file and try again.")
@@ -305,63 +305,45 @@ def create_pdf_with_table(modsdata, pdf_path):
 
 
 # Main function to orchestrate the PDF generation
-def generate_mod_pdf(mod_info_data):
+def generate_pdf(mod_info_data):
     """
     Generate the PDF with a list of mods and their details.
     """
-    logging.info("Starting PDF generation process.")
-    logging.info(f"Total mods to process: {len(mod_info_data)}")
-
     # file path
-    current_datetime = datetime.now()
-    year = current_datetime.strftime("%Y")
-    month = current_datetime.strftime("%m")
-    day = current_datetime.strftime("%d")
-    pdf_name = f"VS_Mods_{year}_{month}_{day}.pdf"
-    output_pdf_path = str(Path(config.APPLICATION_PATH) / pdf_name)
-    logging.debug(f"Output PDF will be saved at: {output_pdf_path}")
+    pdf_name = f"modlist.pdf"
+    output_pdf_path = str(Path(config.APPLICATION_PATH) / global_cache.config_cache['Backup_Mods']['modlist_folder'] / pdf_name)
 
     mod_info_for_pdf = {}
-    total_mods = len(mod_info_data)
-    logging.info(f"Preparing data for {total_mods} mods.")
+    global_cache.total_mods = len(mod_info_data)
 
-    # Use of Rich Progress
-    with Progress(
-            "[progress.description]" + f"[green]{global_cache.language_cache['pdf_creation']}[/green]",
-            BarColumn(bar_width=30, finished_style="green",
-                      complete_style="bold green"),
-            "[progress.percentage]{task.percentage:>3.0f}%",
-            TextColumn("{task.fields[mod_name]}"),
-            "{task.completed}/{task.total}",
-            transient=False,
-    ) as progress:
-        task = progress.add_task(
-            f"{global_cache.language_cache['pdf_creation']}", total=total_mods,
-            mod_name="")
+    # print(f"global_cache: {global_cache.mods_data['installed_mods']}\n")  # debug
+    for mod_info in global_cache.mods_data['installed_mods']:
+        mod_name = mod_info["Name"]
+        if mod_info["Mod_url"] != "Local mod":
+            if mod_info['Latest_version_mod_url'] is not None:
+                filename = mod_info['Latest_version_mod_url'].split("dl=")[-1]
+                version = mod_info['mod_latest_version_for_game_version']
+            else:
+                filename = mod_info['Filename']
+                version = mod_info["Local_Version"]
 
-        for mod, mod_info in mod_info_data.items():
-            mod_name = mod_info['name']
-            progress.update(task, advance=1, mod_name=mod_name)  # Update mod_name
-
-            logging.debug(f"Processing mod: {mod} - {mod_name}")
-            mod_zip_path = Path(
-                global_cache.config_cache['ModsPath']['path']) / mod
-
-            try:
-                mod_info_for_pdf[mod] = {
-                    "name": mod_name,
-                    "version": mod_info["local_version"],
-                    "description": mod_info["description"],
-                    "url_moddb": mod_info["url_moddb"],
-                    "icon": extract_icon(mod_zip_path),
-                }
-            except Exception as e:
-                logging.error(f"Error processing mod: {mod} - {e}")
-
-    global_cache.total_mods = total_mods
-    logging.info(f"Total mods processed: {total_mods}")
-
-    logging.info("Generating PDF document.")
+            mod_info_for_pdf[mod_info["ModId"]] = {
+                "name": mod_name,
+                "version": version,
+                "description": mod_info["Description"],
+                "url_moddb": mod_info["Mod_url"],
+                "icon": extract_icon(Path(global_cache.config_cache['ModsPath']['path']) / filename)
+            }
+        else:
+            filename = mod_info['Filename']
+            version = mod_info["Local_Version"]
+            mod_info_for_pdf[mod_info["ModId"]] = {
+                "name": mod_name,
+                "version": version,
+                "description": mod_info["Description"],
+                "url_moddb": mod_info["Mod_url"],
+                "icon": extract_icon(Path(global_cache.config_cache['ModsPath']['path']) / filename)
+            }
 
     create_pdf_with_table(mod_info_for_pdf, output_pdf_path)
-    logging.info(f"PDF generation complete: {output_pdf_path}")
+    # logging.info(f"{output_pdf_path} has been created successfully.")

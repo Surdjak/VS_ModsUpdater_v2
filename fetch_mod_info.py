@@ -213,6 +213,7 @@ def get_mod_api_data(mod):
     mod_json = response.json()
     if mod_json['statuscode'] != '200':  # if mod not on modDB
         logging.warning(f"Failed to retrieve mod info for mod: {modid} at link {mod_url_api}")
+        mod["Mod_url"] = "Local mod"
         global_cache.mods_data["excluded_mods"].append({"Filename": mod['Filename']})
         logging.info(f"{mod['Name']} added to excluded mods")
         return None, None, None, None, None
@@ -260,6 +261,7 @@ def scan_and_fetch_mod_info(mods_folder):
     mod_ids = [mod['ModId'] for mod in global_cache.mods_data["installed_mods"]]
     mods = global_cache.mods_data["installed_mods"]  # Complete list of mods to associate the results.
 
+    # print(global_cache.mods_data["installed_mods"])  # debug
     with Progress() as progress:
         api_task = progress.add_task("[green]Fetching mod info from API...",
                                      total=len(mod_ids))

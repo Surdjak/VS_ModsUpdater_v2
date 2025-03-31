@@ -41,8 +41,8 @@ def format_mods_data(mods_data):
             "ModId": mod_data.get("ModId", ""),
             "Side": mod_data.get("Side", ""),
             "Description": mod_data.get("Description", ""),
-            "url_mod": mod_data.get("Mod_url", ""),
-            "url_download": mod_data.get("Latest_version_mod_url", "")
+            "url_mod": mod_data.get("Mod_url", "Local mod"),
+            "url_download": mod_data.get("Latest_version_mod_url", "Local mod")
         }
         # Append the formatted mod to the list
         formatted_mods.append(formatted_mod)
