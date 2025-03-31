@@ -29,12 +29,14 @@ __date__ = "2025-03-31"  # Last update
 # export_pdf.py
 
 
+import concurrent.futures
 import logging
 import sys
 import zipfile
 from io import BytesIO
 from pathlib import Path
 
+import unicodedata
 from PIL import Image as PILImage
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
@@ -43,6 +45,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image, Paragraph, \
     Spacer
+from rich.progress import Progress
 
 import config
 import global_cache
@@ -66,7 +69,6 @@ def resize_image(image_data, max_width=100, max_height=100):
         output_io = BytesIO()
         image.save(output_io, format='PNG')
         output_io.seek(0)  # Reset pointer to the beginning
-        logging.debug(f"Image resized to fit within {max_width}x{max_height}.")
         return output_io
     except Exception as e:
         logging.error(f"Error resizing image: {e}")
@@ -231,7 +233,6 @@ def create_pdf_with_table(modsdata, pdf_path):
     elements.append(Spacer(1, 10))
 
     # Data for the table: rows
-    # data = [["", "Mod (Version)", "Description"]]  # Table header
     data = []  # no header (empty table. the first entry is the header)
 
     # Fill the table with mod data
@@ -294,7 +295,6 @@ def create_pdf_with_table(modsdata, pdf_path):
             draw_footer(canvas, doc)
         doc.build(elements,
                   onFirstPage=draw_background_and_footer,
-                  # Affiche les deux sur la première page
                   onLaterPages=draw_background_and_footer)
         print(f"A modlist has been exported in PDF format to the following location: {global_cache.config_cache['Backup_Mods']['modlist_folder']}")
         logging.info(f"PDF successfully created: {pdf_path}")
@@ -304,46 +304,62 @@ def create_pdf_with_table(modsdata, pdf_path):
         sys.exit()
 
 
-# Main function to orchestrate the PDF generation
-def generate_pdf(mod_info_data):
+def process_mod(mod_info):
     """
-    Generate the PDF with a list of mods and their details.
+    Process to extract mod information.
     """
-    # file path
-    pdf_name = f"modlist.pdf"
-    output_pdf_path = str(Path(config.APPLICATION_PATH) / global_cache.config_cache['Backup_Mods']['modlist_folder'] / pdf_name)
 
-    mod_info_for_pdf = {}
-    global_cache.total_mods = len(mod_info_data)
-
-    # print(f"global_cache: {global_cache.mods_data['installed_mods']}\n")  # debug
-    for mod_info in global_cache.mods_data['installed_mods']:
-        mod_name = mod_info["Name"]
-        if mod_info["Mod_url"] != "Local mod":
-            if mod_info['Latest_version_mod_url'] is not None:
-                filename = mod_info['Latest_version_mod_url'].split("dl=")[-1]
-                version = mod_info['mod_latest_version_for_game_version']
-            else:
-                filename = mod_info['Filename']
-                version = mod_info["Local_Version"]
-
-            mod_info_for_pdf[mod_info["ModId"]] = {
-                "name": mod_name,
-                "version": version,
-                "description": mod_info["Description"],
-                "url_moddb": mod_info["Mod_url"],
-                "icon": extract_icon(Path(global_cache.config_cache['ModsPath']['path']) / filename)
-            }
+    mod_name = mod_info["Name"]
+    if mod_info["Mod_url"] != "Local mod":
+        if mod_info['Latest_version_mod_url'] is not None:
+            filename = mod_info['Latest_version_mod_url'].split("dl=")[-1]
+            version = mod_info['mod_latest_version_for_game_version']
         else:
             filename = mod_info['Filename']
             version = mod_info["Local_Version"]
-            mod_info_for_pdf[mod_info["ModId"]] = {
-                "name": mod_name,
-                "version": version,
-                "description": mod_info["Description"],
-                "url_moddb": mod_info["Mod_url"],
-                "icon": extract_icon(Path(global_cache.config_cache['ModsPath']['path']) / filename)
-            }
+    else:
+        filename = mod_info['Filename']
+        version = mod_info["Local_Version"]
 
-    create_pdf_with_table(mod_info_for_pdf, output_pdf_path)
-    # logging.info(f"{output_pdf_path} has been created successfully.")
+    return {
+        mod_info["ModId"]: {
+            "name": mod_name,
+            "version": version,
+            "description": mod_info["Description"] if mod_info["Description"] is not None else "",
+            "url_moddb": mod_info["Mod_url"],
+            "icon": extract_icon(
+                Path(global_cache.config_cache['ModsPath']['path']) / filename)
+        }
+    }
+
+
+def normalize_string_case_insensitive(s):
+    """Normalise une chaîne de caractères pour un tri insensible à la casse."""
+    s = s.lstrip()
+    return ''.join(c for c in unicodedata.normalize('NFD', s.lower()) if unicodedata.category(c) != 'Mn')
+
+
+# Main function to orchestrate the PDF generation
+def generate_pdf(mod_info_data):
+    """
+    Generates the PDF with a list of mods and their details using multithreading.
+    """
+    pdf_name = f"modlist.pdf"
+    output_pdf_path = str(Path(config.APPLICATION_PATH) / global_cache.config_cache['Backup_Mods']['modlist_folder'] / pdf_name)
+
+    global_cache.total_mods = len(mod_info_data)
+    mod_info_for_pdf = {}
+
+    with Progress() as progress:
+        task = progress.add_task("[cyan]Generating PDF...", total=global_cache.total_mods)
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = [executor.submit(process_mod, mod_info) for mod_info in global_cache.mods_data['installed_mods']]
+
+            for future in concurrent.futures.as_completed(futures):
+                result = future.result()
+                mod_info_for_pdf.update(result)
+                progress.update(task, advance=1)
+
+    sorted_mod_info = dict(sorted(mod_info_for_pdf.items(), key=lambda item: normalize_string_case_insensitive(item[1]['name'])))
+    create_pdf_with_table(sorted_mod_info, output_pdf_path)

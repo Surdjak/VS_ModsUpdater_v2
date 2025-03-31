@@ -39,7 +39,8 @@ from pathlib import Path
 from rich import print
 from rich.console import Console
 from rich.prompt import Prompt
-import json_export
+import export_json
+import export_pdf
 
 import config
 import fetch_mod_info
@@ -148,7 +149,6 @@ if __name__ == "__main__":
     utils.check_mods_directory(mods_path)
     # Fetch mods info
     fetch_mod_info.scan_and_fetch_mod_info(mods_path)
-    # print(f"installed_mods: {global_cache.mods_data['installed_mods']}")  # debug
 
     # Auto update mods
     mods_auto_update.get_mods_to_update(global_cache.mods_data)
@@ -171,8 +171,10 @@ if __name__ == "__main__":
     print(f"\nAll of your mods are up to date.\n")
 
     # Modlist creation
-    json_export.format_mods_data(global_cache.mods_data['installed_mods'])
-    print(f"A modlist has been exported in JSON format to the following location: {global_cache.config_cache['Backup_Mods']['modlist_folder']}")
+    export_json.format_mods_data(global_cache.mods_data['installed_mods'])
+
+    # PDF creation
+    export_pdf.generate_pdf(global_cache.mods_data['installed_mods'])
 
     # End of programm
     exit_program(extra_msg="", do_exit=False)
