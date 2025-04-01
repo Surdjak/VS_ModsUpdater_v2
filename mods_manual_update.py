@@ -22,7 +22,7 @@ Vintage Story mod management:
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev1"
-__date__ = "2024-11-21"  # Last update
+__date__ = "2025-04-01"  # Last update
 
 # mods_manual_update.py
 

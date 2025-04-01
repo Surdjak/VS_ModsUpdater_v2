@@ -43,6 +43,9 @@ import utils
 # The target version after migration
 EXPECTED_VERSION = "2.0.0-dev3"
 
+# Variable to enable/disable the download - for my test
+download_enabled = True  # Set to False to disable downloads
+
 # Constant for os
 SYSTEM = platform.system()
 HOME_PATH = Path.home()

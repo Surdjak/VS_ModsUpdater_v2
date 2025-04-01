@@ -61,9 +61,6 @@ timeout = global_cache.config_cache["Options"].get("timeout", 10)
 client = HTTPClient(timeout=timeout)
 console = Console()
 
-# Variable to enable/disable the download - for my test
-download_enabled = True  # Set to False to disable downloads
-
 
 def get_mods_to_update(mods_data):
     """
@@ -184,7 +181,7 @@ def download_file(url, destination_path, progress_bar, task):
     Download the file from the given URL and save it to the destination path with a progress bar using Rich.
     Implements error handling and additional security measures.
     """
-    if not download_enabled:
+    if not config.download_enabled:
         logging.info(f"Skipping download for: {url}")
         return  # Skip download if disabled
 
@@ -235,7 +232,7 @@ def download_mods_to_update(mods_data):
                 file_to_erase = mod['Filename']
                 filename_value = Path(global_cache.config_cache['ModsPath']['path']) / file_to_erase
                 filename_value = filename_value.resolve()
-                if not download_enabled:
+                if not config.download_enabled:
                     logging.info(f"Skipping download for: {url}")
                     break  # Skip download (and erase) if disabled
                 try:
