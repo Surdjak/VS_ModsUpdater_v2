@@ -17,13 +17,23 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Vintage Story mod management:
--
+This module automates the process of checking for and updating Vintage Story mods. It compares local mod versions with the latest available versions, downloads updates, and manages backups.
+
+Key functionalities include:
+- Checking for mod updates by comparing local and latest available versions.
+- Fetching changelogs for updated mods.
+- Backing up mods before updating to prevent data loss.
+- Downloading updated mods using multithreading for efficiency.
+- Managing backup retention policies to avoid excessive disk usage.
+- Providing detailed logging and user feedback on the update process.
+- Handling excluded mods to skip them during the update process.
+- Erasing old files before downloading the new ones.
+- Resume the list of the mods updated with the changelog.
 
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev3"
-__date__ = "2025-03-26"  # Last update
+__date__ = "2025-04-02"  # Last update
 
 
 # mods_auto_update.py
@@ -66,7 +76,6 @@ def get_mods_to_update(mods_data):
     # Extract filenames from excluded_mods to compare correctly
     check_excluded_mods()
     excluded_filenames = [mod['Filename'] for mod in mods_data.get("excluded_mods", [])]
-    logging.info(f"Excluded filenames: {excluded_filenames}")
 
     # Initialize a list to store the mods that need to be updated
     mods_to_update = []
@@ -88,7 +97,7 @@ def get_mods_to_update(mods_data):
                 progress.update(task, advance=1)  # Update the progress bar
 
     # Sort mods_to_update before returning
-    mods_to_update.sort(key=lambda mod: mod["Name"].lower())  # Sort by Name (or any other criteria)
+    mods_to_update.sort(key=lambda mod: mod["Name"].lower())  # Sort by Name
     mods_data["mods_to_update"] = mods_to_update
     return mods_to_update
 

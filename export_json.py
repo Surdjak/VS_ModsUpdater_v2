@@ -1,11 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Vintage Story - Creation of modlist from the mod folder (modlist.json)
+This module is designed to format and export mod information into a JSON file, specifically creating a modlist from the data collected about Vintage Story mods. It handles the organization of mod details and saves them in a structured JSON format.
+
+Key functionalities include:
+- Formatting mod data into a structured dictionary, including mod name, version, ModId, side, description, and URLs.
+- Sorting the mods by their ModId for consistent ordering in the JSON output.
+- Saving the formatted mod data into a JSON file named 'modlist.json' in a specified directory.
+- Ensuring the output directory exists before saving the JSON file.
+- Handling potential file permission errors and logging relevant information.
+- Caching the formatted mod data in a global cache for potential future use.
+
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev3"
-__date__ = "2025-03-31"
+__date__ = "2025-04-01"
 
 
 from pathlib import Path

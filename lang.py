@@ -17,13 +17,19 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-#
-# Manage language translations using a global cache.
-#
+This module manages language translations for the Vintage Story Mods Updater application, using a global cache to store and retrieve translations. It allows the application to support multiple languages by loading translations from JSON files based on the user's language setting.
+
+Key functionalities include:
+- Retrieving the language setting from the global configuration cache.
+- Loading translations from a specified JSON file into the global language cache.
+- Handling cases where the language file is not found or cannot be parsed, raising appropriate exceptions.
+- Caching translations to avoid redundant file reads and improve performance.
+- Providing a central point for accessing and managing language-specific text within the application.
+
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev3"
-__date__ = "2025-03-21"  # Last update
+__date__ = "2025-04-01"  # Last update
 
 # lang.py
 

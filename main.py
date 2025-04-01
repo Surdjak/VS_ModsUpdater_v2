@@ -17,14 +17,26 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Vintage Story mod management
+This module serves as the main entry point for the Vintage Story Mods Updater application. It orchestrates the entire process of initializing the application, scanning for installed mods, checking for updates, backing up and downloading mods, and generating mod lists in JSON and PDF formats.
+
+Key functionalities include:
+- Initializing the application by loading configuration settings and language translations.
+- Displaying a welcome message with version information and update status of the script itself.
+- Scanning the specified mods directory to gather information about installed mods.
+- Fetching mod information from local files and online API.
+- Automatically checking for and downloading mod updates.
+- Backing up mods before updating to prevent data loss.
+- Generating mod lists in JSON and PDF formats for easy sharing and documentation.
+- Providing user-friendly output and logging for debugging and information purposes.
+- Handling potential errors and exceptions gracefully.
+- Exiting the program with an informative message.
 
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev3"
 __license__ = "GNU GPL v3"
 __description__ = "Mods Updater for Vintage Story"
-__date__ = "2025-03-27"  # Last update
+__date__ = "2025-04-01"  # Last update
 
 
 # main.py

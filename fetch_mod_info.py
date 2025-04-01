@@ -17,14 +17,22 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Vintage Story mod management - Fetching mods information
-- locally from zip file
-- online with api
+This module is designed to scan and retrieve information about Vintage Story mods, both locally from zip files and online via API calls. It automates the process of extracting essential mod details, such as mod ID, name, version, and description, and enriches this information with data fetched from the Vintage Story mod API.
+
+Key functionalities include:
+- Scanning a specified mods folder for zip and .cs files.
+- Extracting mod metadata from modinfo.json within zip files.
+- Parsing version, side, namespace, and description information from .cs files.
+- Validating zip files to ensure they are not corrupted.
+- Fetching additional mod details from the Vintage Story mod API, including asset ID, mod URL, and compatible releases, using multithreading for efficiency.
+- Handling excluded mods by retrieving specific mainfile URLs.
+- Sorting mods by name for consistent presentation.
+- Managing potential errors and logging relevant information.
 """
 
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev3"
-__date__ = "2025-03-31"  # Last update
+__date__ = "2025-04-01"  # Last update
 
 # fetch_mod_info.py
 

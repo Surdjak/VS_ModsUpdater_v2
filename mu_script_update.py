@@ -17,12 +17,21 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-- Check for update of ModsUpdater on ModDB
+This module is designed to check for updates to the ModsUpdater script itself by comparing the current version with the latest version available on ModDB. It fetches and parses the relevant webpage to extract version information and download URLs.
+
+Key functionalities include:
+- Determining the correct update URL based on the operating system.
+- Fetching and parsing the ModDB page using BeautifulSoup to locate version information and download links.
+- Extracting the latest version number and download URL from the HTML content.
+- Comparing the current script version with the latest available version.
+- Returning a boolean indicating whether an update is available, along with the download URL and latest version.
+- Handling potential network errors and HTML parsing issues, with appropriate logging.
+
 """
 
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev3"
-__date__ = "2025-03-26"  # Last update
+__date__ = "2025-04-01"  # Last update
 
 # mu_script_update.py
 

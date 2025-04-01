@@ -17,13 +17,23 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-Vintage Story mod management:
-** PDF Creation **
+This module automates the creation of a PDF document containing a list of Vintage Story mods, including their icons, names, versions, and descriptions. It leverages multithreading to efficiently process mod information and generate a visually appealing PDF.
+
+Key functionalities include:
+- Extracting and resizing mod icons from ZIP archives.
+- Generating a PDF with a table layout, displaying mod icons, names, versions, and descriptions.
+- Using multithreading to accelerate the processing of mod data and icon extraction.
+- Incorporating a banner and background image for enhanced visual appeal.
+- Adding a footer with a link to the ModsUpdater project.
+- Handling potential errors during image processing and PDF creation, with appropriate logging.
+- Supporting Cyrillic and other Unicode characters by embedding a suitable font.
+- Normalizing strings for case-insensitive sorting of mods by name.
+- Retrieving local versions of excluded mods to ensure accurate version display.
 
 """
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev3"
-__date__ = "2025-03-31"  # Last update
+__date__ = "2025-04-01"  # Last update
 
 
 # export_pdf.py
@@ -49,6 +59,7 @@ from rich.progress import Progress
 
 import config
 import global_cache
+
 
 # Suppress Pillow debug messages
 logging.getLogger("PIL").setLevel(logging.WARNING)

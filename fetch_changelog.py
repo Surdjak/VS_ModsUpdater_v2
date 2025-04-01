@@ -17,7 +17,15 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-# Manage configuration using a global cache.
+This module is designed to retrieve and convert changelogs for Vintage Story mods from their modDB pages. It fetches HTML changelog content, specifically for a given mod version, and converts it into Markdown format for easier reading and processing.
+
+Key functionalities include:
+- Fetching HTML content from a mod's modDB page using its asset ID.
+- Parsing the HTML to locate changelog entries for specific mod versions.
+- Converting the HTML changelog content to Markdown using html2text, preserving links and images.
+- Cleaning and standardizing mod version strings for accurate matching.
+- Handling potential network errors and logging relevant information.
+- Returning the changelog in Markdown format or None if not found.
 """
 
 # fetch_changelog.py
@@ -25,7 +33,7 @@
 
 __author__ = "Laerinok"
 __version__ = "2.0.0-dev3"
-__date__ = "2025-03-26"  # Last update
+__date__ = "2025-04-01"  # Last update
 
 import logging
 import global_cache
