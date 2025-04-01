@@ -159,6 +159,27 @@ def process_mod_file(file, mods_data, invalid_files):
             invalid_files.append(file.name)  # Add invalid .cs file name
 
 
+def get_mainfile_from_excluded_mods(sorted_releases, excluded_mods):
+    """
+    Récupère le mainfile correspondant au Filename des mods exclus.
+
+    Args:
+        sorted_releases (list): La liste des releases triées.
+        excluded_mods (list): La liste des mods exclus.
+
+    Returns:
+        list: Une liste des mainfiles correspondants aux mods exclus.
+    """
+    excluded_filenames = {mod['Filename'] for mod in excluded_mods}
+    mainfiles = []
+
+    for release in sorted_releases:
+        if release['filename'] in excluded_filenames:
+            mainfiles.append(release['mainfile'])
+
+    return mainfiles
+
+
 def get_compatible_releases(mod_json, user_game_version, exclude_prerelease):
     """
     Retrieve all compatible releases for the mod based on the user_game_version.
@@ -222,10 +243,23 @@ def get_mod_api_data(mod):
     mod_url = f"{global_cache.config_cache['URL_MOD_DB']}{mod_assetid}"
     exclude_prerelease = global_cache.config_cache['Options']['exclude_prerelease_mods']
     sorted_releases = get_compatible_releases(mod_json, global_cache.config_cache['Game_Version']['user_game_version'], exclude_prerelease)
+    mainfile_excluded_file = get_mainfile_from_excluded_mods(sorted_releases, global_cache.mods_data['excluded_mods'])   # Debug
+
+    if any(excluded_mod['Filename'] == mod['Filename'] for excluded_mod in global_cache.mods_data['excluded_mods']):
+        if mainfile_excluded_file:
+            mainfile_url = mainfile_excluded_file[0]
+            mod_latest_version_for_game_version = sorted_releases[0]['modversion']
+            return mod_assetid, mod_url, mainfile_url, mod_latest_version_for_game_version, side
+        else:
+            global_cache.mods_data["installed_mods"][-1]["Side"] = side
+            global_cache.mods_data["installed_mods"][-1]["Mod_url"] = mod_url
+            return mod_assetid, mod_url, None, None, side
+
     if not sorted_releases:
         global_cache.mods_data["installed_mods"][-1]["Side"] = side
         global_cache.mods_data["installed_mods"][-1]["Mod_url"] = mod_url
         return mod_assetid, mod_url, None, None, side
+
     mainfile_url = sorted_releases[0]['mainfile']
     mod_latest_version_for_game_version = sorted_releases[0]['modversion']
     return mod_assetid, mod_url, mainfile_url, mod_latest_version_for_game_version, side
