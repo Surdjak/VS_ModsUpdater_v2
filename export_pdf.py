@@ -56,6 +56,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image, Paragraph, \
     Spacer
 from rich.progress import Progress
+import urllib.parse
 
 import config
 import global_cache
@@ -95,7 +96,11 @@ def extract_icon(zip_path):
     try:
         # Check if the file is a ZIP file
         if zip_path.suffix.lower() == '.zip':
-            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            # Decode the filename from the zip_path
+            decoded_zip_path = urllib.parse.unquote(str(zip_path))
+            decoded_zip_path = Path(decoded_zip_path)
+
+            with zipfile.ZipFile(decoded_zip_path, 'r') as zip_ref:
                 # If 'modicon.png' is not in the ZIP, treat it like a non-ZIP file and use default icon
                 if 'modicon.png' not in zip_ref.namelist():
                     logging.debug(

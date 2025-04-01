@@ -41,6 +41,7 @@ import logging
 import re
 import sys
 import time
+import urllib.parse
 import zipfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -256,8 +257,9 @@ def get_mod_api_data(mod):
     if any(excluded_mod['Filename'] == mod['Filename'] for excluded_mod in global_cache.mods_data['excluded_mods']):
         if mainfile_excluded_file:
             mainfile_url = mainfile_excluded_file[0]
+            encoded_mainfile_url = urllib.parse.quote(mainfile_url, safe=':/=?&')
             mod_latest_version_for_game_version = sorted_releases[0]['modversion']
-            return mod_assetid, mod_url, mainfile_url, mod_latest_version_for_game_version, side
+            return mod_assetid, mod_url, encoded_mainfile_url, mod_latest_version_for_game_version, side
         else:
             global_cache.mods_data["installed_mods"][-1]["Side"] = side
             global_cache.mods_data["installed_mods"][-1]["Mod_url"] = mod_url
@@ -269,8 +271,11 @@ def get_mod_api_data(mod):
         return mod_assetid, mod_url, None, None, side
 
     mainfile_url = sorted_releases[0]['mainfile']
+    encoded_mainfile_url = urllib.parse.quote(mainfile_url, safe=':/=?&')
+    print(encoded_mainfile_url)  # Debug
+
     mod_latest_version_for_game_version = sorted_releases[0]['modversion']
-    return mod_assetid, mod_url, mainfile_url, mod_latest_version_for_game_version, side
+    return mod_assetid, mod_url, encoded_mainfile_url, mod_latest_version_for_game_version, side
 
 
 # Entry point of the module: scans the mods folder and retrieves mod information.
