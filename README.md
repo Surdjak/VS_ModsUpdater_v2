@@ -11,6 +11,7 @@ This a third-party program. It means it is NOT a mod. You do not have to put it 
 
 ### Functional Features:
 * Automatic mod updates with version locking for a specific game version
+* Manual updates: you can now decide to download or not a mod if it has an update available.
 * Backup of mods before updating them
 * Retrieving mod changelogs (now entiere changelogs must be retrieved)
 * Generating a list of installed mods (PDF + JSON)
@@ -20,11 +21,10 @@ This a third-party program. It means it is NOT a mod. You do not have to put it 
 
 ### Features Not Yet Functional:
 * Use of arguments
-* Manual updates
 * Planned but not guaranteed: the ability to downgrade mods for a given game version
 
 
-(updated 2025-03-31)
+(updated 2025-04-01)
 
 ## migration function for config.ini
 I’ve added a migration function from the old config to v2. Just put VS_ModsUpdater_v2.0.0-dev1.exe in the same folder as the previous version or copy the config.ini file next to VS_ModsUpdater_v2.0.0-dev1.exe.
