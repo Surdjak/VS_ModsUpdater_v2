@@ -31,6 +31,7 @@ import re
 import sys
 import time
 import zipfile
+import datetime
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
@@ -264,6 +265,42 @@ def check_excluded_mods():
         if mod_file_path.exists():
             global_cache.mods_data["excluded_mods"].append({"Filename": mod})
             logging.info(f"Excluded mod added: {mod}")
+
+
+def backup_mods(mods_to_backup):
+    """
+    Create a backup of the ZIP mods before download and manage a retention policy.
+    """
+    max_backups = int(global_cache.config_cache['Backup_Mods']['max_backups'])
+    backup_folder_name = global_cache.config_cache['Backup_Mods']['backup_folder']
+    backup_folder = (Path(global_cache.config_cache['APPLICATION_PATH']) / backup_folder_name).resolve()
+
+    # Ensure the backup directory exists
+    setup_directories(backup_folder)
+
+    # Create a unique backup name with timestamp
+    timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    backup_path = backup_folder / f"backup_{timestamp}.zip"
+
+    modspaths = global_cache.config_cache['ModsPath']['path']
+
+    # Create the ZIP archive
+    with zipfile.ZipFile(backup_path, 'w', zipfile.ZIP_DEFLATED) as backup_zip:
+        for mod_key in mods_to_backup:
+            zip_filename = Path(modspaths) / mod_key
+            if zip_filename.is_file():
+                backup_zip.write(zip_filename, arcname=zip_filename.name)
+
+    logging.info(f"Backup of mods completed: {backup_path}")
+
+    # Cleanup old backups if the maximum limit is exceeded
+    backups = sorted(backup_folder.glob("backup_*.zip"),
+                     key=lambda p: p.stat().st_mtime,
+                     reverse=True)
+    if len(backups) > max_backups:
+        for old_backup in backups[max_backups:]:
+            old_backup.unlink()
+            logging.info(f"Deleted old backup: {old_backup}")
 
 
 def parse_args():

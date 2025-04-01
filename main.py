@@ -55,10 +55,12 @@ import export_json
 import export_pdf
 
 import config
+import mods_update_checker
 import fetch_mod_info
 import global_cache
 import lang
 import mods_auto_update
+import mods_manual_update
 import utils
 from utils import exit_program
 
@@ -80,15 +82,12 @@ def initialize_config():
         cache_lang = lang.load_translations(path)
         mods_dir = config.ask_mods_directory()
         user_game_version = config.ask_game_version()
-        auto_update = 'True'
+        auto_update = config.ask_auto_update()
         print(f"\n{cache_lang['first_launch_language']}{language[1]}")
         print(f"{cache_lang['first_launch_mods_location']}{mods_dir}")
         print(f"{cache_lang['first_launch_game_version']}{user_game_version}")
-        if auto_update.lower() == 'manual':
-            choice_update = cache_lang['first_launch_manual_update']
-        else:
-            choice_update = cache_lang['first_launch_auto_update']
-        print(f"{cache_lang['first_launch_set_update']}{choice_update}")
+        auto_update_choic = "Auto" if auto_update else "Manual"
+        print(f"Mods update: {auto_update_choic}")
 
         # Create the config.ini file
         config.create_config(language, mods_dir, user_game_version, auto_update)
@@ -162,25 +161,39 @@ if __name__ == "__main__":
     # Fetch mods info
     fetch_mod_info.scan_and_fetch_mod_info(mods_path)
 
-    # Auto update mods
-    mods_auto_update.get_mods_to_update(global_cache.mods_data)
+    # Mods update checker
+    mods_update_checker.check_for_mod_updates()
+    # print(f"mods_to_update: {global_cache.mods_data["mods_to_update"]}")  # Debug
+    # print(global_cache.mods_data["excluded_mods"])  # Debug
 
-    # Backup mods before Download
-    if global_cache.mods_data.get('mods_to_update'):
-        mods_to_backup = [mod['Filename'] for mod in global_cache.mods_data.get('mods_to_update', [])]
-        mods_auto_update.backup_mods(mods_to_backup)
+    # Choice for auto/manual update
+    auto_update_str = global_cache.config_cache['Options']['auto_update']
+    auto_update_cfg = auto_update_str.lower() == 'true'
 
-        # Download Mods
-        mods_to_download = global_cache.mods_data.get('mods_to_update', [])
-        mods_auto_update.download_mods_to_update(mods_to_download)
+    # Download
+    if auto_update_cfg:
+        # Auto update mods
+        if global_cache.mods_data.get('mods_to_update'):
+            # Backup mods before update
+            mods_to_backup = [mod['Filename'] for mod in global_cache.mods_data.get('mods_to_update', [])]
+            utils.backup_mods(mods_to_backup)
+            # Download Mods
+            mods_to_download = global_cache.mods_data.get('mods_to_update', [])
+            mods_auto_update.download_mods_to_update(mods_to_download)
 
-        # Display mods updated
-        mods_auto_update.resume_mods_updated()
+            # Display mods updated
+            mods_auto_update.resume_mods_updated()
+        else:
+            print(f"No updates needed for mods.")
+            logging.info("No updates needed for mods.")
     else:
-        print(f"No updates needed for mods.")
-        logging.info("No updates needed for mods.")
-
-    print(f"\nAll of your mods are up to date.\n")
+        # Manual update mods
+        if global_cache.mods_data.get('mods_to_update'):
+            # Backup mods before update
+            mods_to_backup = [mod['Filename'] for mod in global_cache.mods_data.get('mods_to_update', [])]
+            utils.backup_mods(mods_to_backup)
+            # Download Mods
+            mods_manual_update.perform_manual_updates(global_cache.mods_data['mods_to_update'])
 
     # Modlist creation
     export_json.format_mods_data(global_cache.mods_data['installed_mods'])

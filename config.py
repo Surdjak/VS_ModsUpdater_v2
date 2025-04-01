@@ -225,7 +225,7 @@ def create_config(language, mod_folder, user_game_version, auto_update):
     DEFAULT_CONFIG["Language"]["language"] = language[0]
     DEFAULT_CONFIG["ModsPath"]["path"] = mod_folder
     DEFAULT_CONFIG["Game_Version"]["user_game_version"] = user_game_version
-    DEFAULT_CONFIG["Options"]["auto_update"] = 'True' if auto_update == "auto" else 'False'
+    DEFAULT_CONFIG["Options"]["auto_update"] = auto_update
 
     config = configparser.ConfigParser()
     for section, options in DEFAULT_CONFIG.items():
@@ -309,16 +309,25 @@ def config_exists():
 
 def ask_mods_directory():
     """Ask the user to choose a folder for the mods."""
-    mods_directory = Prompt.ask(
-        'Enter the path to your mods folder. Leave blank for default path',
-        default=MODS_PATHS[SYSTEM]
+    default_path = str(MODS_PATHS[SYSTEM])  # Convert Path to string for Prompt
+    while True:
+        mods_directory = Prompt.ask(
+            'Enter the path to your mods folder. Leave blank for default path',
+            default=default_path
         )
-    # Check if path exists
-    if os.path.isdir(mods_directory):
-        return mods_directory
-    else:
-        print(f"Error: {mods_directory} is not a valid directory.")
-        return ask_mods_directory()  # Re-prompt if the path is invalid.
+
+        mods_path = Path(mods_directory)  # Convert input to Path object
+
+        if mods_directory == "":  # User pressed Enter for default
+            logging.info(f"Using default mods directory: {default_path}")
+            return default_path
+
+        if mods_path.is_dir():
+            logging.info(f"Using mods directory: {mods_directory}")
+            return str(mods_directory)  # Return as string for consistency
+        else:
+            print(f"Error: {mods_directory} is not a valid directory.")
+            logging.warning(f"Invalid directory entered: {mods_directory}")
 
 
 def ask_language_choice():
@@ -367,6 +376,25 @@ def ask_game_version():
             # If the format is invalid, display an error message and ask for the version again.
             print(
                 "[bold red]Error: Please provide a valid version in the format major.minor.patch (e.g., 1.2.3).[/bold red]")
+
+
+def ask_auto_update():
+    """Ask the user to choose between manual or auto update."""
+    while True:
+        auto_update_input = Prompt.ask(
+            "Choose update mode (manual/auto)",
+            choices=["manual", "auto"],
+            default="auto"
+        ).lower()
+
+        if auto_update_input == "auto":
+            logging.info("Auto update selected.")
+            return True
+        elif auto_update_input == "manual":
+            logging.info("Manual update selected.")
+            return False
+        else:
+            print("Invalid choice. Please enter 'manual' or 'auto'.")
 
 
 def configure_logging(logging_level):
