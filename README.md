@@ -48,9 +48,7 @@ Not yet useful. only when manual donwload will be available
 [Options]
 max_workers = 4
 ```
-**max_workers** defines the number of threads that can be executed in parallel for multithreading tasks. By default, this value is equal to the number of physical cores on the processor. You can adjust this value to increase or decrease the processing speed based on your needs. However, a limit is set: the maximum number of threads cannot exceed 2.5 times the number of physical cores on the processor.
-
-For example, for a processor with 4 cores, the maximum value for max_workers will be 10 (2.5 * 4 = 10), regardless of the number of threads you attempt to set. This limit helps prevent processor overload and ensures balanced resource utilization.
+**max_workers** defines the number of threads that can be executed in parallel for multithreading tasks. By default, this value is equal to the number of physical cores on the processor. You can adjust this value to increase or decrease the processing speed based on your needs. However, a limit is set: the maximum number of threads cannot exceed 10.
 
 ```ìni
 [Options]
