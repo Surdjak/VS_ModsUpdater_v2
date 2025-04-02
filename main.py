@@ -53,6 +53,7 @@ from rich import print
 from rich.console import Console
 from rich.prompt import Prompt
 
+import cli
 import config
 import export_json
 import export_pdf
@@ -77,8 +78,8 @@ def set_console_title(title):
 def initialize_config():
     # Create config.ini if not present
     if not config.config_exists():
-        # Config logging with log_level 'INFO' for the first execution.
-        config.configure_logging('INFO')
+        # Config logging with log_level 'DEBUG' for the first execution.
+        config.configure_logging('DEBUG')
         print(f'\n\t[yellow]First run detected - Set up config.ini -[/yellow]')
         language = config.ask_language_choice()
         # Load translations
@@ -122,8 +123,8 @@ def initialize_config():
     config.load_config()
 
     # Configure the logging
-    config.configure_logging(
-        global_cache.config_cache["Logging"]['log_level'].upper())
+    log_level = args.log_level or global_cache.config_cache["Logging"]["log_level"]
+    config.configure_logging(log_level.upper())
 
     # Load the language translations from the config file into the global cache
     lang_path = Path(f"{config.LANG_PATH}/{global_cache.config_cache['Language']['language']}.json").resolve()
@@ -152,6 +153,8 @@ def welcome_display():
 
 
 if __name__ == "__main__":
+    args = cli.parse_args()
+
     set_console_title(f"ModsUpdater for Vintage Story {__version__} (by Laerinok)")
 
     # Initialize config
@@ -162,6 +165,10 @@ if __name__ == "__main__":
     print("\n\n")
 
     mods_path = fetch_mod_info.get_mod_path()
+
+    if args.modspath:  # use the argument modspath if present.
+        mods_path = args.modspath
+
     # Check if the 'Mods' folder is not empty and contains only archive files, not extracted archive folders.
     utils.check_mods_directory(mods_path)
     # Fetch mods info
@@ -202,12 +209,15 @@ if __name__ == "__main__":
             mods_manual_update.perform_manual_updates(global_cache.mods_data['mods_to_update'])
 
     # Modlist creation
+    # args.no-json handled in export_json
     export_json.format_mods_data(global_cache.mods_data['installed_mods'])
 
     # PDF creation
-    export_pdf.generate_pdf(global_cache.mods_data['installed_mods'])
+    if not args.no_pdf:
+        export_pdf.generate_pdf(global_cache.mods_data['installed_mods'])
 
     # End of programm
     exit_program(extra_msg="", do_exit=False)
-    input("\nPress Enter to exit...")
+    if not args.no_pause:
+        input("\nPress Enter to exit...")
     sys.exit()

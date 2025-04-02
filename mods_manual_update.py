@@ -40,7 +40,7 @@ from http_client import HTTPClient
 from utils import extract_filename_from_url
 
 timeout = global_cache.config_cache["Options"].get("timeout", 10)
-client = HTTPClient(timeout=timeout)
+client = HTTPClient()
 
 """
 parcourir global_cache['mods_to_update'], afficher changelog, proposer de mettre à jour, et si oui, telecharger la maj

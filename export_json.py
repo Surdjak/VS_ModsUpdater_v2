@@ -21,6 +21,7 @@ from pathlib import Path
 import json
 import global_cache
 import logging
+import cli
 
 
 def save_json(data, filename):
@@ -65,7 +66,9 @@ def format_mods_data(mods_data):
     global_cache.modinfo_json_cache = final_data
     # Save data to modlist.json
     filename = (Path(global_cache.config_cache['Backup_Mods']["modlist_folder"]) / 'modlist.json').resolve()
-    save_json(final_data, filename)
+    args = cli.parse_args()
+    if not args.no_json:
+        save_json(final_data, filename)
 
 
 if __name__ == "__main__":

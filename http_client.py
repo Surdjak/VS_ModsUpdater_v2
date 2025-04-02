@@ -27,13 +27,17 @@ API calls, downloading files, and any HTTP requests requiring a persistent sessi
 
 __author__ = "Laerinok"
 __version__ = "2.0.1-rc2"
-__date__ = "2025-03-28"  # Last update
+__date__ = "2025-04-02"  # Last update
 
 
-import time
-import random
-import requests
 import logging
+import random
+import time
+
+import requests
+
+import global_cache
+import cli
 
 
 class HTTPClient:
@@ -44,21 +48,25 @@ class HTTPClient:
         session (requests.Session): The HTTP session used for making requests.
         retry_attempts (int): The number of retry attempts in case of failure.
         delay (float): The delay between retries.
+        timeout (int): The timeout for requests in seconds.
     """
 
-    def __init__(self, retry_attempts=3, delay=1.5, timeout=10):
+    def __init__(self, retry_attempts=3, delay=1.5):
         """
         Initializes the HTTPClient with default retry attempts and delay between retries.
 
         Args:
             retry_attempts (int): The number of retry attempts in case of failure (default is 3).
             delay (float): The delay in seconds between retries (default is 1.5 seconds).
-            timeout (int): The timeout for requests in seconds (default is 10 seconds).
         """
         self.session = requests.Session()
         self.retry_attempts = retry_attempts
         self.delay = delay
-        self.timeout = timeout
+
+        args = cli.parse_args()
+        self.timeout = args.timeout or int(global_cache.config_cache["Options"]["timeout"])
+        if self.timeout <= 0:
+            raise ValueError("Timeout must be a positive integer.")
 
     @staticmethod
     def _get_random_headers():

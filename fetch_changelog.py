@@ -44,7 +44,7 @@ import config
 from http_client import HTTPClient
 
 timeout = global_cache.config_cache["Options"].get("timeout", 10)
-client = HTTPClient(timeout=timeout)
+client = HTTPClient()
 
 
 def convert_html_to_markdown(html_content):

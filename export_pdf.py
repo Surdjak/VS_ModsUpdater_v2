@@ -42,6 +42,7 @@ __date__ = "2025-04-01"  # Last update
 import concurrent.futures
 import logging
 import sys
+import urllib.parse
 import zipfile
 from io import BytesIO
 from pathlib import Path
@@ -56,11 +57,10 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image, Paragraph, \
     Spacer
 from rich.progress import Progress
-import urllib.parse
 
 import config
 import global_cache
-
+from utils import validate_workers
 
 # Suppress Pillow debug messages
 logging.getLogger("PIL").setLevel(logging.WARNING)
@@ -378,14 +378,18 @@ def generate_pdf(mod_info_data):
     """
     pdf_name = f"modlist.pdf"
     output_pdf_path = str(Path(config.APPLICATION_PATH) / global_cache.config_cache['Backup_Mods']['modlist_folder'] / pdf_name)
+    # Ensure the directory exists
+    Path(output_pdf_path).parent.mkdir(parents=True, exist_ok=True)
 
     global_cache.total_mods = len(mod_info_data)
     mod_info_for_pdf = {}
 
+    max_workers = validate_workers()
+
     with Progress() as progress:
         task = progress.add_task("[cyan]Generating PDF...", total=global_cache.total_mods)
 
-        with concurrent.futures.ThreadPoolExecutor() as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = [executor.submit(process_mod, mod_info) for mod_info in global_cache.mods_data['installed_mods']]
 
             for future in concurrent.futures.as_completed(futures):

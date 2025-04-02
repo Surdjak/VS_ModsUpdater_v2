@@ -51,7 +51,7 @@ logging.info(f"For Vintage Story v{global_cache.config_cache['Game_Version']['us
 logging.info(f'Checking for ModsUpdater script update')
 
 timeout = global_cache.config_cache["Options"].get("timeout", 10)
-client = HTTPClient(timeout=timeout)
+client = HTTPClient()
 
 
 def modsupdater_update():

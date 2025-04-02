@@ -51,10 +51,10 @@ from rich.progress import Progress
 import config
 import global_cache
 from http_client import HTTPClient
-from utils import extract_filename_from_url, calculate_max_workers
+from utils import extract_filename_from_url, validate_workers
 
 timeout = global_cache.config_cache["Options"].get("timeout", 10)
-client = HTTPClient(timeout=timeout)
+client = HTTPClient()
 console = Console()
 
 
@@ -94,7 +94,7 @@ def download_mods_to_update(mods_data):
         task = progress.add_task("[cyan]Downloading mods...", total=len(mods_data))
 
         # Create a thread pool executor for parallel downloads
-        max_workers = calculate_max_workers()
+        max_workers = validate_workers()
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = []
             for mod in mods_data:

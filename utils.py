@@ -23,7 +23,7 @@ __date__ = "2025-03-28"  # Last update
 
 # utils.py
 
-import argparse
+import datetime
 import json
 import logging
 import random
@@ -31,7 +31,6 @@ import re
 import sys
 import time
 import zipfile
-import datetime
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
@@ -39,13 +38,14 @@ from packaging.version import Version, InvalidVersion
 from rich import print
 from rich.console import Console
 
+import cli
 import global_cache
 from http_client import HTTPClient
 
 console = Console()
 
 timeout = global_cache.config_cache["Options"].get("timeout", 10)
-client = HTTPClient(timeout=timeout)
+client = HTTPClient()
 
 
 # #### For test and debug ####
@@ -101,28 +101,40 @@ def check_mods_directory(mods_dir):
         exit_program(extra_msg="No valid mod files found in the Mods folder.")
 
 
-def calculate_max_workers():
+def validate_workers():
     """
-    Calculate the maximum number of workers based on CPU cores and the user's max_workers value.
-    Allows a factor of 2.5 times the number of CPU cores.
-    => abandoned, setting now a fixed maximum value.
+    Validates and returns the adjusted number of workers based on user input or configuration.
 
-    :return: The validated max_workers value
+    This function retrieves the desired number of workers from command-line arguments or the configuration file,
+    ensuring it falls within the allowed range defined by 'min_workers_limit' and 'max_workers_limit'.
+
+    :return: The validated and adjusted number of workers.
     """
-    user_max_workers = int(global_cache.config_cache["Options"]["max_workers"])
-    # abandoned, setting now a fixed maximum value.
-    # cpu_cores = os.cpu_count()
-
+    args = cli.parse_args()
+    config_max_workers = int(global_cache.config_cache["Options"]["max_workers"])
     # Define the maximum workers allowed
-    max_workers = 10
+    max_workers_limit = 10
+    min_workers_limit = 1  # Define the minimum workers allowed
+
+    # Use the --max-workers argument if provided, otherwise use the config value
+    user_max_workers = args.max_workers if args.max_workers is not None else config_max_workers
+
+    # Test to ensure user_max_workers is an integer
+    if not isinstance(user_max_workers, int):
+        try:
+            user_max_workers = int(user_max_workers)  # Try to convert to integer
+        except (ValueError, TypeError) as e:
+            logging.error(f"Invalid input for max_workers: {e}")
+            print("Error: Invalid input for max_workers. Must be an integer.")
+            return min_workers_limit  # Return the minimum workers limit, or raise an error
 
     # If the user has set max_workers, validate it
     if user_max_workers:
-        # Never exceed the max_workers limit
-        return min(user_max_workers, max_workers)
+        # Never exceed the max_workers limit and always use at least 1 worker
+        return max(min(user_max_workers, max_workers_limit), min_workers_limit)
     else:
         # If the user hasn't set max_workers, use the defaut max_workers
-        return 4  # We return an integer value for consistency
+        return min_workers_limit  # We return an integer value for consistency
 
 
 def get_random_headers():
@@ -301,20 +313,6 @@ def backup_mods(mods_to_backup):
         for old_backup in backups[max_backups:]:
             old_backup.unlink()
             logging.info(f"Deleted old backup: {old_backup}")
-
-
-def parse_args():
-    parser = argparse.ArgumentParser(description="ModsUpdater options")
-
-    parser.add_argument('--modspath', type=str, help='Enter the mods directory (in quotes).')
-    parser.add_argument('--language', type=str, default='en_US', help='Set the language file (default=en_US)')
-    parser.add_argument('--nopause', type=lambda x: x.lower() == 'true', default=False, help='Disable the pause at the end (default=false)')
-    parser.add_argument('--exclusion', nargs='*', type=str, help='Filenames of mods to exclude (in quotes)')
-    parser.add_argument('--forceupdate', type=lambda x: x.lower() == 'true', default=False, help='Force update all mods (default=false)')
-    parser.add_argument('--makepdf', type=lambda x: x.lower() == 'true', default=False, help='Create a PDF file (default=false)')
-    parser.add_argument('--exclude_prerelease_mods', type=lambda x: x.lower() == 'true', default=False, help='Enable/Disable prerelease mod updates (default=false)')
-
-    return parser.parse_args()
 
 
 def exit_program(msg="Program terminated", extra_msg=None, do_exit=True):
