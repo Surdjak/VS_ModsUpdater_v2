@@ -15,12 +15,12 @@ This a third-party program. It means it is NOT a mod. You do not have to put it 
 * Backup of mods before updating them
 * Retrieving mod changelogs (now entiere changelogs must be retrieved)
 * Generating a list of installed mods (PDF + JSON)
+* Use of arguments
 * Improved logging
 * Multi-threading
 * Possible migration from an old version of ModsUpdater: the config file is retrieved and updated for the new version (not tested on very old versions of ModsUpdater)
 
 ### Features Not Yet Functional:
-* Use of arguments
 * Planned but not guaranteed: the ability to downgrade mods for a given game version
 
 
@@ -40,9 +40,10 @@ This option allows you to choose the logging level: DEBUG, INFO, WARNING, ERROR,
 
 ```ìni
 [Options]
-auto_update = False
+auto_update = True
 ```
-Not yet useful. only when manual donwload will be available
+* True: Mods are automatically updated when the program starts.
+* False: Mods are not automatically updated. The user will have to manually validate the update for each mod.
 
 ```ìni
 [Options]
@@ -85,3 +86,13 @@ Version format: It is important to adhere to the version format used by the game
 mods = mod01.zip, mod02.zip, mod03.zip
 ```
 The Mod_Exclusion section has been updated. You can now list the filenames of mods to exclude from the update process, separated by commas. Leave this field empty if no mods need to be excluded.
+
+This program accepts the following command-line arguments to customize its behavior:
+
+* `--no-pause` : Disables the pause at the end of the program execution.
+* `--modspath "path/to/mods/directory"` : Specifies the path to the directory containing the mods. The path must be enclosed in quotes if it contains spaces.
+* `--no-pdf` : Disables the generation of the mod report in PDF format.
+* `--no-json` : Disables the generation of the mod report in JSON format.
+* `--log-level [DEBUG|INFO|WARNING|ERROR|CRITICAL]` : Sets the logging level.
+* `--max-workers [number]` : Sets the maximum number of workers used for mod downloads.
+* `--timeout [seconds]` : Sets the timeout in seconds for mod downloads.
