@@ -30,7 +30,7 @@ Key functionalities include:
 """
 
 __author__ = "Laerinok"
-__version__ = "2.0.0-dev3"
+__version__ = "2.0.1-rc1"
 __date__ = "2025-04-01"  # Last update
 
 # mu_script_update.py
@@ -66,7 +66,7 @@ def modsupdater_update():
     # Check if content indicates page not found
     if 'not found' in response.text.lower():
         logging.error("Content indicates page not found for URL: %s", url_script)
-        return None, None
+        return None, None, None
 
     soup = BeautifulSoup(response.content, "html.parser")
 
@@ -74,7 +74,7 @@ def modsupdater_update():
     first_row = soup.select_one("table.stdtable tbody tr")
     if not first_row:
         logging.error("Could not find the update table row on URL: %s", url_script)
-        return None, None
+        return None, None, None
 
     # Extract version and download URL
     version_text = first_row.select_one("td:nth-of-type(1)").text.strip()
@@ -87,7 +87,7 @@ def modsupdater_update():
     # Ensure both version and download URL are found
     if not latest_version or not download_url:
         logging.error("Failed to extract version or download URL for URL: %s", url_script)
-        return None, None
+        return None, None, None
 
     # Compare with the current version
     new_version = utils.version_compare(__version__, latest_version)

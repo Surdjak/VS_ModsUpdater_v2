@@ -33,10 +33,10 @@ Key functionalities include:
 
 """
 __author__ = "Laerinok"
-__version__ = "2.0.0-dev3"
+__version__ = "2.0.1-rc1"
 __license__ = "GNU GPL v3"
 __description__ = "Mods Updater for Vintage Story"
-__date__ = "2025-04-01"  # Last update
+__date__ = "2025-04-02"  # Last update
 
 
 # main.py
@@ -45,29 +45,33 @@ __date__ = "2025-04-01"  # Last update
 import ctypes
 import logging
 import os
+import platform
 import sys
 from pathlib import Path
 
 from rich import print
 from rich.console import Console
 from rich.prompt import Prompt
-import export_json
-import export_pdf
 
 import config
-import mods_update_checker
+import export_json
+import export_pdf
 import fetch_mod_info
 import global_cache
 import lang
 import mods_auto_update
 import mods_manual_update
+import mods_update_checker
 import utils
 from utils import exit_program
 
 console = Console()
 
 
-ctypes.windll.kernel32.SetConsoleTitleW("VS Mods Updater")
+def set_console_title(title):
+    """Sets the console title if running on Windows"""
+    if platform.system() == 'Windows':
+        ctypes.windll.kernel32.SetConsoleTitleW(title)
 
 
 def initialize_config():
@@ -148,6 +152,8 @@ def welcome_display():
 
 
 if __name__ == "__main__":
+    set_console_title(f"ModsUpdater for Vintage Story {__version__} (by Laerinok)")
+
     # Initialize config
     initialize_config()
 

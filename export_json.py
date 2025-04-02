@@ -13,7 +13,7 @@ Key functionalities include:
 
 """
 __author__ = "Laerinok"
-__version__ = "2.0.0-dev3"
+__version__ = "2.0.1-rc1"
 __date__ = "2025-04-01"
 
 
@@ -29,7 +29,7 @@ def save_json(data, filename):
     try:
         with open(filename, 'w', encoding='utf-8') as json_file:
             json.dump(data, json_file, indent=4, ensure_ascii=False)
-        print(f"A modlist has been exported in JSON format to the following location: {global_cache.config_cache['Backup_Mods']['modlist_folder']}")
+        print(f"\nA modlist has been exported in JSON format to the following location: {global_cache.config_cache['Backup_Mods']['modlist_folder']}\n")
         logging.info(f"{filename} has been created successfully.")
     except PermissionError:
         logging.error(f"Error: No write permission for {filename}. Try running as administrator.")

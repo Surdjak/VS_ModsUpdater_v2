@@ -31,7 +31,7 @@ Key functionalities include:
 """
 
 __author__ = "Laerinok"
-__version__ = "2.0.0-dev3"
+__version__ = "2.0.1-rc1"
 __date__ = "2025-04-01"  # Last update
 
 # fetch_mod_info.py
@@ -252,7 +252,7 @@ def get_mod_api_data(mod):
     mod_url = f"{global_cache.config_cache['URL_MOD_DB']}{mod_assetid}"
     exclude_prerelease = global_cache.config_cache['Options']['exclude_prerelease_mods']
     sorted_releases = get_compatible_releases(mod_json, global_cache.config_cache['Game_Version']['user_game_version'], exclude_prerelease)
-    mainfile_excluded_file = get_mainfile_from_excluded_mods(sorted_releases, global_cache.mods_data['excluded_mods'])   # Debug
+    mainfile_excluded_file = get_mainfile_from_excluded_mods(sorted_releases, global_cache.mods_data['excluded_mods'])
 
     if any(excluded_mod['Filename'] == mod['Filename'] for excluded_mod in global_cache.mods_data['excluded_mods']):
         if mainfile_excluded_file:
@@ -272,7 +272,6 @@ def get_mod_api_data(mod):
 
     mainfile_url = sorted_releases[0]['mainfile']
     encoded_mainfile_url = urllib.parse.quote(mainfile_url, safe=':/=?&')
-    print(encoded_mainfile_url)  # Debug
 
     mod_latest_version_for_game_version = sorted_releases[0]['modversion']
     return mod_assetid, mod_url, encoded_mainfile_url, mod_latest_version_for_game_version, side
@@ -280,7 +279,10 @@ def get_mod_api_data(mod):
 
 # Entry point of the module: scans the mods folder and retrieves mod information.
 def scan_and_fetch_mod_info(mods_folder):
-    """Scan the mods folder, extract basic mod information, and fetch additional details from the API."""
+    """
+    Orchestrates the scanning of the mods folder, extraction of basic mod information, and retrieval of detailed mod data from the API.
+    Returns: None: The function modifies the global_cache.mods_data dictionary in place.
+    """
     invalid_files = []  # List of invalid or corrupted files.
 
     max_workers = utils.calculate_max_workers()
@@ -308,7 +310,6 @@ def scan_and_fetch_mod_info(mods_folder):
     mod_ids = [mod['ModId'] for mod in global_cache.mods_data["installed_mods"]]
     mods = global_cache.mods_data["installed_mods"]  # Complete list of mods to associate the results.
 
-    # print(global_cache.mods_data["installed_mods"])  # debug
     with Progress() as progress:
         api_task = progress.add_task("[green]Fetching mod info from API...",
                                      total=len(mod_ids))

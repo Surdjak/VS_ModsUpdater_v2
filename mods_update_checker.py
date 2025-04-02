@@ -21,7 +21,7 @@
 
 """
 __author__ = "Laerinok"
-__version__ = "2.0.0-dev3"
+__version__ = "2.0.1-rc1"
 __date__ = "2025-04-01"  # Last update
 
 # mods_update_checker.py

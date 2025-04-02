@@ -22,7 +22,7 @@
 
 
 __author__ = "Laerinok"
-__version__ = "2.0.0-dev3"  # Don't forget to change EXPECTED_VERSION
+__version__ = "2.0.1-rc1"  # Don't forget to change EXPECTED_VERSION
 __date__ = "2025-03-27"  # Last update
 
 
@@ -41,7 +41,7 @@ import global_cache
 import utils
 
 # The target version after migration
-EXPECTED_VERSION = "2.0.0-dev3"
+EXPECTED_VERSION = "2.0.1-rc1"
 
 # Variable to enable/disable the download - for my test
 download_enabled = True  # Set to False to disable downloads
@@ -84,7 +84,7 @@ URL_SCRIPT = {
 # Default configuration
 DEFAULT_CONFIG = {
     "ModsUpdater": {"version": __version__},
-    "Logging": {"log_level": "DEBUG"},  # Debug Set to INFO for full release !!
+    "Logging": {"log_level": "DEBUG"},
     "Options": {"force_update": "false", "exclude_prerelease_mods": "false", "auto_update": "true", "max_workers": 4, "timeout": 10},
     "Backup_Mods": {"backup_folder": "backup_mods", "max_backups": 3, "modlist_folder": "modlist"},
     "ModsPath": {"path": str(MODS_PATHS[SYSTEM])},
@@ -411,7 +411,7 @@ def configure_logging(logging_level):
 
         # Créer un handler pour le fichier.
         file_handler = logging.FileHandler(log_file, mode='w', encoding='utf-8')
-        file_handler.setLevel(logging.DEBUG)  # Défini par défaut à DEBUG, mais mis à jour après
+        file_handler.setLevel(logging.DEBUG)
 
         # Créer un format de log.
         formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
