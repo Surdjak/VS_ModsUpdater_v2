@@ -22,7 +22,7 @@ jobs:
           pip install nuitka
 
       - name: Build binary with Nuitka
-        run: nuitka --standalone --file-description="ModsUpdater for Vintage Story" --follow-imports --windows-icon-from-ico=vintagestory.ico --file-version=2.0.1.1002 --copyright=Laerinok --product-name=ModsUpdater --lto=auto --output-filename=VS_ModsUpdater main.py
+        run: nuitka --standalone --output-filename=VS_ModsUpdater main.py
 
       - name: Upload binary
         uses: actions/upload-artifact@v3
