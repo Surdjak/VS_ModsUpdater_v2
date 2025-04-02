@@ -64,8 +64,8 @@ def modsupdater_update():
     response.raise_for_status()  # Check if the request was successful
 
     # Check if content indicates page not found
-    if 'not found' in response.text.lower():
-        logging.error("Content indicates page not found for URL: %s", url_script)
+    if response.status_code == 404:
+        logging.error("Page not found (404) for URL: %s", url_script)
         return None, None, None
 
     soup = BeautifulSoup(response.content, "html.parser")
