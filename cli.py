@@ -42,13 +42,9 @@ def parse_args():
     parser.add_argument('--modspath', type=str, help='Enter the mods directory (in quotes).')
     parser.add_argument('--no-pdf', action='store_true', help='Disable the PDF modlist generation')
     parser.add_argument('--no-json', action='store_true', help='Disable the JSON modlist generation')
-
     parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], help='Set the logging level')
     parser.add_argument('--max-workers', type=int, help='Set the maximum number of workers for downloads')
     parser.add_argument('--timeout', type=int, help='Set the timeout for downloads')
-
-    parser.add_argument('--backup-folder', type=str, help='Set the backup folder name')
-    parser.add_argument('--max-backups', type=int, help='Set the maximum number of backups to keep')
 
     args = parser.parse_args()
 
