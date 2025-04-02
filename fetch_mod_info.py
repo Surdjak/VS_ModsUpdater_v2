@@ -48,6 +48,7 @@ from pathlib import Path
 
 from packaging.version import Version
 from rich.progress import Progress
+from rich import print
 
 import config
 import global_cache
@@ -62,13 +63,15 @@ client = HTTPClient(timeout=timeout)
 def get_mod_path():
     # Check if ModsPath and path exist in the config.
     if "ModsPath" not in global_cache.config_cache or "path" not in global_cache.config_cache["ModsPath"]:
-        print("Error: The ModsPath or 'path' key is missing in the configuration.")
+        print("[red]Error[/red]: The ModsPath or 'path' key is missing in the configuration.")
+        logging.error("Error: The ModsPath or 'path' key is missing in the configuration.")
         time.sleep(2)
         sys.exit(1)  # Stop the script with an error code
 
     mods_path = Path(global_cache.config_cache['ModsPath']['path']).resolve()
     if not mods_path.exists():
-        print(f"Error: The mods path is not found.")
+        print(f"[red]Error[/red]: The mods path [yellow]{mods_path}[/yellow] is not found.")
+        logging.error(f"Error: The mods path {mods_path} is not found.")
         time.sleep(2)
         sys.exit(1)  # Stop the script with an error code
 
