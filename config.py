@@ -22,8 +22,8 @@
 
 
 __author__ = "Laerinok"
-__version__ = "2.0.1-rc1"  # Don't forget to change EXPECTED_VERSION
-__date__ = "2025-03-27"  # Last update
+__version__ = "2.0.1-rc2"  # Don't forget to change EXPECTED_VERSION
+__date__ = "2025-04-02"  # Last update
 
 
 # config.py
@@ -41,7 +41,7 @@ import global_cache
 import utils
 
 # The target version after migration
-EXPECTED_VERSION = "2.0.1-rc1"
+EXPECTED_VERSION = "2.0.1-rc2"
 
 # Variable to enable/disable the download - for my test
 download_enabled = True  # Set to False to disable downloads
@@ -85,11 +85,11 @@ URL_SCRIPT = {
 DEFAULT_CONFIG = {
     "ModsUpdater": {"version": __version__},
     "Logging": {"log_level": "DEBUG"},
-    "Options": {"force_update": "false", "exclude_prerelease_mods": "false", "auto_update": "true", "max_workers": 4, "timeout": 10},
-    "Backup_Mods": {"backup_folder": "backup_mods", "max_backups": 3, "modlist_folder": "modlist"},
-    "ModsPath": {"path": str(MODS_PATHS[SYSTEM])},
+    "Options": {"force_update": "false", "exclude_prerelease_mods": "false", "auto_update": "true", "max_workers": str(4), "timeout": str(10)},
+    "Backup_Mods": {"backup_folder": "backup_mods", "max_backups": str(3), "modlist_folder": "modlist"},
+    "ModsPath": {"path": MODS_PATHS[SYSTEM]},
     "Language": {"language": DEFAULT_LANGUAGE},
-    "Game_Version": {"user_game_version": ""},
+    "Game_Version": {"user_game_version": str("")},
     "Mod_Exclusion": {'mods': ""}
 }
 
@@ -169,6 +169,11 @@ def migrate_config(old_config):
     # Step 3: Apply specific migration rules
     # - Rename sections/keys if necessary
 
+    # Migration: version → version
+    if "ModsUpdater" in old_config and "version" in old_config["ModsUpdater"]:
+        new_config["ModsUpdater"]["version"] = __version__
+        logging.debug("Migrated version to version: %s", __version__)
+
     # Migration: Game_Version_max → user_game_version
     if "Game_Version_max" in old_config:
         user_game_version = old_config["Game_Version_max"].get("version")
@@ -196,6 +201,15 @@ def migrate_config(old_config):
             new_config["Mod_Exclusion"]["mods"] = ", ".join(mods_list)
             logging.debug("Migrated Mod_Exclusion with %d mods", len(mods_list))
 
+    # Migration: log_level
+    if "Logging" in old_config and "log_level" in old_config["Logging"]:
+        log_level = old_config["Logging"].get("log_level")
+        new_config["Logging"]["log_level"] = log_level
+        logging.debug("Migrated log_level: %s", log_level)
+    else:
+        new_config["Logging"]["log_level"] = DEFAULT_CONFIG['Logging']["log_level"]
+        logging.debug(f"Set log_level to default: {DEFAULT_CONFIG['Logging']["log_level"]}")
+
     # Step 4: Remove obsolete sections
     for section in list(new_config.keys()):
         if section != "DEFAULT" and section not in DEFAULT_CONFIG:
@@ -208,9 +222,9 @@ def migrate_config(old_config):
             for section in DEFAULT_CONFIG.keys():
                 if section in new_config:
                     configfile.write(f"[{section}]\n")
-                    for key in DEFAULT_CONFIG[section].keys():
-                        if key in new_config[section]:
-                            configfile.write(f"{key} = {new_config[section][key]}\n")
+                    for key, value in new_config[section].items():
+                        # Convert all values to strings before writing
+                        configfile.write(f"{key} = {str(value)}\n")
                     configfile.write("\n")
         logging.info("Configuration migration completed successfully.")
         print(f"Configuration migrated successfully to version {EXPECTED_VERSION}.")
