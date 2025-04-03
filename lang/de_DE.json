@@ -1,0 +1,62 @@
+{
+  "main_language_set_to": "Die Sprache ist eingestellt auf: ",
+  "main_mods_folder_path": "Mods-Speicherort: ",
+  "main_game_version": "Spielversion: ",
+  "main_mods_update_choice": "Mods-Update: ",
+  "main_config_file_created": "Die Datei 'config.ini' wurde erstellt.",
+  "main_update_or_modify_config": "Sie können mit dem Update fortfahren oder beenden, um die Datei config.ini zu bearbeiten (z.B. um Mods vom Update auszuschließen).",
+  "main_continue_update_prompt": "Möchten Sie fortfahren?",
+  "main_exiting_program": "Programm wird beendet",
+  "main_user_exits": "Benutzer hat sich entschieden, den Update-Prozess zu beenden.",
+  "main_no_new_version_available": "Keine neue Version verfügbar",
+  "main_new_version_available": "Neue Version verfügbar!!!",
+  "main_title": "ModsUpdater für Vintage Story - v{ModsUpdater_version} (von Laerinok)",
+  "main_mods_no_update": "Keine Mods-Updates verfügbar.",
+  "main_press_enter_to_exit": "Drücken Sie die Eingabetaste, um zu beenden...",
+
+  "config_ask_mod_directory": "Geben Sie den Pfad zu Ihrem Mods-Ordner ein. Lassen Sie ihn leer für den Standardpfad",
+  "config_configuration_migrated": "Konfiguration erfolgreich zu Version {EXPECTED_VERSION} migriert.",
+  "config_invalid_directory": "Fehler: {mods_directory} ist kein gültiges Verzeichnis.",
+  "config_game_version_prompt": "Updates bis zur Spielversion blockieren (1.2.3, leer = keine Blockierung)",
+  "config_invalid_game_version": "Fehler: Bitte geben Sie eine gültige Version im Format Hauptversion.Nebenversion.Patch an (z.B. 1.20.5).",
+  "config_choose_update_mode": "Update-Modus wählen (manuell/auto)",
+  "config_choose_update_mode_auto": "auto",
+  "config_choose_update_mode_manual": "manuell",
+  "config_invalid_update_choice": "Ungültige Auswahl. Bitte geben Sie 'manuell' oder 'auto' ein.",
+
+  "fetch_changelog_unknown_version": "unbekannte Version",
+
+  "fetch_mod_info_error_mods_path_missing": "Der ModsPath oder der Schlüssel 'path' fehlt in der Konfiguration.",
+  "fetch_mod_info_error_mods_path_not_found": "Der Mods-Pfad [yellow]{mods_path}[/yellow] wurde nicht gefunden.",
+  "fetch_mod_info_scanning_mods": "Mods werden gescannt...",
+  "fetch_mod_info_fetching_mod_info": "Mod-Informationen von der API werden abgerufen...",
+  "fetch_mod_info_fetching_mod_info_name": "Mod-Informationen werden abgerufen",
+
+  "auto_file_size_unknown": "Warnung: Die Dateigröße ist unbekannt oder null. Der Download wird möglicherweise nicht ordnungsgemäß abgeschlossen.",
+  "auto_downloading_mods": "Mods werden heruntergeladen...",
+  "auto_downloading_mod_name": "Herunterladen",
+  "auto_mods_updated_resume": "Folgende Mods wurden aktualisiert: ",
+
+  "manual_download_mod_prompt": "Diesen Mod herunterladen? (j/n)",
+  "manual_skipping_download": "Download wird übersprungen für",
+  "manual_downloading_mod": "Herunterladen",
+  "manual_download_completed": "Download abgeschlossen für",
+  "manual_download_error": "Fehler beim Herunterladen",
+
+  "utils_warning_mods_directory_empty": "[red]Warnung: Der Mods-Ordner [magenta]{mods_dir_path}[/magenta] ist leer![/red]\nBitte fügen Sie Ihre Mod-Dateien hinzu.",
+  "utils_warning_directory_in_mods_folder": "[red]Warnung: Ordner im Mods-Ordner gefunden: {item_name}.[/red] Bitte stellen Sie sicher, dass Sie .zip-Dateien und keine Ordner haben.",
+  "utils_no_valid_mod_files_found": "Keine gültigen Mod-Dateien im Mods-Ordner gefunden.",
+  "utils_error_invalid_max_workers": "Fehler: Ungültige Eingabe für max_workers. Muss eine ganze Zahl sein.",
+  "utils_prg_terminated": "Programm beendet.",
+
+  "export_json_modilst": "Die Modliste wurde im JSON-Format an folgenden Speicherort exportiert: ",
+  "export_pdf_modilst": "Die Modliste wurde im PDF-Format an folgenden Speicherort exportiert: ",
+  "export_pdf_generating_file": "PDF wird generiert...",
+  "export_pdf_permission_error": "Zugriff auf die Datei '{pdf_path}' nicht möglich. Die Datei ist möglicherweise geöffnet oder wird von einem anderen Prozess verwendet.\\nBitte schließen Sie alle Anwendungen, die die Datei verwenden, und versuchen Sie es erneut.",
+  "export_pdf_installed_mods": "installierte Mods",
+
+  "error": "Fehler:",
+  "yes": "ja,",
+  "no": "nein",
+  "to": "bis"
+}

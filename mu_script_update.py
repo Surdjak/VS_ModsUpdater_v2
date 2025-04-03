@@ -30,7 +30,7 @@ Key functionalities include:
 """
 
 __author__ = "Laerinok"
-__version__ = "2.0.1-rc2"
+__version__ = "2.0.1"
 __date__ = "2025-04-01"  # Last update
 
 # mu_script_update.py

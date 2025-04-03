@@ -26,8 +26,8 @@ API calls, downloading files, and any HTTP requests requiring a persistent sessi
 
 
 __author__ = "Laerinok"
-__version__ = "2.0.1-rc2"
-__date__ = "2025-04-02"  # Last update
+__version__ = "2.0.1"
+__date__ = "2025-04-03"  # Last update
 
 
 import logging
@@ -36,8 +36,8 @@ import time
 
 import requests
 
-import global_cache
 import cli
+import global_cache
 
 
 class HTTPClient:
@@ -66,6 +66,7 @@ class HTTPClient:
         args = cli.parse_args()
         self.timeout = args.timeout or int(global_cache.config_cache["Options"]["timeout"])
         if self.timeout <= 0:
+            logging.error("Timeout must be a positive integer.")
             raise ValueError("Timeout must be a positive integer.")
 
     @staticmethod

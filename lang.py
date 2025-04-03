@@ -28,14 +28,15 @@ Key functionalities include:
 
 """
 __author__ = "Laerinok"
-__version__ = "2.0.1-rc2"
-__date__ = "2025-04-01"  # Last update
+__version__ = "2.0.1"
+__date__ = "2025-04-03"  # Last update
 
 # lang.py
 
 import json
 from pathlib import Path
 
+import logging
 import global_cache
 
 
@@ -45,6 +46,7 @@ import global_cache
 def get_language_setting():
     """Retrieve the language setting from the global cache."""
     if not global_cache.config_cache:
+        logging.error("Configuration cache is empty. Ensure configuration is loaded.")
         raise RuntimeError("Configuration cache is empty. Ensure configuration is loaded.")
     return global_cache.config_cache["Language"]["language"]
 
@@ -68,6 +70,7 @@ def load_translations(path=None):
 
     # Handle the case where lang_file_path could not be determined
     if not lang_file_path or not lang_file_path.exists():
+        logging.error(f"[Error] Language file not found: {lang_file_path}. Ensure the path is correct.")
         raise FileNotFoundError(
             f"[Error] Language file not found: {lang_file_path}. Ensure the path is correct."
         )
@@ -78,11 +81,20 @@ def load_translations(path=None):
             translations = json.load(file)
             global_cache.language_cache.update(translations)
     except json.JSONDecodeError as e:
+        logging.error(f"[Error] Failed to parse language file: {lang_file_path}. {e}")
         raise ValueError(f"[Error] Failed to parse language file: {lang_file_path}. {e}")
     except FileNotFoundError as e:
+        logging.error(f"[Error] Unable to locate the language file: {lang_file_path}. {e}")
         raise FileNotFoundError(f"[Error] Unable to locate the language file: {lang_file_path}. {e}")
 
     return global_cache.language_cache
+
+
+def get_translation(key):
+    """Retrieve a translation from the cache."""
+    if not global_cache.language_cache:
+        load_translations()  # Ensure translations are loaded
+    return global_cache.language_cache.get(key, f"Translation not found: {key}")
 
 
 if __name__ == "__main__":

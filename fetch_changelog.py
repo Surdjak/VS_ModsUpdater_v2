@@ -32,15 +32,17 @@ Key functionalities include:
 
 
 __author__ = "Laerinok"
-__version__ = "2.0.1-rc2"
-__date__ = "2025-04-01"  # Last update
+__version__ = "2.0.1"
+__date__ = "2025-04-03"  # Last update
 
 import logging
-import global_cache
+
 import html2text
 from bs4 import BeautifulSoup
 
 import config
+import global_cache
+import lang
 from http_client import HTTPClient
 
 timeout = global_cache.config_cache["Options"].get("timeout", 10)
@@ -83,7 +85,7 @@ def get_raw_changelog(modname, mod_assetid, modversion):
     for div in changelog_divs:
         # Extract version (inside <strong>)
         version_tag = div.find("strong")
-        version = version_tag.text.strip().lower() if version_tag else "unknown version"
+        version = version_tag.text.strip().lower() if version_tag else lang.get_translation("fetch_changelog_unknown_version")
 
         # Check if this version matches modversion
         if version == clean_modversion:

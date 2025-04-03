@@ -22,20 +22,21 @@ It retrieves changelogs for mods that need updates and prompts the user to downl
 """
 
 __author__ = "Laerinok"
-__version__ = "2.0.1-rc2"
-__date__ = "2025-04-01"  # Last update
+__version__ = "2.0.1"
+__date__ = "2025-04-03"  # Last update
 
 # mods_manual_update.py
 
 import logging
-from pathlib import Path
 import os
+from pathlib import Path
 
 from rich import print
 from rich.progress import Progress
 from rich.prompt import Prompt
 
 import global_cache
+import lang
 from http_client import HTTPClient
 from utils import extract_filename_from_url
 
@@ -55,17 +56,17 @@ def perform_manual_updates(mods_to_update):
         mods_to_update (list): List of mods to update.
     """
     for mod in mods_to_update:
-        print(f"\n[green]{mod['Name']} (v{mod['Old_version']} to v{mod['New_version']})[/green]")
+        print(f"\n[green]{mod['Name']} (v{mod['Old_version']} {lang.get_translation("to")} v{mod['New_version']})[/green]")
         print(f"[bold][yellow]CHANGELOG:\n{mod['Changelog']}[/yellow][/bold]\n")
 
-        download_choice = Prompt.ask("Download this mod? (yes/no)", choices=["yes", "no"], default="yes").lower()
+        download_choice = Prompt.ask(lang.get_translation("manual_download_mod_prompt"), choices=["y", "n"], default="y").lower()
 
-        if download_choice == "yes":
+        if download_choice == "y":
             download_mod(mod)
             logging.info(
-                f"\t- {mod['Name']} (v{mod['Old_version']} to v{mod['New_version']})")
+                f"\t- {mod['Name']} (v{mod['Old_version']} {lang.get_translation("to")} v{mod['New_version']})")
         else:
-            print(f"Skipping download for {mod['Name']}.")
+            print(f"{lang.get_translation("manual_skipping_download")} {mod['Name']}.")
             logging.info(f"Skipping download for {mod['Name']}.")
 
 
@@ -78,7 +79,7 @@ def download_mod(mod):
     destination_folder = Path(global_cache.config_cache['ModsPath']['path']).resolve()
     destination_path = destination_folder / filename
 
-    print(f"Downloading {mod['Name']}...")
+    print(f"{lang.get_translation("manual_downloading_mod")} {mod['Name']}...")
     logging.info(f"Downloading {mod['Name']} from {url} to {destination_path}")
 
     try:
@@ -94,7 +95,7 @@ def download_mod(mod):
                     file.write(data)
                     progress.update(task, advance=len(data))
 
-        print(f"Download completed for {mod['Name']}.")
+        print(f"{lang.get_translation("manual_download_completed")} {mod['Name']}.")
         logging.info(f"Download completed for {mod['Name']}.")
 
         # Erase old file
@@ -121,7 +122,7 @@ def download_mod(mod):
                 break  # Stop searching once found
 
     except Exception as e:
-        print(f"Error downloading {mod['Name']}: {e}")
+        print(f"{lang.get_translation("manual_download_error")} {mod['Name']}: {e}")
         logging.error(f"Error downloading {mod['Name']}: {e}")
 
 

@@ -22,8 +22,8 @@
 
 
 __author__ = "Laerinok"
-__version__ = "2.0.1-rc2"  # Don't forget to change EXPECTED_VERSION
-__date__ = "2025-04-02"  # Last update
+__version__ = "2.0.1"  # Don't forget to change EXPECTED_VERSION
+__date__ = "2025-04-03"  # Last update
 
 
 # config.py
@@ -39,9 +39,10 @@ from rich.prompt import Prompt
 
 import global_cache
 import utils
+import lang
 
 # The target version after migration
-EXPECTED_VERSION = "2.0.1-rc2"
+EXPECTED_VERSION = "2.0.1"
 
 # Variable to enable/disable the download - for my test
 download_enabled = True  # Set to False to disable downloads
@@ -65,9 +66,17 @@ LANG_PATH = APPLICATION_PATH / 'lang'
 
 # Constants for supported languages
 SUPPORTED_LANGUAGES = {
-    "US": ["en", "English", '1'],
-    "FR": ["fr", "Français", '2'],
-    "UA": ["uk", "Yкраїнська", '3']
+    "DE": ["de", "Deutsch", '1'],
+    "US": ["en", "English", '2'],
+    "ES": ["es", "Español", '3'],
+    "FR": ["fr", "Français", '4'],
+    "IT": ["it", "Italiano", '5'],
+    "JP": ["ja", "日本語", '6'],
+    "BR": ["pt", "Português (Brasil)", '7'],
+    "PT": ["pt", "Português (Portugal)", '8'],
+    "RU": ["ru", "Русский", '9'],
+    "UA": ["uk", "Yкраїнська", '10'],
+    "CN": ["zh", "简体中文", '11']
 }
 DEFAULT_LANGUAGE = "en_US"
 
@@ -227,7 +236,7 @@ def migrate_config(old_config):
                         configfile.write(f"{key} = {str(value)}\n")
                     configfile.write("\n")
         logging.info("Configuration migration completed successfully.")
-        print(f"Configuration migrated successfully to version {EXPECTED_VERSION}.")
+        print(lang.get_translation("config_configuration_migrated").format(EXPECTED_VERSION=EXPECTED_VERSION))
     except Exception as e:
         logging.error("Error occurred while writing the migrated config: %s", str(e))
 
@@ -326,7 +335,7 @@ def ask_mods_directory():
     default_path = str(MODS_PATHS[SYSTEM])  # Convert Path to string for Prompt
     while True:
         mods_directory = Prompt.ask(
-            'Enter the path to your mods folder. Leave blank for default path',
+            lang.get_translation("config_ask_mod_directory"),
             default=default_path
         )
 
@@ -340,13 +349,13 @@ def ask_mods_directory():
             logging.info(f"Using mods directory: {mods_directory}")
             return str(mods_directory)  # Return as string for consistency
         else:
-            print(f"Error: {mods_directory} is not a valid directory.")
+            print(lang.get_translation("config_invalid_directory").format(mods_directory=mods_directory))
             logging.warning(f"Invalid directory entered: {mods_directory}")
 
 
 def ask_language_choice():
     """Ask the user to select a language at the first script launch."""
-    print("[bold cyan]Please select your language:[/bold cyan]")
+    print(f"[bold cyan]Please select your language:[/bold cyan]")
 
     # Display a message to prompt the user for language selection
     language_options = list(SUPPORTED_LANGUAGES.keys())
@@ -356,10 +365,10 @@ def ask_language_choice():
 
     # Use Prompt.ask to get the user's input
     choice_index = Prompt.ask(
-        "Enter the number of your language choice (default: english)",
+        "Enter the number of your language choice (leave blank for default English)",
         choices=[str(i) for i in range(1, len(language_options) + 1)],
         show_choices=False,
-        default=1
+        default=2
     )
 
     # Convert the user's choice to the corresponding language key
@@ -374,7 +383,7 @@ def ask_game_version():
     """Ask the user to select the game version the first script launch."""
     while True:
         user_game_version = Prompt.ask(
-            'Which version of the game are you using? You can set a game version to limit mod updates. Leave it empty to always use the latest available game version. If you enter a version, it will need to be updated when new game versions are released. Use a valid semver format: e.g., 1.2.3)',
+            lang.get_translation("config_game_version_prompt"),
             default=""
             )
 
@@ -388,17 +397,16 @@ def ask_game_version():
             return utils.complete_version(user_game_version)
         else:
             # If the format is invalid, display an error message and ask for the version again.
-            print(
-                "[bold red]Error: Please provide a valid version in the format major.minor.patch (e.g., 1.2.3).[/bold red]")
+            print(f"[bold red]{lang.get_translation("config_invalid_game_version")}[/bold red]")
 
 
 def ask_auto_update():
     """Ask the user to choose between manual or auto update."""
     while True:
         auto_update_input = Prompt.ask(
-            "Choose update mode (manual/auto)",
-            choices=["manual", "auto"],
-            default="auto"
+            lang.get_translation("config_choose_update_mode"),
+            choices=[lang.get_translation("config_choose_update_mode_manual"), lang.get_translation("config_choose_update_mode_auto")],
+            default=lang.get_translation("config_choose_update_mode_auto")
         ).lower()
 
         if auto_update_input == "auto":
@@ -408,7 +416,7 @@ def ask_auto_update():
             logging.info("Manual update selected.")
             return False
         else:
-            print("Invalid choice. Please enter 'manual' or 'auto'.")
+            print(lang.get_translation("config_invalid_update_choice"))
 
 
 def configure_logging(logging_level):

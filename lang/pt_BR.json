@@ -1,0 +1,62 @@
+{
+  "main_language_set_to": "O idioma está definido para: ",
+  "main_mods_folder_path": "Localização dos mods: ",
+  "main_game_version": "Versão do jogo: ",
+  "main_mods_update_choice": "Atualização de mods: ",
+  "main_config_file_created": "O arquivo 'config.ini' foi criado.",
+  "main_update_or_modify_config": "Você pode prosseguir com a atualização ou sair para modificar o arquivo config.ini (por exemplo, para excluir mods da atualização).",
+  "main_continue_update_prompt": "Deseja continuar?",
+  "main_exiting_program": "Saindo do programa",
+  "main_user_exits": "O usuário escolheu sair do processo de atualização.",
+  "main_no_new_version_available": "Nenhuma nova versão disponível",
+  "main_new_version_available": "Nova versão disponível!!!",
+  "main_title": "ModsUpdater para Vintage Story - v{ModsUpdater_version} (por Laerinok)",
+  "main_mods_no_update": "Nenhuma atualização de mods disponível.",
+  "main_press_enter_to_exit": "Pressione Enter para sair...",
+
+  "config_ask_mod_directory": "Digite o caminho para a sua pasta de mods. Deixe em branco para o caminho padrão",
+  "config_configuration_migrated": "Configuração migrada com sucesso para a versão {EXPECTED_VERSION}.",
+  "config_invalid_directory": "Erro: {mods_directory} não é um diretório válido.",
+  "config_game_version_prompt": "Bloquear atualizações até a versão do jogo (1.2.3, em branco = sem bloqueio)",
+  "config_invalid_game_version": "Erro: Por favor, forneça uma versão válida no formato principal.secundário.patch (por exemplo, 1.20.5).",
+  "config_choose_update_mode": "Escolha o modo de atualização (manual/automático)",
+  "config_choose_update_mode_auto": "automático",
+  "config_choose_update_mode_manual": "manual",
+  "config_invalid_update_choice": "Escolha inválida. Por favor, digite 'manual' ou 'automático'.",
+
+  "fetch_changelog_unknown_version": "versão desconhecida",
+
+  "fetch_mod_info_error_mods_path_missing": "O ModsPath ou a chave 'path' está faltando na configuração.",
+  "fetch_mod_info_error_mods_path_not_found": "O caminho dos mods [yellow]{mods_path}[/yellow] não foi encontrado.",
+  "fetch_mod_info_scanning_mods": "Escaneando mods...",
+  "fetch_mod_info_fetching_mod_info": "Obtendo informações dos mods da API...",
+  "fetch_mod_info_fetching_mod_info_name": "Obtendo informações dos mods",
+
+  "auto_file_size_unknown": "Aviso: O tamanho do arquivo é desconhecido ou zero. O download pode não ser concluído corretamente.",
+  "auto_downloading_mods": "Baixando mods...",
+  "auto_downloading_mod_name": "Baixando",
+  "auto_mods_updated_resume": "Os seguintes mods foram atualizados: ",
+
+  "manual_download_mod_prompt": "Baixar este mod? (s/n)",
+  "manual_skipping_download": "Pulando o download para",
+  "manual_downloading_mod": "Baixando",
+  "manual_download_completed": "Download concluído para",
+  "manual_download_error": "Erro ao baixar",
+
+  "utils_warning_mods_directory_empty": "[red]Aviso: O diretório de Mods [magenta]{mods_dir_path}[/magenta] está vazio![/red]\nPor favor, adicione seus arquivos de mods.",
+  "utils_warning_directory_in_mods_folder": "[red]Aviso: Foi encontrado um diretório na pasta de Mods: {item_name}.[/red] Por favor, certifique-se de que você tem arquivos .zip, não pastas.",
+  "utils_no_valid_mod_files_found": "Nenhum arquivo de mod válido encontrado na pasta de Mods.",
+  "utils_error_invalid_max_workers": "Erro: Entrada inválida para max_workers. Deve ser um número inteiro.",
+  "utils_prg_terminated": "Programa encerrado.",
+
+  "export_json_modilst": "A lista de mods foi exportada em formato JSON para o seguinte local: ",
+  "export_pdf_modilst": "A lista de mods foi exportada em formato PDF para o seguinte local: ",
+  "export_pdf_generating_file": "Gerando PDF...",
+  "export_pdf_permission_error": "Não é possível acessar o arquivo '{pdf_path}'. O arquivo pode estar aberto ou em uso por outro processo.\\nPor favor, feche todos os aplicativos que possam estar usando o arquivo e tente novamente.",
+  "export_pdf_installed_mods": "mods instalados",
+
+  "error": "Erro:",
+  "yes": "sim,",
+  "no": "não",
+  "to": "para"
+}

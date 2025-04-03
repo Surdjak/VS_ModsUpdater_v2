@@ -32,8 +32,8 @@ Key functionalities include:
 
 """
 __author__ = "Laerinok"
-__version__ = "2.0.1-rc2"
-__date__ = "2025-04-01"  # Last update
+__version__ = "2.0.1"
+__date__ = "2025-04-03"  # Last update
 
 
 # mods_auto_update.py
@@ -50,6 +50,7 @@ from rich.progress import Progress
 
 import config
 import global_cache
+import lang
 from http_client import HTTPClient
 from utils import extract_filename_from_url, validate_workers
 
@@ -74,7 +75,7 @@ def download_file(url, destination_path, progress_bar, task):
     total_size = int(response.headers.get('content-length', 0))
 
     if total_size == 0:
-        print("[bold red]Warning: The file size is unknown or zero. Download may not complete properly.[/bold red]")
+        print(f"[bold red]{lang.get_translation("auto_file_size_unknown")}[/bold red]")
 
     with open(destination_path, 'wb') as file:
         for data in response.iter_content(chunk_size=1024):
@@ -91,7 +92,7 @@ def download_mods_to_update(mods_data):
     # Initialize the Rich Progress bar
     with Progress() as progress:
         # Create a single task for all downloads
-        task = progress.add_task("[cyan]Downloading mods...", total=len(mods_data))
+        task = progress.add_task(f"[cyan]{lang.get_translation("auto_downloading_mods")}", total=len(mods_data))
 
         # Create a thread pool executor for parallel downloads
         max_workers = validate_workers()
@@ -138,7 +139,7 @@ def download_mods_to_update(mods_data):
 
                 # Update the progress for each mod with mod name or file name
                 mod_name = mod['Name']  # Get the mod name from the data
-                progress.update(task, advance=1, description=f"[cyan]Downloading {mod_name}")
+                progress.update(task, advance=1, description=f"[cyan]{lang.get_translation("auto_downloading_mod_name")} [green]{mod_name}")
 
             # Wait for all downloads to finish
             for future in futures:
@@ -147,10 +148,10 @@ def download_mods_to_update(mods_data):
 
 def resume_mods_updated():
     # app_log.txt
-    print(f"\nFollowings mods have been updated:")
+    print(f"\n{lang.get_translation("auto_mods_updated_resume")}")
     logging.info("Followings mods have been updated (More details in updated_mods_changelog.txt):")
     for mod in global_cache.mods_data.get('mods_to_update'):
-        print(f"- [green]{mod['Name']} (v{mod['Old_version']} to v{mod['New_version']}):[/green]")
+        print(f"- [green]{mod['Name']} (v{mod['Old_version']} {lang.get_translation("to")} v{mod['New_version']}):[/green]")
         print(f"[bold][yellow]CHANGELOG:\n{mod['Changelog']}[/yellow][/bold]\n")
         logging.info(f"\t- {mod['Name']} (v{mod['Old_version']} to v{mod['New_version']})")
 
@@ -158,7 +159,7 @@ def resume_mods_updated():
     mod_updated_logger = config.configure_mod_updated_logging()
 
     for mod in global_cache.mods_data.get('mods_to_update', []):
-        name_version = f"*** {mod['Name']} (v{mod['Old_version']} to v{mod['New_version']}) ***"
+        name_version = f"*** {mod['Name']} (v{mod['Old_version']} {lang.get_translation("to")} v{mod['New_version']}) ***"
         mod_updated_logger.info("================================")
         mod_updated_logger.info(name_version)
         if mod.get('Changelog'):

@@ -33,10 +33,10 @@ Key functionalities include:
 
 """
 __author__ = "Laerinok"
-__version__ = "2.0.1-rc2"
+__version__ = "2.0.1"
 __license__ = "GNU GPL v3"
 __description__ = "Mods Updater for Vintage Story"
-__date__ = "2025-04-02"  # Last update
+__date__ = "2025-04-03"  # Last update
 
 
 # main.py
@@ -63,8 +63,6 @@ import lang
 import mods_auto_update
 import mods_manual_update
 import mods_update_checker
-import utils
-from utils import exit_program
 
 console = Console()
 
@@ -78,41 +76,41 @@ def set_console_title(title):
 def initialize_config():
     # Create config.ini if not present
     if not config.config_exists():
-        # Config logging with log_level 'DEBUG' for the first execution.
+        print(f'\n\t[yellow]First run detected - Set up config.ini -[/yellow]\n')
+        # Configuration des logs avec log_level 'DEBUG' pour la première exécution.
         config.configure_logging('DEBUG')
-        print(f'\n\t[yellow]First run detected - Set up config.ini -[/yellow]')
         language = config.ask_language_choice()
-        # Load translations
-        path = Path(f'{config.LANG_PATH}/{language[0]}.json').resolve()
-        cache_lang = lang.load_translations(path)
+        # Charge les traductions pour la langue choisie
+        lang_path = Path(f"{config.LANG_PATH}/{language[0]}.json").resolve()
+        language_cache = lang.load_translations(lang_path)
+
         mods_dir = config.ask_mods_directory()
         user_game_version = config.ask_game_version()
         auto_update = config.ask_auto_update()
-        print(f"\n{cache_lang['first_launch_language']}{language[1]}")
-        print(f"{cache_lang['first_launch_mods_location']}{mods_dir}")
-        print(f"{cache_lang['first_launch_game_version']}{user_game_version}")
-        auto_update_choic = "Auto" if auto_update else "Manual"
-        print(f"Mods update: {auto_update_choic}")
 
-        # Create the config.ini file
+        print(f"\n- {language_cache["main_language_set_to"]}[blue]{language[1]}[/blue]")
+        print(f"- {language_cache["main_mods_folder_path"]}[blue]{mods_dir}[/blue]")
+        print(f"- {language_cache["main_game_version"]}[blue]{user_game_version}[/blue]")
+        auto_update_choice = "Auto" if auto_update else "Manual"
+        print(f"- {language_cache["main_mods_update_choice"]}[blue]{auto_update_choice}[/blue]")
+
+        # Crée le fichier config.ini
         config.create_config(language, mods_dir, user_game_version, auto_update)
-        print(f"\n{cache_lang['first_launch_config_created']}")
+        print(f"\n{language_cache["main_config_file_created"]}")
 
-        # Ask for going on or exit to modify config.ini (e.g. add some mods to exception.)
-        print(global_cache.language_cache["first_launch_confirms_update_info"])
+        # Demande si on continue ou si on quitte pour modifier config.ini (par ex. pour ajouter des mods à l'exception.)
+        print(f"{language_cache["main_update_or_modify_config"]}")
         while True:
             user_confirms_update = Prompt.ask(
-                global_cache.language_cache["first_launch_confirms_update"],
-                choices=[global_cache.language_cache['yes'][0],
-                         global_cache.language_cache['no'][0]], default=global_cache.language_cache['no'][0]
-            )
+                f"{language_cache["main_continue_update_prompt"]}",
+                choices=[global_cache.language_cache["yes"][0], global_cache.language_cache["no"][0]], default=global_cache.language_cache["no"][0])
             user_confirms_update = user_confirms_update.strip().lower()
 
             if user_confirms_update == global_cache.language_cache["yes"][0].lower():
                 break
             elif user_confirms_update == global_cache.language_cache["no"][0].lower():
-                print(global_cache.language_cache["exiting_program"])
-                exit_program(extra_msg="User chose to exit the update process.")
+                print(f"{language_cache["main_exiting_program"]}")
+                utils.exit_program(extra_msg=f"{lang.get_translation("main_user_exits")}")
 
             else:
                 pass
@@ -132,33 +130,40 @@ def initialize_config():
 
 
 def welcome_display():
-    # look for script update
+    """Affiche le message de bienvenue centré dans la console."""
+
+    # Vérifie les mises à jour du script
     new_version, urlscript, latest_version = mu_script_update.modsupdater_update()
     if new_version:
-        text_script_new_version = f'[red]- {global_cache.language_cache["title_new_version"]} -[/red]\n{urlscript} -'
+        text_script_new_version = f'[red]- {lang.get_translation("main_new_version_available")} -[/red]\n{urlscript} -'
         logging.info(f"Latest version: {latest_version} | Download: {urlscript}")
     else:
-        text_script_new_version = f'[bold cyan]- {global_cache.language_cache["title_no_new_version"]} - [/bold cyan]'
-        logging.info(f"ModsUpdater - No new version")
-    # to center text
-    try:
-        column, row = os.get_terminal_size()
-    except OSError:
-        column, row = 300, 50  # Default values
-    txt_title = f'\n\n[bold cyan]{global_cache.language_cache["title_modsupdater_title"].format(mu_ver=__version__)}[/bold cyan]'
+        text_script_new_version = f'[bold cyan]- {lang.get_translation("main_no_new_version_available")} - [/bold cyan]'
+        logging.info("ModsUpdater - No new version")
 
+    # Obtient la largeur de la console
+    try:
+        column, _ = os.get_terminal_size()
+    except OSError:
+        column = 80  # Valeur par défaut si la taille de la console ne peut pas être déterminée
+
+    # Crée le titre et le centre
+    txt_title = f'\n\n[bold cyan]{lang.get_translation("main_title").format(ModsUpdater_version=__version__)}[/bold cyan]'
     lines = txt_title.splitlines() + text_script_new_version.splitlines()
+
+    # Affiche les lignes centrées
     for line in lines:
-        console.print(line.center(column), justify='center')
+        console.print(line.center(column))
 
 
 if __name__ == "__main__":
     args = cli.parse_args()
 
-    set_console_title(f"ModsUpdater for Vintage Story {__version__} (by Laerinok)")
+    import utils
 
     # Initialize config
     initialize_config()
+    set_console_title(lang.get_translation("main_title").format(ModsUpdater_version=__version__))
 
     import mu_script_update
     welcome_display()
@@ -170,14 +175,13 @@ if __name__ == "__main__":
         mods_path = args.modspath
 
     # Check if the 'Mods' folder is not empty and contains only archive files, not extracted archive folders.
+
     utils.check_mods_directory(mods_path)
     # Fetch mods info
     fetch_mod_info.scan_and_fetch_mod_info(mods_path)
 
     # Mods update checker
     mods_update_checker.check_for_mod_updates()
-    # print(f"mods_to_update: {global_cache.mods_data["mods_to_update"]}")  # Debug
-    # print(global_cache.mods_data["excluded_mods"])  # Debug
 
     # Choice for auto/manual update
     auto_update_str = global_cache.config_cache['Options']['auto_update']
@@ -197,7 +201,7 @@ if __name__ == "__main__":
             # Display mods updated
             mods_auto_update.resume_mods_updated()
         else:
-            print(f"No updates needed for mods.")
+            print(lang.get_translation("main_mods_no_update"))
             logging.info("No updates needed for mods.")
     else:
         # Manual update mods
@@ -217,7 +221,7 @@ if __name__ == "__main__":
         export_pdf.generate_pdf(global_cache.mods_data['installed_mods'])
 
     # End of programm
-    exit_program(extra_msg="", do_exit=False)
+    utils.exit_program(extra_msg="", do_exit=False)
     if not args.no_pause:
-        input("\nPress Enter to exit...")
+        input(f"\n{lang.get_translation("main_press_enter_to_exit")}")
     sys.exit()

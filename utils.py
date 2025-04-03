@@ -17,8 +17,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 __author__ = "Laerinok"
-__version__ = "2.0.1-rc2"
-__date__ = "2025-03-28"  # Last update
+__version__ = "2.0.1"
+__date__ = "2025-04-03"  # Last update
 
 
 # utils.py
@@ -29,7 +29,6 @@ import logging
 import random
 import re
 import sys
-import time
 import zipfile
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
@@ -40,6 +39,7 @@ from rich.console import Console
 
 import cli
 import global_cache
+import lang
 from http_client import HTTPClient
 
 console = Console()
@@ -82,7 +82,7 @@ def check_mods_directory(mods_dir):
 
     # Check if the directory is empty
     if not any(mods_dir_path.iterdir()):
-        console.print(f"[red]Warning: The Mods directory [magenta]{mods_dir_path}[/magenta] is empty![/red]\nPlease add your mod files.")
+        console.print(lang.get_translation("utils_warning_mods_directory_empty"))
         logging.error(f"Warning: The Mods directory {mods_dir_path} is empty!")
         exit_program(extra_msg="Empty mods folder")
 
@@ -91,14 +91,14 @@ def check_mods_directory(mods_dir):
     # Loop through all files in the 'Mods' directory
     for item in mods_dir_path.iterdir():
         if item.is_dir():
-            print(f"[red]Warning: Directory found in Mods folder: {item.name}.[/red] Please ensure you have .zip files, not folders.")
+            print(lang.get_translation("utils_warning_directory_in_mods_folder"))
             logging.error(f"Warning: Directory found in Mods folder: {item.name}. Please ensure you have .zip files, not folders.")
         elif item.suffix.lower() in ['.zip', '.cs']:
             found_valid_file = True  # We found at least one valid file
 
     # If no valid files were found, exit the program
     if not found_valid_file:
-        exit_program(extra_msg="No valid mod files found in the Mods folder.")
+        exit_program(extra_msg=lang.get_translation("utils_no_valid_mod_files_found"))
 
 
 def validate_workers():
@@ -125,7 +125,7 @@ def validate_workers():
             user_max_workers = int(user_max_workers)  # Try to convert to integer
         except (ValueError, TypeError) as e:
             logging.error(f"Invalid input for max_workers: {e}")
-            print("Error: Invalid input for max_workers. Must be an integer.")
+            print(lang.get_translation("utils_error_invalid_max_workers"))
             return min_workers_limit  # Return the minimum workers limit, or raise an error
 
     # If the user has set max_workers, validate it
@@ -315,10 +315,17 @@ def backup_mods(mods_to_backup):
             logging.info(f"Deleted old backup: {old_backup}")
 
 
-def exit_program(msg="Program terminated", extra_msg=None, do_exit=True):
-    full_msg = msg if not extra_msg else f"{msg}: {extra_msg}"
-    print(f"\n*** {full_msg} ***")
-    logging.info(f"*** {full_msg} ***")
-    time.sleep(2)
+def exit_program(msg=None, extra_msg=None, do_exit=True):
+    """Exits the program with an optional message."""
+    if msg is None:
+        import lang
+        msg = lang.get_translation("utils_prg_terminated")
+
+    if extra_msg:
+        msg += " " + extra_msg
+
+    logging.info("Program terminated")
+    print(f"\n\t*** [red]{msg}[/red] ***")
+
     if do_exit:
         sys.exit()

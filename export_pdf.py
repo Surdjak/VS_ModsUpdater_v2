@@ -32,8 +32,8 @@ Key functionalities include:
 
 """
 __author__ = "Laerinok"
-__version__ = "2.0.1-rc2"
-__date__ = "2025-04-01"  # Last update
+__version__ = "2.0.1"
+__date__ = "2025-04-03"  # Last update
 
 
 # export_pdf.py
@@ -60,6 +60,7 @@ from rich.progress import Progress
 
 import config
 import global_cache
+import lang
 from utils import validate_workers
 
 # Suppress Pillow debug messages
@@ -165,6 +166,7 @@ def create_pdf_with_table(modsdata, pdf_path):
     style_normal.fontName = "NotoSansCJKsc-Regular"
     style_normal.fontSize = 8
     style_title = styles["Title"]
+    style_title.fontName = "NotoSansCJKsc-Regular"
     style_title.textColor = colors.Color(47/255, 79/255, 79/255)  # Vert forêt en RGB normalisé
     style_title.fontSize = 14
 
@@ -179,7 +181,6 @@ def create_pdf_with_table(modsdata, pdf_path):
         elements.append(banner)
     except Exception as e:
         logging.debug(f"Error loading banner image: {e}")
-        # elements.append(Paragraph("Banner missing", styles["Normal"]))  # debug
 
     # Add a space of 50 points below the image
     elements.append(Spacer(1, 50))
@@ -243,7 +244,7 @@ def create_pdf_with_table(modsdata, pdf_path):
                               y_position + (footer_height - text_height) / 2)
 
     # Title
-    elements.append(Paragraph(f"{num_mods} {global_cache.language_cache['pdf_title']}", style_title))
+    elements.append(Paragraph(f"{num_mods} {lang.get_translation("export_pdf_installed_mods")}", style_title))
 
     # Add a space below the title
     elements.append(Spacer(1, 10))
@@ -273,7 +274,6 @@ def create_pdf_with_table(modsdata, pdf_path):
 
         # Name and version with hyperlink
         url = mod_info.get("url_moddb", "")
-        # print(mod_info)  # debug
         if url != 'Local mod':
             name_and_version = f'<b><a href="{url}">{mod_info["name"]} (v{mod_info["version"]})</a></b>'
             name_and_version_paragraph = Paragraph(name_and_version,
@@ -311,10 +311,10 @@ def create_pdf_with_table(modsdata, pdf_path):
         doc.build(elements,
                   onFirstPage=lambda canvas, document: draw_background_and_footer(canvas),
                   onLaterPages=lambda canvas, document: draw_background_and_footer(canvas))
-        print(f"A modlist has been exported in PDF format to the following location: {global_cache.config_cache['Backup_Mods']['modlist_folder']}")
+        print(f"{lang.get_translation("export_pdf_modilst")} {global_cache.config_cache['Backup_Mods']['modlist_folder']}")
         logging.info(f"PDF successfully created: {pdf_path}")
     except PermissionError as e:
-        print(f"PermissionError: Unable to access the file '{pdf_path}'. The file may be open or in use by another process.\nPlease close any applications that may be using the file and try again.")
+        print(lang.get_translation("export_pdf_permission_error").format(pdf_path=pdf_path))
         logging.error(f"{e} - PermissionError: Unable to access the file '{pdf_path}'. ")
         sys.exit()
 
@@ -335,9 +335,12 @@ def get_local_versions_of_excluded_mods(mods_data):
 
 def process_mod(mod_info):
     """
-    Process to extract mod information.
+    Process to extract mod information and capitalize the first letter of the mod name.
     """
     mod_name = mod_info["Name"]
+    # Capitalize the first letter of the mod name
+    mod_name = mod_name.capitalize()
+
     if mod_info["Mod_url"] != "Local mod":
         if mod_info['Latest_version_mod_url'] is not None:
             filename = mod_info['Latest_version_mod_url'].split("dl=")[-1]
@@ -387,7 +390,7 @@ def generate_pdf(mod_info_data):
     max_workers = validate_workers()
 
     with Progress() as progress:
-        task = progress.add_task("[cyan]Generating PDF...", total=global_cache.total_mods)
+        task = progress.add_task(f"[cyan]{lang.get_translation("export_pdf_generating_file")}", total=global_cache.total_mods)
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = [executor.submit(process_mod, mod_info) for mod_info in global_cache.mods_data['installed_mods']]

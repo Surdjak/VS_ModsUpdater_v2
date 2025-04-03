@@ -31,8 +31,8 @@ Key functionalities include:
 """
 
 __author__ = "Laerinok"
-__version__ = "2.0.1-rc2"
-__date__ = "2025-04-01"  # Last update
+__version__ = "2.0.1"
+__date__ = "2025-04-03"  # Last update
 
 # fetch_mod_info.py
 
@@ -47,11 +47,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 from packaging.version import Version
-from rich.progress import Progress
 from rich import print
+from rich.progress import Progress
 
 import config
 import global_cache
+import lang
 import utils
 from http_client import HTTPClient
 from utils import fix_json, is_zip_valid
@@ -63,14 +64,14 @@ client = HTTPClient()
 def get_mod_path():
     # Check if ModsPath and path exist in the config.
     if "ModsPath" not in global_cache.config_cache or "path" not in global_cache.config_cache["ModsPath"]:
-        print("[red]Error[/red]: The ModsPath or 'path' key is missing in the configuration.")
+        print(f"[red]{lang.get_translation("error")}[/red] {lang.get_translation("fetch_mod_info_error_mods_path_missing")}")
         logging.error("Error: The ModsPath or 'path' key is missing in the configuration.")
         time.sleep(2)
         sys.exit(1)  # Stop the script with an error code
 
     mods_path = Path(global_cache.config_cache['ModsPath']['path']).resolve()
     if not mods_path.exists():
-        print(f"[red]Error[/red]: The mods path [yellow]{mods_path}[/yellow] is not found.")
+        print(f"[red]{lang.get_translation("error")}[/red] {lang.get_translation("fetch_mod_info_error_mods_path_not_found").format(mods_path=mods_path)}")
         logging.error(f"Error: The mods path {mods_path} is not found.")
         time.sleep(2)
         sys.exit(1)  # Stop the script with an error code
@@ -293,7 +294,7 @@ def scan_and_fetch_mod_info(mods_folder):
     mod_files = list(mods_folder.iterdir())
     total_files = len(mod_files)
     with Progress() as progress:
-        task = progress.add_task("[cyan]Scanning mods...", total=total_files)
+        task = progress.add_task(f"[cyan]{lang.get_translation("fetch_mod_info_scanning_mods")}", total=total_files)
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = []
             for file in mods_folder.iterdir():
@@ -314,7 +315,7 @@ def scan_and_fetch_mod_info(mods_folder):
     mods = global_cache.mods_data["installed_mods"]  # Complete list of mods to associate the results.
 
     with Progress() as progress:
-        api_task = progress.add_task("[green]Fetching mod info from API...",
+        api_task = progress.add_task(f"[green]{lang.get_translation("fetch_mod_info_fetching_mod_info")}",
                                      total=len(mod_ids))
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             api_futures = []
@@ -343,7 +344,7 @@ def scan_and_fetch_mod_info(mods_folder):
                     logging.warning(f"Failed to retrieve assetid and mod_url for mod: {mod['Name']}")
 
                 # Update the progress bar with the mod name.
-                progress.update(api_task, advance=1, description=f"[cyan]Fetching mod info: {mod['Name']}")
+                progress.update(api_task, advance=1, description=f'[cyan]{lang.get_translation("fetch_mod_info_fetching_mod_info_name")} [green]{mod['Name']}')
 
 
 if __name__ == "__main__":

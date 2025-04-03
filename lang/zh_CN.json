@@ -1,0 +1,62 @@
+{
+  "main_language_set_to": "语言设置为：",
+  "main_mods_folder_path": "模组位置：",
+  "main_game_version": "游戏版本：",
+  "main_mods_update_choice": "模组更新：",
+  "main_config_file_created": "已创建'config.ini'文件。",
+  "main_update_or_modify_config": "您可以继续更新或退出以修改config.ini文件（例如，从更新中排除模组）。",
+  "main_continue_update_prompt": "您要继续吗？",
+  "main_exiting_program": "正在退出程序",
+  "main_user_exits": "用户选择退出更新过程。",
+  "main_no_new_version_available": "没有新版本可用",
+  "main_new_version_available": "新版本可用！！！",
+  "main_title": "Vintage Story模组更新器 - v{ModsUpdater_version}（作者：Laerinok）",
+  "main_mods_no_update": "没有可用的模组更新。",
+  "main_press_enter_to_exit": "按Enter键退出...",
+
+  "config_ask_mod_directory": "输入您的模组文件夹的路径。留空使用默认路径",
+  "config_configuration_migrated": "配置已成功迁移到版本{EXPECTED_VERSION}。",
+  "config_invalid_directory": "错误：{mods_directory}不是有效的目录。",
+  "config_game_version_prompt": "阻止更新到游戏版本（1.2.3，空白=不阻止）",
+  "config_invalid_game_version": "错误：请以major.minor.patch格式提供有效版本（例如，1.20.5）。",
+  "config_choose_update_mode": "选择更新模式（手动/自动）",
+  "config_choose_update_mode_auto": "自动",
+  "config_choose_update_mode_manual": "手动",
+  "config_invalid_update_choice": "无效的选择。请输入'手动'或'自动'。",
+
+  "fetch_changelog_unknown_version": "未知版本",
+
+  "fetch_mod_info_error_mods_path_missing": "配置中缺少ModsPath或'path'键。",
+  "fetch_mod_info_error_mods_path_not_found": "找不到模组路径[yellow]{mods_path}[/yellow]。",
+  "fetch_mod_info_scanning_mods": "正在扫描模组...",
+  "fetch_mod_info_fetching_mod_info": "正在从API获取模组信息...",
+  "fetch_mod_info_fetching_mod_info_name": "获取模组信息",
+
+  "auto_file_size_unknown": "警告：文件大小未知或为零。下载可能无法正确完成。",
+  "auto_downloading_mods": "正在下载模组...",
+  "auto_downloading_mod_name": "正在下载",
+  "auto_mods_updated_resume": "已更新以下模组：",
+
+  "manual_download_mod_prompt": "下载此模组吗？（y/n）",
+  "manual_skipping_download": "跳过下载",
+  "manual_downloading_mod": "正在下载",
+  "manual_download_completed": "下载完成",
+  "manual_download_error": "下载错误",
+
+  "utils_warning_mods_directory_empty": "[red]警告：模组目录[magenta]{mods_dir_path}[/magenta]为空！[/red]\n请添加您的模组文件。",
+  "utils_warning_directory_in_mods_folder": "[red]警告：在模组文件夹中找到目录：{item_name}。[/red]请确保您有.zip文件，而不是文件夹。",
+  "utils_no_valid_mod_files_found": "在模组文件夹中找不到有效的模组文件。",
+  "utils_error_invalid_max_workers": "错误：max_workers的输入无效。必须是整数。",
+  "utils_prg_terminated": "程序已终止。",
+
+  "export_json_modilst": "模组列表已以JSON格式导出到以下位置：",
+  "export_pdf_modilst": "模组列表已以PDF格式导出到以下位置：",
+  "export_pdf_generating_file": "正在生成PDF...",
+  "export_pdf_permission_error": "无法访问文件'{pdf_path}'。文件可能已打开或被其他进程使用。\n请关闭可能正在使用该文件的所有应用程序，然后重试。",
+  "export_pdf_installed_mods": "已安装模组",
+
+  "error": "错误：",
+  "yes": "是，",
+  "no": "否",
+  "to": "到"
+}
