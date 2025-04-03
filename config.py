@@ -143,6 +143,8 @@ def migrate_config_if_needed():
         old_config = configparser.ConfigParser()
         old_config.read(CONFIG_FILE)  # Read the current configuration file
         migrate_config(old_config)  # Migrate the configuration to the new version
+        return True  # Migration done
+    return False  # Migration not done
 
 
 def migrate_config(old_config):
@@ -236,7 +238,8 @@ def migrate_config(old_config):
                         configfile.write(f"{key} = {str(value)}\n")
                     configfile.write("\n")
         logging.info("Configuration migration completed successfully.")
-        print(lang.get_translation("config_configuration_migrated").format(EXPECTED_VERSION=EXPECTED_VERSION))
+        # print(lang.get_translation("config_configuration_migrated").format(EXPECTED_VERSION=EXPECTED_VERSION))
+        # print("Configuration migration completed successfully.")
     except Exception as e:
         logging.error("Error occurred while writing the migrated config: %s", str(e))
 

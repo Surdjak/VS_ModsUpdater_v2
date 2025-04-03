@@ -115,7 +115,7 @@ def initialize_config():
             else:
                 pass
 
-    config.migrate_config_if_needed()
+    migration_performed = config.migrate_config_if_needed()
 
     # Load the configuration into the global cache
     config.load_config()
@@ -127,6 +127,9 @@ def initialize_config():
     # Load the language translations from the config file into the global cache
     lang_path = Path(f"{config.LANG_PATH}/{global_cache.config_cache['Language']['language']}.json").resolve()
     global_cache.language_cache.update(lang.load_translations(lang_path))
+
+    if migration_performed:
+        print(f"[yellow]{lang.get_translation("config_configuration_migrated").format(EXPECTED_VERSION=config.EXPECTED_VERSION)}[/yellow]")
 
 
 def welcome_display():
