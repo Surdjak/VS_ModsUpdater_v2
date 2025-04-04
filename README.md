@@ -1,5 +1,5 @@
 
-<p align="center" style="font-size: 2.5em;"><b>- Vintage Story ModsUpdater -</b></p>
+# - ModsUpdater for Vintage Story -
 
 This program automates the management of your mods for the game Vintage Story. It allows you to check for updates, download them (automatically or manually), and generate a list of your installed mods in JSON and PDF format.
 ## Key Features
