@@ -25,7 +25,7 @@ The `config.ini` file contains the configuration parameters for the application.
 
 ```ini
 [ModsUpdater]
-version: 1.20.7
+version: 2.0.1
 ```
 * `version`: Current version of the ModsUpdater application (information).
 
