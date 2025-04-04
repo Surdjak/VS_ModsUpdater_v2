@@ -61,7 +61,7 @@ modlist_folder`: Modlist
 [ModsPath]
 path: D:\Game\VintagestoryData\Mods
 ```
-* `path`: Full path to the directory where your Vintage Story mods are installed on your computer. This is crucial for the application to find your mods. (Example for Windows: C:\Users\Jerome\AppData\Roaming\VintagestoryData\Mods)
+* `path`: Full path to the directory where your Vintage Story mods are installed on your computer. This is crucial for the application to find your mods. (Example for Windows: D:\Game\VintagestoryData\Mods)
 
 ```ini
 [Language]
