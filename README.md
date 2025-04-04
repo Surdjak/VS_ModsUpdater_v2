@@ -1,98 +1,88 @@
-# <p align="center">Vintage Story ModsUpdater</p>
-### <p align="center">Easily update your favorite mods</p>
-<br><br>
 
-===========================================================================
+<p align="center" style="font-size: 2.5em;"><b>- Vintage Story ModsUpdater -</b></p>
 
-This a third-party program. It means it is NOT a mod. You do not have to put it in the mods folder.<br>
+This program automates the management of your mods for the game Vintage Story. It allows you to check for updates, download them (automatically or manually), and generate a list of your installed mods in JSON and PDF format.
+## Key Features
 
-===========================================================================
+- Script Update Check: Checks if a new version of the ModsUpdater tool is available.
+- Configuration Migration: Automatically manages the migration of the old configuration file format to the new one, ensuring compatibility during application updates.
+- Update Check: Compares the local versions of your mods with the latest versions available on ModDB.
+- Automatic Download: Automatically downloads available updates (configurable).
+- Manual Download: Displays changelogs and allows you to choose which updates to download.
+- Backup Management: Creates backups of your mods before updating them, with a configurable retention policy.
+- Excluded Mods Management: Allows you to ignore certain mods during update checks and downloads.
+- Mod List Generation (PDF/JSON): Creates a PDF/JSON document listing your installed mods.
+- Command Line Interface (CLI): Integration with arguments to customize execution.
+- Multilingual Support: The interface is available in several languages (configurable).
 
+**Important Note Regarding Configuration Migration:**
 
-### Functional Features:
-* Automatic mod updates with version locking for a specific game version
-* Manual updates: you can now decide to download or not a mod if it has an update available.
-* Backup of mods before updating them
-* Retrieving mod changelogs (now entiere changelogs must be retrieved)
-* Generating a list of installed mods (PDF + JSON)
-* Use of arguments
-* Improved logging
-* Multi-threading
-* Possible migration from an old version of ModsUpdater: the config file is retrieved and updated for the new version (not tested on very old versions of ModsUpdater)
+During updates of the ModsUpdater application, the format of the `config.ini` file may evolve. To facilitate these updates, the application includes an automatic migration mechanism. If an older version of the configuration file is detected, the application will attempt to convert it to the new format. In most cases, this migration will occur transparently. However, it is always recommended to check your `config.ini` file after an application update to ensure that all your settings are correctly preserved. In case of any issues, a backup of your old configuration (`config.old`) is kept (in the application directory).
 
-### Features Not Yet Functional:
-* Planned but not guaranteed: the ability to downgrade mods for a given game version
+## Configuration (`config.ini`)
 
+The `config.ini` file contains the configuration parameters for the application. It is located in the same directory as the main script. Here are the main sections and their options:
 
-(updated 2025-04-01)
+```ini
+[ModsUpdater]
+version: Current version of the ModsUpdater application (information).
 
-## migration function for config.ini
-I’ve added a migration function from the old config to v2. Just put VS_ModsUpdater_v2.0.0-dev1.exe in the same folder as the previous version or copy the config.ini file next to VS_ModsUpdater_v2.0.0-dev1.exe.
-
-## New options have arrived in the config.ini file:
-The config.ini file is used to configure the behavior of the mods updater. Below are the available settings you can adjust.
-```ìni
 [Logging]
-log_level = INFO
-```
-This option allows you to choose the logging level: DEBUG, INFO, WARNING, ERROR, or CRITICAL. By default, it is set to INFO.
+log_level: Level of detail for logs recorded by the application (e.g., DEBUG, INFO, WARNING, ERROR). DEBUG will display the most details.
 
-
-```ìni
 [Options]
-auto_update = True
-```
-* True: Mods are automatically updated when the program starts.
-* False: Mods are not automatically updated. The user will have to manually validate the update for each mod.
+exclude_prerelease_mods: true to exclude pre-release mod versions during update checks, false to include them.
+auto_update: true to enable automatic downloading of updates (after checking), false to use manual mode where you confirm each download.
+max_workers: Maximum number of threads to use for downloading mods in parallel. Increasing this value may speed up downloads but may also consume more system resources.
+timeout: Timeout in seconds for HTTP requests during update checks and mod downloads.
 
-```ìni
-[Options]
-max_workers = 4
-```
-**max_workers** defines the number of threads that can be executed in parallel for multithreading tasks. By default, this value is equal to the number of physical cores on the processor. You can adjust this value to increase or decrease the processing speed based on your needs. However, a limit is set: the maximum number of threads cannot exceed 10.
-
-```ìni
-[Options]
-timeout = 10
-```
-The timeout parameter defines the maximum duration (in seconds) the program will wait for a response when sending requests. The default value is 10 seconds. Users can adjust this value according to their network environment and the response times of the servers contacted.
-
-Important guidelines:
-* Minimum values: It is recommended not to set timeout values that are too short. Values that are too low can cause frequent request failures, even when servers respond correctly but with a slight delay. A minimum value of 5 seconds is recommended, except in very specific cases.
-* Maximum values: Conversely, excessively long timeout values can cause program freezes in case of server non-response. It is generally not recommended to exceed 60 seconds.
-* Environment adaptation: The optimal timeout value depends on network stability and the response times of the servers contacted. In environments with unstable networks or slow servers, slightly higher values may be necessary.
-* Testing and adjustments: It is recommended to test different timeout values to find the best compromise between program responsiveness and robustness to response time variations.
-
-```ìni
 [Backup_Mods]
-backup_folder = backup_mods
-max_backups = 3
-modlist_folder = modlist
-```
-These options define the folder where mod backups will be stored and the maximum number of backups to keep before older ones are overwritten. In case of issues, the original mods can be easily restored. By default, the backup_mods folder will be created in the ModsUpdater directory. You can also set a folder for the exported modlist files.
+backup_folder: Name of the directory (created in the application directory) where mod backups will be stored.
+max_backups: Maximum number of mod backups to keep. Older backups will be deleted when this limit is reached.
+modlist_folder: Name of the directory (created in the application directory) where the mod list in PDF format will be saved.
 
-```ìni
+[ModsPath]
+path: Full path to the directory where your Vintage Story mods are installed on your computer. This is crucial for the application to find your mods. (Example for Windows: C:\Users\Jerome\AppData\Roaming\VintagestoryData\Mods)
+
+[Language]
+language: Language code to use for the application interface (e.g., en_US for English, fr_FR for French). Make sure the corresponding language file exists in the `lang` subdirectory.
+
 [Game_Version]
-user_game_version = None
-```
-The user_game_version parameter allows you to specify the game version installed by the user.
-* If a game version is specified (e.g., user_game_version = 1.20.5), the program will limit mod updates to this maximum version. This ensures that only mods compatible with this game version will be installed, avoiding potential incompatibility issues.
-* (default): If the value of user_game_version is set to None or left blank (user_game_version =), the program will download and install the latest available mods, assuming they are compatible with the latest game version.
+user_game_version: Maximum game version target for mod updates.
+    If you specify a version (for example, 1.20.5), the application will not download mod updates that are only compatible with Vintage Story versions higher than the one specified.
+    If this option is left empty (``) or set to None, the application will download the latest available update for each mod, regardless of the compatible Vintage Story version. Caution: this means you might download mods that are not compatible with your current game version. If you want to stay on a specific Vintage Story version, define the version, but remember to change it when you update the game.
 
-Version format: It is important to adhere to the version format used by the game (e.g., X.Y.Z). A malformed version can lead to errors.
-
-```ìni
 [Mod_Exclusion]
-mods = mod01.zip, mod02.zip, mod03.zip
+mods: List of filenames (without the path) of mods to ignore during update checks and downloads. Filenames should be separated by commas and spaces (e.g., mod_a.zip, my_old_mod.cs).
 ```
-The Mod_Exclusion section has been updated. You can now list the filenames of mods to exclude from the update process, separated by commas. Leave this field empty if no mods need to be excluded.
 
-This program accepts the following command-line arguments to customize its behavior:
+## Command Line Arguments Usage
 
-* `--no-pause` : Disables the pause at the end of the program execution.
-* `--modspath "path/to/mods/directory"` : Specifies the path to the directory containing the mods. The path must be enclosed in quotes if it contains spaces.
-* `--no-pdf` : Disables the generation of the mod report in PDF format.
-* `--no-json` : Disables the generation of the mod report in JSON format.
-* `--log-level [DEBUG|INFO|WARNING|ERROR|CRITICAL]` : Sets the logging level.
-* `--max-workers [number]` : Sets the maximum number of workers used for mod downloads.
-* `--timeout [seconds]` : Sets the timeout in seconds for mod downloads.
+The script can be executed with arguments to customize its behavior:
+
+- `--no-pause`: Disables the pause at the end of the script execution. Useful for non-interactive execution or in automated scripts.
+- `--modspath "<path>"`: Allows you to specify the path to the Vintage Story mods directory directly during execution. The path must be enclosed in quotation marks if it contains spaces. This argument replaces the path defined in the `config.ini` file.
+- `--no-pdf`: Disables the automatic generation of the mod list in PDF format at the end of execution.
+- `--no-json`: Disables the automatic generation of the mod list in JSON format at the end of execution.
+- `--log-level <level>`: Sets the level of detail for logs recorded by the application. Possible options are: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` (in uppercase). This argument replaces the log level defined in the `[Logging]` section of `config.ini`.
+- `--max-workers <number>`: Allows you to specify the maximum number of threads to use for mod processing. This argument replaces the `max_workers` value defined in the `[Options]` section of `config.ini`.
+- `--timeout <seconds>`: Sets the timeout in seconds for HTTP requests during update checks and mod downloads. This argument replaces the `timeout` value defined in the `[Options]` section of `config.ini`.
+
+**Usage Examples:**
+
+```bash
+.\VS_ModsUpdater.exe --modspath "D:\Vintage Story\mods" --no-pdf
+```
+This command will execute the script using the specified mods directory (`D:\Vintage Story\mods`) and will disable the generation of the PDF mod list file. The mods path specified here will replace the one configured in `config.ini`.
+
+
+
+```bash
+.\VS_ModsUpdater.exe --log-level INFO --max-workers 6 --timeout 15
+```
+This command will execute the script by setting the log level to `INFO`, using a maximum of 6 threads for mod processing, and a timeout of 15 seconds for HTTP requests. These parameters will replace those defined in the `config.ini` file for this execution.
+
+
+## License
+
+This program is distributed under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
