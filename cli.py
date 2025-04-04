@@ -27,11 +27,15 @@ API calls, downloading files, and any HTTP requests requiring a persistent sessi
 
 __author__ = "Laerinok"
 __version__ = "2.0.1"
-__date__ = "2025-04-02"  # Last update
+__date__ = "2025-04-04"  # Last update
+
 
 # cli.py
+
+
 import argparse
 from pathlib import Path
+import sys
 
 
 def parse_args():
@@ -48,18 +52,33 @@ def parse_args():
 
     args = parser.parse_args()
 
-    # Vérification de l'existence du chemin
+    # Checking the path's existence
     if args.modspath:
         path_modspath = Path(args.modspath).resolve()
         if not path_modspath.exists():
             print(f"Error: Mods directory '{args.modspath}' not found.")
             exit(1)
 
-        # Vérification si le chemin est un répertoire
+        # Checking if the path is a directory
         if not path_modspath.is_dir():
             print(f"Error: '{args.modspath}' is not a directory.")
             exit(1)
 
         args.modspath = path_modspath
+
+    # Checking max-workers
+    if args.max_workers is not None:
+        if args.max_workers <= 0:
+            print("Error: max-workers must be a positive integer.")
+            sys.exit(1)
+
+    # Checking timeout
+    if args.timeout is not None:
+        if not isinstance(args.timeout, int):
+            print("Error: timeout must be an integer.")
+            sys.exit(1)
+        elif args.timeout <= 0:
+            print("Error: timeout must be a positive integer.")
+            sys.exit(1)
 
     return args
