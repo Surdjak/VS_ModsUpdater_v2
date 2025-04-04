@@ -32,14 +32,15 @@ import configparser
 import logging
 import os
 import platform
+import shutil
 from pathlib import Path
 
 from rich import print
 from rich.prompt import Prompt
 
 import global_cache
-import utils
 import lang
+import utils
 
 # The target version after migration
 EXPECTED_VERSION = "2.0.1"
@@ -130,6 +131,30 @@ USER_AGENTS = [
 ]
 
 
+def rename_old_config(config_file_path):
+    """
+    Renames the old config.ini file to config.old with error handling.
+
+    Args:
+        config_file_path (Path): The path to the config.ini file.
+    """
+    old_config_path = config_file_path.with_suffix(".old")
+    try:
+        if config_file_path.exists():
+            shutil.move(str(config_file_path), str(old_config_path))  # Using shutil.move for more robustness
+            logging.info(f"Old configuration file renamed to '{old_config_path.name}'.")
+        else:
+            logging.info(f"Configuration file '{config_file_path.name}' not found, no action needed.")
+    except FileNotFoundError:
+        logging.error(f"Error: Source file '{config_file_path.name}' not found during renaming.")
+    except PermissionError:
+        logging.error(f"Error: Permission denied while renaming '{config_file_path.name}' to '{old_config_path.name}'. Ensure the file is not open and you have the necessary permissions.")
+    except OSError as e:
+        logging.error(f"System error occurred while renaming '{config_file_path.name}' to '{old_config_path.name}': {e}")
+    except Exception as e:
+        logging.error(f"An unexpected error occurred while renaming '{config_file_path.name}' to '{old_config_path.name}': {e}")
+
+
 def read_version_from_config_file():
     config = configparser.ConfigParser()
     config.read(CONFIG_FILE)  # Read the configuration file
@@ -142,6 +167,7 @@ def migrate_config_if_needed():
         # If the configuration version is outdated, initiate the migration
         old_config = configparser.ConfigParser()
         old_config.read(CONFIG_FILE)  # Read the current configuration file
+        rename_old_config(CONFIG_FILE)
         migrate_config(old_config)  # Migrate the configuration to the new version
         return True  # Migration done
     return False  # Migration not done
