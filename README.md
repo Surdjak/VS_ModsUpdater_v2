@@ -45,7 +45,7 @@ modlist_folder: Name of the directory (created in the application directory) whe
 path: Full path to the directory where your Vintage Story mods are installed on your computer. This is crucial for the application to find your mods. (Example for Windows: C:\Users\Jerome\AppData\Roaming\VintagestoryData\Mods)
 
 [Language]
-language: Language code to use for the application interface (e.g., en_US for English, fr_FR for French). Make sure the corresponding language file exists in the `lang` subdirectory.
+language: Language code to use for the application interface (e.g., en_US for English, fr_FR for French). This value must correspond to the name of a file (without the `.json` extension) present in the `lang` subdirectory of the application. Make sure the corresponding language file exists.
 
 [Game_Version]
 user_game_version: Maximum game version target for mod updates.
