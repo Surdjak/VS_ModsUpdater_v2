@@ -28,15 +28,16 @@ Key functionalities include:
 
 """
 __author__ = "Laerinok"
-__version__ = "2.0.1"
-__date__ = "2025-04-03"  # Last update
+__version__ = "2.0.2"
+__date__ = "2025-04-05"  # Last update
 
 # lang.py
 
 import json
+import logging
+import os
 from pathlib import Path
 
-import logging
 import global_cache
 
 
@@ -66,7 +67,11 @@ def load_translations(path=None):
         lang_file_path = Path(path)
     elif global_cache.config_cache:
         language = get_language_setting()
-        lang_file_path = Path() / "lang" / f"{language}.json"
+        appdir = os.environ.get('APPDIR')
+        if appdir:
+            lang_file_path = Path(appdir) / "lang" / f"{language}.json"
+        else:
+            lang_file_path = Path() / "lang" / f"{language}.json"
 
     # Handle the case where lang_file_path could not be determined
     if not lang_file_path or not lang_file_path.exists():
