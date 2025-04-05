@@ -58,8 +58,17 @@ MODS_PATHS = {
     "Linux": Path(XDG_CONFIG_HOME_PATH) / 'VintagestoryData' / 'Mods'
 }
 
+# Retrieve the application directory from the APPDIR environment variable
+appdir = os.environ.get('APPDIR')
+
+if appdir:
+    APPLICATION_PATH = Path(appdir)
+else:
+    # Case where the application is run outside the AppImage (for development)
+    APPLICATION_PATH = Path.cwd()
+
+
 # Constants for paths
-APPLICATION_PATH = Path.cwd()
 CONFIG_FILE = APPLICATION_PATH / 'config.ini'
 TEMP_PATH = APPLICATION_PATH / 'temp'
 LOGS_PATH = APPLICATION_PATH / 'logs'
