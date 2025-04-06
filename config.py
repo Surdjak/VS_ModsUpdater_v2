@@ -67,12 +67,18 @@ else:
     # Case where the application is run outside the AppImage (for development)
     APPLICATION_PATH = Path.cwd()
 
+APP_NAME = "VS_ModsUpdater"  # Name of your application
+USER_CONFIG_DIR = Path.home() / ".config" / APP_NAME
+USER_DATA_DIR = Path.home() / ".local" / "share" / APP_NAME
+USER_CACHE_DIR = Path.home() / ".cache" / APP_NAME
 
 # Constants for paths
 CONFIG_FILE = APPLICATION_PATH / 'config.ini'
 TEMP_PATH = APPLICATION_PATH / 'temp'
 LOGS_PATH = APPLICATION_PATH / 'logs'
 LANG_PATH = APPLICATION_PATH / 'lang'
+BACKUP_FOLDER = APPLICATION_PATH / 'backup_mods'
+MODLIST_FOLDER = APPLICATION_PATH / 'modlist'
 
 # Constants for supported languages
 SUPPORTED_LANGUAGES = {
@@ -165,9 +171,9 @@ def rename_old_config(config_file_path):
 
 
 def read_version_from_config_file():
-    config = configparser.ConfigParser()
-    config.read(CONFIG_FILE)  # Read the configuration file
-    return config.get('ModsUpdater', 'version', fallback=None)
+    config_parser = configparser.ConfigParser()
+    config_parser.read(CONFIG_FILE)  # Read the configuration file
+    return config_parser.get('ModsUpdater', 'version', fallback=None)
 
 
 def migrate_config_if_needed():
@@ -283,78 +289,89 @@ def create_config(language, mod_folder, user_game_version, auto_update):
     """
     Create the config.ini file with default or user-specified values.
     """
+    # No need to create user config dir here for Windows testing
     DEFAULT_CONFIG["Language"]["language"] = language[0]
     DEFAULT_CONFIG["ModsPath"]["path"] = mod_folder
     DEFAULT_CONFIG["Game_Version"]["user_game_version"] = user_game_version
     DEFAULT_CONFIG["Options"]["auto_update"] = auto_update
 
-    config = configparser.ConfigParser()
+    config_parser = configparser.ConfigParser()
     for section, options in DEFAULT_CONFIG.items():
-        config.add_section(section)
+        config_parser.add_section(section)
         for key, value in options.items():
-            config.set(section, key, str(value))
+            config_parser.set(section, key, str(value))
     try:
         with open(CONFIG_FILE, 'w') as configfile:
-            config.write(configfile)
-            logging.info(f"Config.ini file created")
+            config_parser.write(configfile)
+            logging.info(f"Config.ini file created at {CONFIG_FILE}")
     except (FileNotFoundError, IOError, PermissionError) as e:
-        logging.error(f"Failed to create config file: {e}")
+        logging.error(f"Failed to create config file at {CONFIG_FILE}: {e}")
 
 
 def load_config():
-    # Check if the configuration file exists
-    if not CONFIG_FILE.exists():
-        raise FileNotFoundError(f"The configuration file {CONFIG_FILE} was not found.")
+    """
+    Load the configuration from config.ini or create a default one if it doesn't exist.
+    """
+    # Create user directories (will be used by AppImage)
+    USER_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    USER_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    USER_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    LOGS_PATH.mkdir(parents=True, exist_ok=True)  # Ensure logs directory exists
 
     try:
-        config = configparser.ConfigParser()
-        config.read(CONFIG_FILE)
+        config_parser = configparser.ConfigParser()
+        config_parser.read(CONFIG_FILE)
 
         # ### Populate global_cache ###
         global_cache.config_cache['APPLICATION_PATH'] = APPLICATION_PATH
         global_cache.config_cache["SYSTEM"] = platform.system()
         # Fill the global cache with config.ini data
-        for section in config.sections():
+        for section in config_parser.sections():
             global_cache.config_cache[section] = {key: value for key, value in
-                                                  config.items(section)}
-        # Fill with constants
-        global_cache.config_cache['SYSTEM'] = platform.system()
-        global_cache.config_cache['HOME_PATH'] = Path.home()
-        global_cache.config_cache['XDG_CONFIG_HOME_PATH'] = os.getenv('XDG_CONFIG_HOME', str(global_cache.config_cache['HOME_PATH'] / '.config'))
-        global_cache.config_cache['URL_BASE_MOD_API'] = URL_BASE_MOD_API
-        global_cache.config_cache['URL_BASE_MOD_DOWNLOAD'] = URL_BASE_MOD_DOWNLOAD
-        global_cache.config_cache['URL_BASE_MODS'] = URL_BASE_MODS
-        global_cache.config_cache['URL_MOD_DB'] = URL_MOD_DB
-        # Paths
-        global_cache.config_cache["MODS_PATHS"] = {
-            "Windows": Path(
-                HOME_PATH) / 'AppData' / 'Roaming' / 'VintagestoryData' / 'Mods',
-            "Linux": Path(XDG_CONFIG_HOME_PATH) / 'VintagestoryData' / 'Mods'
-        }
-        # Fill cache with user-agent
-        global_cache.config_cache['USER_AGENTS'] = USER_AGENTS
+                                                  config_parser.items(section)}
+            # Fill with constants
+            global_cache.config_cache['SYSTEM'] = platform.system()
+            global_cache.config_cache['HOME_PATH'] = Path.home()
+            global_cache.config_cache['XDG_CONFIG_HOME_PATH'] = os.getenv(
+                'XDG_CONFIG_HOME',
+                str(global_cache.config_cache['HOME_PATH'] / '.config'))
+            global_cache.config_cache['URL_BASE_MOD_API'] = URL_BASE_MOD_API
+            global_cache.config_cache['URL_BASE_MOD_DOWNLOAD'] = URL_BASE_MOD_DOWNLOAD
+            global_cache.config_cache['URL_BASE_MODS'] = URL_BASE_MODS
+            global_cache.config_cache['URL_MOD_DB'] = URL_MOD_DB
+            # Paths
+            global_cache.config_cache["MODS_PATHS"] = {
+                "Windows": Path(
+                    HOME_PATH) / 'AppData' / 'Roaming' / 'VintagestoryData' / 'Mods',
+                "Linux": Path(XDG_CONFIG_HOME_PATH) / 'VintagestoryData' / 'Mods'
+            }
+            # Fill cache with user-agent
+            global_cache.config_cache['USER_AGENTS'] = USER_AGENTS
 
-        # Retrieve excluded mods from the config file
-        excluded_mods = config.get("Mod_Exclusion", "mods", fallback="").split(", ")
+            # Retrieve excluded mods from the config file
+            excluded_mods = config_parser.get("Mod_Exclusion", "mods",
+                                              fallback="").split(", ")
 
-        # Ensure we don't have empty strings in the list
-        excluded_mods = [mod.strip() for mod in excluded_mods if mod.strip()]
-        for mod in excluded_mods:
-            global_cache.mods_data["excluded_mods"].append({"Filename": mod})
+            # Ensure we don't have empty strings in the list
+            excluded_mods = [mod.strip() for mod in excluded_mods if mod.strip()]
+            for mod in excluded_mods:
+                global_cache.mods_data["excluded_mods"].append({"Filename": mod})
 
-        # Handle the game version
-        user_game_version = global_cache.config_cache.get("Game_Version", {}).get("user_game_version")
-        if user_game_version == "None":
-            user_game_version = None
-        if not user_game_version:
-            latest_game_version = utils.get_latest_game_version()
-            if latest_game_version:
-                global_cache.config_cache.setdefault("Game_Version", {})["user_game_version"] = latest_game_version
-                logging.info(
-                    f"Game version set to the latest available version: {latest_game_version}")
-            else:
-                logging.warning(
-                    "Unable to retrieve the latest game version. The version is left empty.")
+                # Handle the game version
+            user_game_version = global_cache.config_cache.get("Game_Version", {}).get(
+                "user_game_version")
+            if user_game_version == "None":
+                user_game_version = None
+            if not user_game_version:
+                latest_game_version = utils.get_latest_game_version()
+                if latest_game_version:
+                    global_cache.config_cache.setdefault("Game_Version", {})[
+                        "user_game_version"] = latest_game_version
+                    logging.info(
+                        f"Game version set to the latest available version: {latest_game_version}")
+                else:
+                    logging.warning(
+                        "Unable to retrieve the latest game version. The version is left empty.")
     except Exception as e:
         logging.error(f"Error occurred while loading the config.ini file: {e}")
         raise
@@ -362,9 +379,7 @@ def load_config():
 
 
 def config_exists():
-    """
-    Check if the config.ini file exists.
-    """
+    """ Check if the config.ini file exists. """
     return CONFIG_FILE.exists()
 
 
@@ -387,7 +402,8 @@ def ask_mods_directory():
             logging.info(f"Using mods directory: {mods_directory}")
             return str(mods_directory)  # Return as string for consistency
         else:
-            print(lang.get_translation("config_invalid_directory").format(mods_directory=mods_directory))
+            print(lang.get_translation("config_invalid_directory").format(
+                mods_directory=mods_directory))
             logging.warning(f"Invalid directory entered: {mods_directory}")
 
 
@@ -423,7 +439,7 @@ def ask_game_version():
         user_game_version = Prompt.ask(
             lang.get_translation("config_game_version_prompt"),
             default=""
-            )
+        )
 
         # If the user left the input empty, it will use the last game version
         if user_game_version == "":
@@ -435,7 +451,8 @@ def ask_game_version():
             return utils.complete_version(user_game_version)
         else:
             # If the format is invalid, display an error message and ask for the version again.
-            print(f"[bold red]{lang.get_translation("config_invalid_game_version")}[/bold red]")
+            print(
+                f"[bold red]{lang.get_translation("config_invalid_game_version")}[/bold red]")
 
 
 def ask_auto_update():
@@ -443,7 +460,8 @@ def ask_auto_update():
     while True:
         auto_update_input = Prompt.ask(
             lang.get_translation("config_choose_update_mode"),
-            choices=[lang.get_translation("config_choose_update_mode_manual"), lang.get_translation("config_choose_update_mode_auto")],
+            choices=[lang.get_translation("config_choose_update_mode_manual"),
+                     lang.get_translation("config_choose_update_mode_auto")],
             default=lang.get_translation("config_choose_update_mode_auto")
         ).lower()
 
@@ -459,7 +477,8 @@ def ask_auto_update():
 
 def configure_logging(logging_level):
     # Vérifier si un FileHandler est déjà présent
-    if not any(isinstance(handler, logging.FileHandler) for handler in logging.getLogger().handlers):
+    if not any(isinstance(handler, logging.FileHandler) for handler in
+               logging.getLogger().handlers):
         # Enlever les handlers existants si nécessaire.
         if logging.getLogger().hasHandlers():
             logging.getLogger().handlers.clear()
@@ -484,13 +503,15 @@ def configure_logging(logging_level):
 
         valid_log_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
         if log_level not in valid_log_levels:
-            logging.warning(f"Invalid log level '{log_level}' in configuration. Defaulting to 'DEBUG'.")
+            logging.warning(
+                f"Invalid log level '{log_level}' in configuration. Defaulting to 'DEBUG'.")
             log_level = "DEBUG"
 
         # Appliquer le niveau de log
         logging.getLogger().setLevel(getattr(logging, log_level, logging.DEBUG))
 
-        logging.debug(f"Logging configured successfully with '{log_level}' level and custom file handler!")
+        logging.debug(
+            f"Logging configured successfully with '{log_level}' level and custom file handler!")
 
     else:
         # If FileHandler is already present, do nothing.
@@ -498,23 +519,24 @@ def configure_logging(logging_level):
 
 
 def configure_mod_updated_logging():
-    # Créer un logger distinct pour le fichier mod_updated_log.txt
+    # Create a distinct logger for the mod_updated_log.txt file
     mod_updated_logger = logging.getLogger('mod_updated_logger')
 
-    # Vérifier si un FileHandler est déjà présent pour éviter la duplication
-    if not any(isinstance(handler, logging.FileHandler) for handler in mod_updated_logger.handlers):
+    # Check if a FileHandler is already present to avoid duplication
+    if not any(isinstance(handler, logging.FileHandler) for handler in
+               mod_updated_logger.handlers):
         log_file = Path(LOGS_PATH) / 'updated_mods_changelog.txt'
 
         file_handler = logging.FileHandler(log_file, mode='w', encoding='utf-8')
-        file_handler.setLevel(logging.INFO)  # Niveau INFO
+        file_handler.setLevel(logging.INFO)  # INFO Level
 
-        # Format simple sans timestamp ni niveau
+        # Simple format without timestamp or level
         formatter = logging.Formatter("%(message)s")
         file_handler.setFormatter(formatter)
 
         mod_updated_logger.addHandler(file_handler)
 
-        # Désactiver la propagation vers le logger global
+        # Disable propagation to the root logger
         mod_updated_logger.propagate = False
 
     return mod_updated_logger
