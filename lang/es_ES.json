@@ -49,11 +49,14 @@
   "utils_error_invalid_max_workers": "Error: Entrada no válida para max_workers. Debe ser un número entero.",
   "utils_prg_terminated": "Programa terminado.",
 
-  "export_json_modilst": "La lista de mods se ha exportado en formato JSON a la siguiente ubicación: ",
-  "export_pdf_modilst": "La lista de mods se ha exportado en formato PDF a la siguiente ubicación: ",
+  "export_json_modilst": "Lista de mods exportada como JSON: ",
+  "export_pdf_modilst": "Lista de mods exportada como PDF: ",
   "export_pdf_generating_file": "Generando PDF...",
-  "export_pdf_permission_error": "No se puede acceder al archivo '{pdf_path}'. Es posible que el archivo esté abierto o en uso por otro proceso.\\nPor favor, cierre todas las aplicaciones que puedan estar usando el archivo e inténtelo de nuevo.",
+  "export_pdf_permission_error": "No se puede acceder al archivo '{pdf_path}'. El archivo puede estar abierto o en uso por otro proceso.\nCierre cualquier aplicación que esté utilizando este archivo e inténtelo de nuevo.",
   "export_pdf_installed_mods": "mods instalados",
+
+  "main_logs_location": "Los registros se guardan aquí: ",
+  "main_logs_location_error": "No se pudo recuperar la ubicación de los registros.",
 
   "error": "Error:",
   "yes": "sí,",

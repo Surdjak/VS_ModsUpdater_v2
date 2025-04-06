@@ -49,11 +49,14 @@
   "utils_error_invalid_max_workers": "Fehler: Ungültige Eingabe für max_workers. Muss eine ganze Zahl sein.",
   "utils_prg_terminated": "Programm beendet.",
 
-  "export_json_modilst": "Die Modliste wurde im JSON-Format an folgenden Speicherort exportiert: ",
-  "export_pdf_modilst": "Die Modliste wurde im PDF-Format an folgenden Speicherort exportiert: ",
+  "export_json_modilst": "Modliste als JSON exportiert: ",
+  "export_pdf_modilst": "Modliste als PDF exportiert: ",
   "export_pdf_generating_file": "PDF wird generiert...",
-  "export_pdf_permission_error": "Zugriff auf die Datei '{pdf_path}' nicht möglich. Die Datei ist möglicherweise geöffnet oder wird von einem anderen Prozess verwendet.\\nBitte schließen Sie alle Anwendungen, die die Datei verwenden, und versuchen Sie es erneut.",
+  "export_pdf_permission_error": "Auf die Datei '{pdf_path}' kann nicht zugegriffen werden. Die Datei ist möglicherweise geöffnet oder wird von einem anderen Prozess verwendet.\nBitte schließen Sie alle Anwendungen, die diese Datei verwenden, und versuchen Sie es erneut.",
   "export_pdf_installed_mods": "installierte Mods",
+
+  "main_logs_location": "Logs werden hier gespeichert: ",
+  "main_logs_location_error": "Protokollspeicherort konnte nicht abgerufen werden.",
 
   "error": "Fehler:",
   "yes": "ja,",

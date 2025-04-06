@@ -49,11 +49,14 @@
   "utils_error_invalid_max_workers": "错误：max_workers的输入无效。必须是整数。",
   "utils_prg_terminated": "程序已终止。",
 
-  "export_json_modilst": "模组列表已以JSON格式导出到以下位置：",
-  "export_pdf_modilst": "模组列表已以PDF格式导出到以下位置：",
+  "export_json_modilst": "MOD列表已导出为JSON：",
+  "export_pdf_modilst": "MOD列表已导出为PDF：",
   "export_pdf_generating_file": "正在生成PDF...",
-  "export_pdf_permission_error": "无法访问文件'{pdf_path}'。文件可能已打开或被其他进程使用。\n请关闭可能正在使用该文件的所有应用程序，然后重试。",
-  "export_pdf_installed_mods": "已安装模组",
+  "export_pdf_permission_error": "无法访问文件“{pdf_path}”。该文件可能已打开或正被另一个进程使用。\n请关闭所有使用该文件的应用程序，然后重试。",
+  "export_pdf_installed_mods": "已安装的模组",
+
+  "main_logs_location": "日志保存在这里：",
+  "main_logs_location_error": "无法检索日志位置。",
 
   "error": "错误：",
   "yes": "是，",

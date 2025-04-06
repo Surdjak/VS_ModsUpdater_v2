@@ -49,11 +49,14 @@
   "utils_error_invalid_max_workers": "Erro: Entrada inválida para max_workers. Deve ser um número inteiro.",
   "utils_prg_terminated": "Programa encerrado.",
 
-  "export_json_modilst": "A lista de mods foi exportada em formato JSON para o seguinte local: ",
-  "export_pdf_modilst": "A lista de mods foi exportada em formato PDF para o seguinte local: ",
+  "export_json_modilst": "Lista de mods exportada como JSON: ",
+  "export_pdf_modilst": "Lista de mods exportada como PDF: ",
   "export_pdf_generating_file": "Gerando PDF...",
-  "export_pdf_permission_error": "Não é possível acessar o arquivo '{pdf_path}'. O arquivo pode estar aberto ou em uso por outro processo.\\nPor favor, feche todos os aplicativos que possam estar usando o arquivo e tente novamente.",
+  "export_pdf_permission_error": "Não foi possível acessar o arquivo '{pdf_path}'. O arquivo pode estar aberto ou em uso por outro processo.\nFeche todos os aplicativos que estão usando este arquivo e tente novamente.",
   "export_pdf_installed_mods": "mods instalados",
+
+  "main_logs_location": "Os logs são salvos aqui: ",
+  "main_logs_location_error": "Não foi possível recuperar o local dos logs.",
 
   "error": "Erro:",
   "yes": "sim,",

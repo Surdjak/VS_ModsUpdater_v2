@@ -49,11 +49,14 @@
   "utils_error_invalid_max_workers": "エラー：max_workersの入力が無効です。整数である必要があります。",
   "utils_prg_terminated": "プログラムが終了しました。",
 
-  "export_json_modilst": "ModsリストがJSON形式で次の場所にエクスポートされました：",
-  "export_pdf_modilst": "ModsリストがPDF形式で次の場所にエクスポートされました：",
-  "export_pdf_generating_file": "PDFを生成しています...",
-  "export_pdf_permission_error": "ファイル'{pdf_path}'にアクセスできません。ファイルが開いているか、別のプロセスで使用されている可能性があります。\nファイルを 使用している可能性のあるすべてのアプリケーションを閉じて、もう一度お試しください。",
-  "export_pdf_installed_mods": "インストール済みMods",
+  "export_json_modilst": "MODリストをJSONとしてエクスポートしました: ",
+  "export_pdf_modilst": "MODリストをPDFとしてエクスポートしました: ",
+  "export_pdf_generating_file": "PDFを生成中...",
+  "export_pdf_permission_error": "ファイル '{pdf_path}' にアクセスできません。ファイルが開いているか、別のプロセスで使用されている可能性があります。\nこのファイルを使用しているすべてのアプリケーションを閉じて、もう一度お試しください。",
+  "export_pdf_installed_mods": "インストール済みMOD",
+
+  "main_logs_location": "ログはここに保存されます: ",
+  "main_logs_location_error": "ログの場所を取得できませんでした。",
 
   "error": "エラー：",
   "yes": "はい、",
