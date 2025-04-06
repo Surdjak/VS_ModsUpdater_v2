@@ -32,7 +32,7 @@ def save_json(data, filename):
     try:
         with open(filename, 'w', encoding='utf-8') as json_file:
             json.dump(data, json_file, indent=4, ensure_ascii=False)
-        print(f"\n{lang.get_translation("export_json_modilst")}{global_cache.config_cache['Backup_Mods']['modlist_folder']}\n")
+        print(f"\n{lang.get_translation("export_json_modilst")}\n{filename}\n")
         logging.info(f"{filename} has been created successfully.")
     except PermissionError:
         logging.error(f"Error: No write permission for {filename}. Try running as administrator.")

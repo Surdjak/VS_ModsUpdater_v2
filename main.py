@@ -36,7 +36,7 @@ __author__ = "Laerinok"
 __version__ = "2.0.2"
 __license__ = "GNU GPL v3"
 __description__ = "Mods Updater for Vintage Story"
-__date__ = "2025-04-05"  # Last update
+__date__ = "2025-04-06"  # Last update
 
 
 # main.py
@@ -222,6 +222,14 @@ if __name__ == "__main__":
     # PDF creation
     if not args.no_pdf:
         export_pdf.generate_pdf(global_cache.mods_data['installed_mods'])
+
+    log_file_path = global_cache.config_cache.get('LOGS_PATH')
+    if log_file_path:
+        print(
+            f"\n{lang.get_translation("main_logs_location")}\n{log_file_path}\n")
+    else:
+        logging.warning("Could not retrieve logs path from global cache.")
+        print(f"\n{lang.get_translation("main_logs_location_error")}\n")
 
     # End of programm
     utils.exit_program(extra_msg="", do_exit=False)

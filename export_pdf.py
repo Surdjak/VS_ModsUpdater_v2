@@ -312,7 +312,7 @@ def create_pdf_with_table(modsdata, pdf_path):
         doc.build(elements,
                   onFirstPage=lambda canvas, document: draw_background_and_footer(canvas),
                   onLaterPages=lambda canvas, document: draw_background_and_footer(canvas))
-        print(f"{lang.get_translation("export_pdf_modilst")} {global_cache.config_cache['Backup_Mods']['modlist_folder']}")
+        print(f"{lang.get_translation("export_pdf_modilst")}\n{pdf_path}")
         logging.info(f"PDF successfully created: {pdf_path}")
     except PermissionError as e:
         print(lang.get_translation("export_pdf_permission_error").format(pdf_path=pdf_path))
