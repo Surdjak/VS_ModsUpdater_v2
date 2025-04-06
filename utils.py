@@ -38,6 +38,7 @@ from rich import print
 from rich.console import Console
 
 import cli
+import config
 import global_cache
 import lang
 from http_client import HTTPClient
@@ -284,8 +285,8 @@ def backup_mods(mods_to_backup):
     Create a backup of the ZIP mods before download and manage a retention policy.
     """
     max_backups = int(global_cache.config_cache['Backup_Mods']['max_backups'])
-    backup_folder_name = global_cache.config_cache['Backup_Mods']['backup_folder']
-    backup_folder = (Path(global_cache.config_cache['APPLICATION_PATH']) / backup_folder_name).resolve()
+    # backup_folder_name = global_cache.config_cache['Backup_Mods']['backup_folder']
+    backup_folder = Path(config.BACKUP_FOLDER)  # Utilisez config.BACKUP_FOLDER
 
     # Ensure the backup directory exists
     setup_directories(backup_folder)
