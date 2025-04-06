@@ -45,14 +45,14 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from rich import print
-from rich.console import Console, escape
+from rich.console import Console
 from rich.progress import Progress
 
 import config
 import global_cache
 import lang
 from http_client import HTTPClient
-from utils import extract_filename_from_url, validate_workers
+from utils import extract_filename_from_url, validate_workers, escape_rich_tags
 
 timeout = global_cache.config_cache["Options"].get("timeout", 10)
 client = HTTPClient()
@@ -151,7 +151,9 @@ def resume_mods_updated():
     print(f"\n{lang.get_translation("auto_mods_updated_resume")}")
     logging.info("Followings mods have been updated (More details in updated_mods_changelog.txt):")
     for mod in global_cache.mods_data.get('mods_to_update'):
-        console.print(f"- [green]{mod['Name']} (v{escape(mod['Old_version'])} {lang.get_translation("to")} v{escape(mod['New_version'])}):[/green]")
+        old_version = escape_rich_tags(str(mod['Old_version']))
+        new_version = escape_rich_tags(str(mod['New_version']))
+        console.print(f"- [green]{mod['Name']} (v{old_version} {lang.get_translation("to")} v{new_version}):[/green]")
         print(f"[bold][dark_goldenrod]CHANGELOG:\n{mod['Changelog']}[/dark_goldenrod][/bold]\n")
         logging.info(f"\t- {mod['Name']} (v{mod['Old_version']} to v{mod['New_version']})")
 

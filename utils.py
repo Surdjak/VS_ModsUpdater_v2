@@ -316,6 +316,10 @@ def backup_mods(mods_to_backup):
             logging.info(f"Deleted old backup: {old_backup}")
 
 
+def escape_rich_tags(text):
+    return text.replace("[", r"\[").replace("]", r"\]")
+
+
 def exit_program(msg=None, extra_msg=None, do_exit=True):
     """Exits the program with an optional message."""
     if msg is None:
