@@ -14,7 +14,7 @@ Key functionalities include:
 """
 __author__ = "Laerinok"
 __version__ = "2.0.2"
-__date__ = "2025-04-03"  # Last update
+__date__ = "2025-04-06"  # Last update
 
 
 import json
@@ -67,7 +67,7 @@ def format_mods_data(mods_data):
     # Save json data to cache
     global_cache.modinfo_json_cache = final_data
     # Save data to modlist.json
-    filename = (Path(global_cache.config_cache['Backup_Mods']["modlist_folder"]) / 'modlist.json').resolve()
+    filename = (Path(global_cache.config_cache['MODLIST_FOLDER']) / 'modlist.json').resolve()
     args = cli.parse_args()
     if not args.no_json:
         save_json(final_data, filename)

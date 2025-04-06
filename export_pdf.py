@@ -382,7 +382,6 @@ def generate_pdf(mod_info_data):
     """
     pdf_name = f"modlist.pdf"
 
-    print(global_cache.config_cache.get('MODLIST_FOLDER'))
     output_dir = Path(global_cache.config_cache.get('MODLIST_FOLDER', '.'))
     os.makedirs(output_dir, exist_ok=True)
     output_pdf_path = str(output_dir / pdf_name)
