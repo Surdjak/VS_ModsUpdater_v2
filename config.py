@@ -67,7 +67,7 @@ else:
     # Case where the application is run outside the AppImage (for development)
     APPLICATION_PATH = Path.cwd()
 
-APP_NAME = "VS_ModsUpdater"  # Name of your application
+APP_NAME = "VS_ModsUpdater"
 USER_CONFIG_DIR = Path.home() / ".config" / APP_NAME
 USER_DATA_DIR = Path.home() / ".local" / "share" / APP_NAME
 USER_CACHE_DIR = Path.home() / ".cache" / APP_NAME
@@ -359,6 +359,13 @@ def load_config():
             global_cache.config_cache['URL_BASE_MODS'] = URL_BASE_MODS
             global_cache.config_cache['URL_MOD_DB'] = URL_MOD_DB
             # Paths
+            global_cache.config_cache['CONFIG_FILE'] = CONFIG_FILE
+            global_cache.config_cache['TEMP_PATH'] = TEMP_PATH
+            global_cache.config_cache['LOGS_PATH'] = LOGS_PATH
+            global_cache.config_cache['BACKUP_FOLDER'] = BACKUP_FOLDER
+            global_cache.config_cache[
+                'MODLIST_FOLDER'] = MODLIST_FOLDER
+            global_cache.config_cache['LANG_PATH'] = LANG_PATH
             global_cache.config_cache["MODS_PATHS"] = {
                 "Windows": Path(
                     HOME_PATH) / 'AppData' / 'Roaming' / 'VintagestoryData' / 'Mods',

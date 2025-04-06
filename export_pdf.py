@@ -33,7 +33,7 @@ Key functionalities include:
 """
 __author__ = "Laerinok"
 __version__ = "2.0.2"
-__date__ = "2025-04-05"  # Last update
+__date__ = "2025-04-06"  # Last update
 
 
 # export_pdf.py
@@ -41,6 +41,7 @@ __date__ = "2025-04-05"  # Last update
 
 import concurrent.futures
 import logging
+import os
 import sys
 import urllib.parse
 import zipfile
@@ -380,7 +381,14 @@ def generate_pdf(mod_info_data):
     Generates the PDF with a list of mods and their details using multithreading.
     """
     pdf_name = f"modlist.pdf"
-    output_pdf_path = str(Path(config.APPLICATION_PATH) / global_cache.config_cache['Backup_Mods']['modlist_folder'] / pdf_name)
+
+    print(global_cache.config_cache.get('MODLIST_FOLDER'))
+    output_dir = Path(global_cache.config_cache.get('MODLIST_FOLDER', '.'))
+    os.makedirs(output_dir, exist_ok=True)
+    output_pdf_path = str(output_dir / pdf_name)
+
+    logging.info(f"Attempting to save PDF to: {output_pdf_path}")
+
     # Ensure the directory exists
     Path(output_pdf_path).parent.mkdir(parents=True, exist_ok=True)
 
