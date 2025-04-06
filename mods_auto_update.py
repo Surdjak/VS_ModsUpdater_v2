@@ -33,7 +33,7 @@ Key functionalities include:
 """
 __author__ = "Laerinok"
 __version__ = "2.0.2"
-__date__ = "2025-04-03"  # Last update
+__date__ = "2025-04-06"  # Last update
 
 
 # mods_auto_update.py
@@ -45,7 +45,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from rich import print
-from rich.console import Console
+from rich.console import Console, escape
 from rich.progress import Progress
 
 import config
@@ -151,7 +151,7 @@ def resume_mods_updated():
     print(f"\n{lang.get_translation("auto_mods_updated_resume")}")
     logging.info("Followings mods have been updated (More details in updated_mods_changelog.txt):")
     for mod in global_cache.mods_data.get('mods_to_update'):
-        print(f"- [green]{mod['Name']} (v{mod['Old_version']} {lang.get_translation("to")} v{mod['New_version']}):[/green]")
+        console.print(f"- [green]{mod['Name']} (v{escape(mod['Old_version'])} {lang.get_translation("to")} v{escape(mod['New_version'])}):[/green]")
         print(f"[bold][dark_goldenrod]CHANGELOG:\n{mod['Changelog']}[/dark_goldenrod][/bold]\n")
         logging.info(f"\t- {mod['Name']} (v{mod['Old_version']} to v{mod['New_version']})")
 
