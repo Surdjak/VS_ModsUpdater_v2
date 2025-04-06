@@ -23,7 +23,7 @@
 
 __author__ = "Laerinok"
 __version__ = "2.0.2"  # Don't forget to change EXPECTED_VERSION
-__date__ = "2025-04-05"  # Last update
+__date__ = "2025-04-06"  # Last update
 
 
 # config.py
@@ -72,13 +72,28 @@ USER_CONFIG_DIR = Path.home() / ".config" / APP_NAME
 USER_DATA_DIR = Path.home() / ".local" / "share" / APP_NAME
 USER_CACHE_DIR = Path.home() / ".cache" / APP_NAME
 
+# Retrieve the application directory
+appdir = os.environ.get('APPDIR')
+if appdir:
+    APPLICATION_PATH = Path(appdir)
+else:
+    APPLICATION_PATH = Path.cwd()
+
 # Constants for paths
-CONFIG_FILE = APPLICATION_PATH / 'config.ini'
-TEMP_PATH = APPLICATION_PATH / 'temp'
-LOGS_PATH = APPLICATION_PATH / 'logs'
+if SYSTEM == "Windows":
+    CONFIG_FILE = APPLICATION_PATH / 'config.ini'
+    TEMP_PATH = APPLICATION_PATH / 'temp'
+    LOGS_PATH = APPLICATION_PATH / 'logs'
+    BACKUP_FOLDER = APPLICATION_PATH / 'backup_mods'
+    MODLIST_FOLDER = APPLICATION_PATH / 'modlist'
+else:  # Linux or other systems (where AppImage will run)
+    CONFIG_FILE = USER_CONFIG_DIR / 'config.ini'
+    TEMP_PATH = USER_CACHE_DIR / 'temp'
+    LOGS_PATH = USER_DATA_DIR / 'logs'
+    BACKUP_FOLDER = USER_DATA_DIR / 'backup_mods'
+    MODLIST_FOLDER = USER_DATA_DIR / 'modlist'
+
 LANG_PATH = APPLICATION_PATH / 'lang'
-BACKUP_FOLDER = APPLICATION_PATH / 'backup_mods'
-MODLIST_FOLDER = APPLICATION_PATH / 'modlist'
 
 # Constants for supported languages
 SUPPORTED_LANGUAGES = {
@@ -289,7 +304,11 @@ def create_config(language, mod_folder, user_game_version, auto_update):
     """
     Create the config.ini file with default or user-specified values.
     """
-    # No need to create user config dir here for Windows testing
+    if SYSTEM != "Windows":
+        USER_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+        USER_DATA_DIR.mkdir(parents=True, exist_ok=True)
+        USER_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
     DEFAULT_CONFIG["Language"]["language"] = language[0]
     DEFAULT_CONFIG["ModsPath"]["path"] = mod_folder
     DEFAULT_CONFIG["Game_Version"]["user_game_version"] = user_game_version
@@ -312,11 +331,11 @@ def load_config():
     """
     Load the configuration from config.ini or create a default one if it doesn't exist.
     """
-    # Create user directories (will be used by AppImage)
-    USER_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-    USER_DATA_DIR.mkdir(parents=True, exist_ok=True)
-    USER_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    LOGS_PATH.mkdir(parents=True, exist_ok=True)  # Ensure logs directory exists
+    if SYSTEM != "Windows":
+        USER_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+        USER_DATA_DIR.mkdir(parents=True, exist_ok=True)
+        USER_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        LOGS_PATH.mkdir(parents=True, exist_ok=True)
 
     try:
         config_parser = configparser.ConfigParser()
