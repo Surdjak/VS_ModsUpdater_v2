@@ -143,7 +143,7 @@ def welcome_display():
         text_script_new_version = f'[indian_red1]- {lang.get_translation("main_new_version_available")} -[/indian_red1]\n{urlscript} -'
         logging.info(f"Latest version: {latest_version} | Download: {urlscript}")
     else:
-        text_script_new_version = f'[bold cyan]- {lang.get_translation("main_no_new_version_available")} - [/bold cyan]'
+        text_script_new_version = f'[dodger_blue1]- {lang.get_translation("main_no_new_version_available")} - [/dodger_blue1]'
         logging.info("ModsUpdater - No new version")
 
     # Obtient la largeur de la console
@@ -153,7 +153,7 @@ def welcome_display():
         column = 80  # Valeur par défaut si la taille de la console ne peut pas être déterminée
 
     # Crée le titre et le centre
-    txt_title = f'\n\n[bold cyan]{lang.get_translation("main_title").format(ModsUpdater_version=__version__)}[/bold cyan]'
+    txt_title = f'\n\n[dodger_blue1]{lang.get_translation("main_title").format(ModsUpdater_version=__version__)}[/dodger_blue1]'
     lines = txt_title.splitlines() + text_script_new_version.splitlines()
 
     # Affiche les lignes centrées
@@ -244,7 +244,7 @@ if __name__ == "__main__":
     log_file_path = global_cache.config_cache.get('LOGS_PATH')
     if log_file_path:
         print(
-            f"[bold cyan]{lang.get_translation('main_logs_location')}[/bold cyan]\n[green]{log_file_path}[/green]\n")
+            f"[dodger_blue1]{lang.get_translation('main_logs_location')}[/dodger_blue1]\n[green]{log_file_path}[/green]\n")
     else:
         logging.warning("Could not retrieve logs path from global cache.")
         print(f"\n{lang.get_translation('main_logs_location_error')}\n")

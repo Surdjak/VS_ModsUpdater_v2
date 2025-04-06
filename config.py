@@ -435,7 +435,7 @@ def ask_mods_directory():
 
 def ask_language_choice():
     """Ask the user to select a language at the first script launch."""
-    print(f"[bold cyan]Please select your language:[/bold cyan]")
+    print(f"[dodger_blue1]Please select your language:[/dodger_blue1]")
 
     # Display a message to prompt the user for language selection
     language_options = list(SUPPORTED_LANGUAGES.keys())
