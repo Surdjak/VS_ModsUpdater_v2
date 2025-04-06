@@ -13,6 +13,9 @@
   "main_title": "ModsUpdater pour Vintage Story / v{ModsUpdater_version} (par Laerinok)",
   "main_mods_no_update": "Aucune mise à jour de mod disponible.",
   "main_press_enter_to_exit": "Appuyez sur Entrée pour quitter...",
+  "main_excluded_mods_title": "Les mods suivants sont exclus de la mises à jour :",
+  "main_logs_location": "Les logs sont enregistrés ici : ",
+  "main_logs_location_error": "Impossible de récupérer l'emplacement des logs.",
 
   "config_ask_mod_directory": "Entrez le chemin vers votre dossier de mods. Laissez vide pour le chemin par défaut.",
   "config_configuration_migrated": "Mise à jour de la configuration vers la version {EXPECTED_VERSION} réussie.",
@@ -54,9 +57,6 @@
   "export_pdf_generating_file": "Génération du PDF...",
   "export_pdf_permission_error": "Impossible d'accéder au fichier '{pdf_path}'. Le fichier est peut-être ouvert ou utilisé par un autre processus.\nVeuillez fermer toutes les applications qui utilisent ce fichier et réessayer",
   "export_pdf_installed_mods": "mods installés",
-
-  "main_logs_location": "Les logs sont enregistrés ici : ",
-  "main_logs_location_error": "Impossible de récupérer l'emplacement des logs.",
 
   "error": "Erreur :",
   "yes": "oui",

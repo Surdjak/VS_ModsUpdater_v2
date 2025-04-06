@@ -13,6 +13,9 @@
   "main_title": "Vintage Story模组更新器 - v{ModsUpdater_version}（作者：Laerinok）",
   "main_mods_no_update": "没有可用的模组更新。",
   "main_press_enter_to_exit": "按Enter键退出...",
+  "main_excluded_mods_title": "以下模组已从更新中排除：",
+  "main_logs_location": "日志保存在这里：",
+  "main_logs_location_error": "无法检索日志位置。",
 
   "config_ask_mod_directory": "输入您的模组文件夹的路径。留空使用默认路径",
   "config_configuration_migrated": "配置已成功迁移到版本{EXPECTED_VERSION}。",
@@ -54,9 +57,6 @@
   "export_pdf_generating_file": "正在生成PDF...",
   "export_pdf_permission_error": "无法访问文件“{pdf_path}”。该文件可能已打开或正被另一个进程使用。\n请关闭所有使用该文件的应用程序，然后重试。",
   "export_pdf_installed_mods": "已安装的模组",
-
-  "main_logs_location": "日志保存在这里：",
-  "main_logs_location_error": "无法检索日志位置。",
 
   "error": "错误：",
   "yes": "是，",

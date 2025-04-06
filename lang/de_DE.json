@@ -13,6 +13,9 @@
   "main_title": "ModsUpdater für Vintage Story - v{ModsUpdater_version} (von Laerinok)",
   "main_mods_no_update": "Keine Mods-Updates verfügbar.",
   "main_press_enter_to_exit": "Drücken Sie die Eingabetaste, um zu beenden...",
+  "main_excluded_mods_title": "Die folgenden Mods sind von der Aktualisierung ausgeschlossen:",
+  "main_logs_location": "Logs werden hier gespeichert: ",
+  "main_logs_location_error": "Protokollspeicherort konnte nicht abgerufen werden.",
 
   "config_ask_mod_directory": "Geben Sie den Pfad zu Ihrem Mods-Ordner ein. Lassen Sie ihn leer für den Standardpfad",
   "config_configuration_migrated": "Konfiguration erfolgreich zu Version {EXPECTED_VERSION} migriert.",
@@ -54,9 +57,6 @@
   "export_pdf_generating_file": "PDF wird generiert...",
   "export_pdf_permission_error": "Auf die Datei '{pdf_path}' kann nicht zugegriffen werden. Die Datei ist möglicherweise geöffnet oder wird von einem anderen Prozess verwendet.\nBitte schließen Sie alle Anwendungen, die diese Datei verwenden, und versuchen Sie es erneut.",
   "export_pdf_installed_mods": "installierte Mods",
-
-  "main_logs_location": "Logs werden hier gespeichert: ",
-  "main_logs_location_error": "Protokollspeicherort konnte nicht abgerufen werden.",
 
   "error": "Fehler:",
   "yes": "ja,",

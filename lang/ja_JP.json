@@ -13,6 +13,9 @@
   "main_title": "Vintage Story用ModsUpdater - v{ModsUpdater_version} (Laerinok作)",
   "main_mods_no_update": "利用可能なMods更新はありません。",
   "main_press_enter_to_exit": "終了するにはEnterキーを押してください...",
+  "main_excluded_mods_title": "以下のMODはアップデートから除外されています:",
+  "main_logs_location": "ログはここに保存されます: ",
+  "main_logs_location_error": "ログの場所を取得できませんでした。",
 
   "config_ask_mod_directory": "Modsフォルダへのパスを入力してください。デフォルトパスの場合は空白のままにしてください",
   "config_configuration_migrated": "設定がバージョン{EXPECTED_VERSION}に正常に移行されました。",
@@ -54,9 +57,6 @@
   "export_pdf_generating_file": "PDFを生成中...",
   "export_pdf_permission_error": "ファイル '{pdf_path}' にアクセスできません。ファイルが開いているか、別のプロセスで使用されている可能性があります。\nこのファイルを使用しているすべてのアプリケーションを閉じて、もう一度お試しください。",
   "export_pdf_installed_mods": "インストール済みMOD",
-
-  "main_logs_location": "ログはここに保存されます: ",
-  "main_logs_location_error": "ログの場所を取得できませんでした。",
 
   "error": "エラー：",
   "yes": "はい、",

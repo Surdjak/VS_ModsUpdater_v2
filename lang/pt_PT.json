@@ -13,6 +13,9 @@
   "main_title": "ModsUpdater para Vintage Story - v{ModsUpdater_version} (por Laerinok)",
   "main_mods_no_update": "Nenhuma atualização de mods disponível.",
   "main_press_enter_to_exit": "Pressione Enter para sair...",
+  "main_excluded_mods_title": "Os seguintes mods estão excluídos da atualização:",
+  "main_logs_location": "Os registos são guardados aqui: ",
+  "main_logs_location_error": "Não foi possível recuperar a localização dos registos.",
 
   "config_ask_mod_directory": "Introduza o caminho para a sua pasta de mods. Deixe em branco para o caminho predefinido",
   "config_configuration_migrated": "Configuração migrada com sucesso para a versão {EXPECTED_VERSION}.",
@@ -54,9 +57,6 @@
   "export_pdf_generating_file": "A gerar PDF...",
   "export_pdf_permission_error": "Não foi possível aceder ao ficheiro '{pdf_path}'. O ficheiro poderá estar aberto ou em uso por outro processo.\nPor favor, feche todas as aplicações que estejam a utilizar este ficheiro e tente novamente.",
   "export_pdf_installed_mods": "mods instalados",
-
-  "main_logs_location": "Os registos são guardados aqui: ",
-  "main_logs_location_error": "Não foi possível recuperar a localização dos registos.",
 
   "error": "Erro:",
   "yes": "sim,",

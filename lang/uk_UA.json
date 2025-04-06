@@ -13,6 +13,9 @@
   "main_title": "ModsUpdater для Vintage Story - v{ModsUpdater_version} (від Laerinok)",
   "main_mods_no_update": "Оновлення модів недоступні.",
   "main_press_enter_to_exit": "Натисніть Enter для виходу...",
+  "main_excluded_mods_title": "Наступні моди виключені з оновлення:",
+  "main_logs_location": "Журнали збережено тут: ",
+  "main_logs_location_error": "Не вдалося отримати розташування журналів.",
 
   "config_ask_mod_directory": "Введіть шлях до папки з модами. Залиште порожнім для шляху за замовчуванням",
   "config_configuration_migrated": "Конфігурацію успішно перенесено до версії {EXPECTED_VERSION}.",
@@ -54,9 +57,6 @@
   "export_pdf_generating_file": "Генерація PDF...",
   "export_pdf_permission_error": "Не вдалося отримати доступ до файлу '{pdf_path}'. Файл може бути відкритим або використовуватися іншим процесом.\nБудь ласка, закрийте всі програми, які використовують цей файл, і спробуйте знову.",
   "export_pdf_installed_mods": "встановлені моди",
-
-  "main_logs_location": "Журнали збережено тут: ",
-  "main_logs_location_error": "Не вдалося отримати розташування журналів.",
 
   "error": "Помилка:",
   "yes": "так,",

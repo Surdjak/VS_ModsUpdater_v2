@@ -52,6 +52,8 @@ from pathlib import Path
 from rich import print
 from rich.console import Console
 from rich.prompt import Prompt
+from rich.style import Style
+from rich.text import Text
 
 import cli
 import config
@@ -223,13 +225,29 @@ if __name__ == "__main__":
     if not args.no_pdf:
         export_pdf.generate_pdf(global_cache.mods_data['installed_mods'])
 
+    excluded_mods = global_cache.mods_data.get('excluded_mods', [])
+
+    if excluded_mods:
+        excluded_title_style = Style(color="yellow", bold=True)
+        excluded_mod_style = Style(color="red")
+
+        print(Text(f"\n{lang.get_translation('main_excluded_mods_title')}",
+                   style=excluded_title_style))
+        for mod in excluded_mods:
+            mod_name = mod.get('Name', mod.get('Filename', 'Unknown name'))
+            print(Text(f"- {mod_name}", style=excluded_mod_style))
+        print()
+    else:
+        logging.info("No mods were found in the exclusion list.")
+
+    # display logs path
     log_file_path = global_cache.config_cache.get('LOGS_PATH')
     if log_file_path:
         print(
-            f"\n{lang.get_translation("main_logs_location")}\n{log_file_path}\n")
+            f"[cyan bold]{lang.get_translation('main_logs_location')}[/cyan bold]\n[green]{log_file_path}[/green]\n")
     else:
         logging.warning("Could not retrieve logs path from global cache.")
-        print(f"\n{lang.get_translation("main_logs_location_error")}\n")
+        print(f"\n{lang.get_translation('main_logs_location_error')}\n")
 
     # End of programm
     utils.exit_program(extra_msg="", do_exit=False)
