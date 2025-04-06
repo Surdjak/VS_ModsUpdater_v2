@@ -30,7 +30,7 @@
   "fetch_changelog_unknown_version": "неизвестная версия",
 
   "fetch_mod_info_error_mods_path_missing": "Ключ ModsPath или 'path' отсутствует в конфигурации.",
-  "fetch_mod_info_error_mods_path_not_found": "Путь к модам [yellow]{mods_path}[/yellow] не найден.",
+  "fetch_mod_info_error_mods_path_not_found": "Путь к модам [dark_goldenrod]{mods_path}[/dark_goldenrod] не найден.",
   "fetch_mod_info_scanning_mods": "Сканирование модов...",
   "fetch_mod_info_fetching_mod_info": "Получение информации о модах из API...",
   "fetch_mod_info_fetching_mod_info_name": "Получение информации о модах",
@@ -46,8 +46,8 @@
   "manual_download_completed": "Загрузка завершена для",
   "manual_download_error": "Ошибка загрузки",
 
-  "utils_warning_mods_directory_empty": "[red]Предупреждение: Папка модов [magenta]{mods_dir_path}[/magenta] пуста![/red]\nПожалуйста, добавьте файлы модов.",
-  "utils_warning_directory_in_mods_folder": "[red]Предупреждение: В папке модов обнаружен каталог: {item_name}.[/red] Убедитесь, что у вас есть файлы .zip, а не папки.",
+  "utils_warning_mods_directory_empty": "[indian_red1]Предупреждение: Папка модов [magenta]{mods_dir_path}[/magenta] пуста![/indian_red1]\nПожалуйста, добавьте файлы модов.",
+  "utils_warning_directory_in_mods_folder": "[indian_red1]Предупреждение: В папке модов обнаружен каталог: {item_name}.[/indian_red1] Убедитесь, что у вас есть файлы .zip, а не папки.",
   "utils_no_valid_mod_files_found": "В папке модов не найдены допустимые файлы модов.",
   "utils_error_invalid_max_workers": "Ошибка: Недопустимый ввод для max_workers. Должно быть целым числом.",
   "utils_prg_terminated": "Программа завершена.",

@@ -57,7 +57,7 @@ def perform_manual_updates(mods_to_update):
     """
     for mod in mods_to_update:
         print(f"\n[green]{mod['Name']} (v{mod['Old_version']} {lang.get_translation("to")} v{mod['New_version']})[/green]")
-        print(f"[bold][yellow]CHANGELOG:\n{mod['Changelog']}[/yellow][/bold]\n")
+        print(f"[bold][dark_goldenrod]CHANGELOG:\n{mod['Changelog']}[/dark_goldenrod][/bold]\n")
 
         download_choice = Prompt.ask(lang.get_translation("manual_download_mod_prompt"), choices=["y", "n"], default="y").lower()
 

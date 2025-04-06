@@ -30,7 +30,7 @@
   "fetch_changelog_unknown_version": "不明なバージョン",
 
   "fetch_mod_info_error_mods_path_missing": "構成にModsPathまたは'path'キーがありません。",
-  "fetch_mod_info_error_mods_path_not_found": "Modsパス[yellow]{mods_path}[/yellow]が見つかりません。",
+  "fetch_mod_info_error_mods_path_not_found": "Modsパス[dark_goldenrod]{mods_path}[/dark_goldenrod]が見つかりません。",
   "fetch_mod_info_scanning_mods": "Modsをスキャンしています...",
   "fetch_mod_info_fetching_mod_info": "APIからMods情報を取得しています...",
   "fetch_mod_info_fetching_mod_info_name": "Mods情報を取得しています",
@@ -46,8 +46,8 @@
   "manual_download_completed": "ダウンロードが完了しました",
   "manual_download_error": "ダウンロードエラー",
 
-  "utils_warning_mods_directory_empty": "[red]警告：Modsディレクトリ[magenta]{mods_dir_path}[/magenta]が空です！[/red]\nModsファイルを追加してください。",
-  "utils_warning_directory_in_mods_folder": "[red]警告：Modsフォルダにディレクトリが見つかりました：{item_name}。[/red]フォルダではなく.zipファイルがあることを確認してください。",
+  "utils_warning_mods_directory_empty": "[indian_red1]警告：Modsディレクトリ[magenta]{mods_dir_path}[/magenta]が空です！[/indian_red1]\nModsファイルを追加してください。",
+  "utils_warning_directory_in_mods_folder": "[indian_red1]警告：Modsフォルダにディレクトリが見つかりました：{item_name}。[/indian_red1]フォルダではなく.zipファイルがあることを確認してください。",
   "utils_no_valid_mod_files_found": "Modsフォルダに有効なModsファイルが見つかりませんでした。",
   "utils_error_invalid_max_workers": "エラー：max_workersの入力が無効です。整数である必要があります。",
   "utils_prg_terminated": "プログラムが終了しました。",

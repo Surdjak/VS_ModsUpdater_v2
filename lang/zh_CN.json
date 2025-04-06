@@ -30,7 +30,7 @@
   "fetch_changelog_unknown_version": "未知版本",
 
   "fetch_mod_info_error_mods_path_missing": "配置中缺少ModsPath或'path'键。",
-  "fetch_mod_info_error_mods_path_not_found": "找不到模组路径[yellow]{mods_path}[/yellow]。",
+  "fetch_mod_info_error_mods_path_not_found": "找不到模组路径[dark_goldenrod]{mods_path}[/dark_goldenrod]。",
   "fetch_mod_info_scanning_mods": "正在扫描模组...",
   "fetch_mod_info_fetching_mod_info": "正在从API获取模组信息...",
   "fetch_mod_info_fetching_mod_info_name": "获取模组信息",
@@ -46,8 +46,8 @@
   "manual_download_completed": "下载完成",
   "manual_download_error": "下载错误",
 
-  "utils_warning_mods_directory_empty": "[red]警告：模组目录[magenta]{mods_dir_path}[/magenta]为空！[/red]\n请添加您的模组文件。",
-  "utils_warning_directory_in_mods_folder": "[red]警告：在模组文件夹中找到目录：{item_name}。[/red]请确保您有.zip文件，而不是文件夹。",
+  "utils_warning_mods_directory_empty": "[indian_red1]警告：模组目录[magenta]{mods_dir_path}[/magenta]为空！[/indian_red1]\n请添加您的模组文件。",
+  "utils_warning_directory_in_mods_folder": "[indian_red1]警告：在模组文件夹中找到目录：{item_name}。[/indian_red1]请确保您有.zip文件，而不是文件夹。",
   "utils_no_valid_mod_files_found": "在模组文件夹中找不到有效的模组文件。",
   "utils_error_invalid_max_workers": "错误：max_workers的输入无效。必须是整数。",
   "utils_prg_terminated": "程序已终止。",

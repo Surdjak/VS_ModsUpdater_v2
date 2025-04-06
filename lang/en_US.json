@@ -30,7 +30,7 @@
   "fetch_changelog_unknown_version": "unknown version",
 
   "fetch_mod_info_error_mods_path_missing": "The ModsPath or 'path' key is missing in the configuration.",
-  "fetch_mod_info_error_mods_path_not_found": "The mods path [yellow]{mods_path}[/yellow] is not found.",
+  "fetch_mod_info_error_mods_path_not_found": "The mods path [dark_goldenrod]{mods_path}[/dark_goldenrod] is not found.",
   "fetch_mod_info_scanning_mods": "Scanning mods...",
   "fetch_mod_info_fetching_mod_info": "Fetching mod info from API...",
   "fetch_mod_info_fetching_mod_info_name": "Fetching mod info",
@@ -46,8 +46,8 @@
   "manual_download_completed": "Download completed for",
   "manual_download_error": "Error downloading",
 
-  "utils_warning_mods_directory_empty": "[red]Warning: The Mods directory [magenta]{mods_dir_path}[/magenta] is empty![/red]\nPlease add your mod files.",
-  "utils_warning_directory_in_mods_folder": "[red]Warning: Directory found in Mods folder: {item_name}.[/red] Please ensure you have .zip files, not folders.",
+  "utils_warning_mods_directory_empty": "[indian_red1]Warning: The Mods directory [magenta]{mods_dir_path}[/magenta] is empty![/indian_red1]\nPlease add your mod files.",
+  "utils_warning_directory_in_mods_folder": "[indian_red1]Warning: Directory found in Mods folder: {item_name}.[/indian_red1] Please ensure you have .zip files, not folders.",
   "utils_no_valid_mod_files_found": "No valid mod files found in the Mods folder.",
   "utils_error_invalid_max_workers": "Error: Invalid input for max_workers. Must be an integer.",
   "utils_prg_terminated": "Program terminated.",

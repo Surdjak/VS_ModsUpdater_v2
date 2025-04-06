@@ -325,7 +325,7 @@ def exit_program(msg=None, extra_msg=None, do_exit=True):
         msg += " " + extra_msg
 
     logging.info("Program terminated")
-    print(f"\n\t*** [red]{msg}[/red] ***")
+    print(f"\n\t*** [indian_red1]{msg}[/indian_red1] ***")
 
     if do_exit:
         sys.exit()

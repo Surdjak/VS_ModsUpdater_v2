@@ -478,7 +478,7 @@ def ask_game_version():
         else:
             # If the format is invalid, display an error message and ask for the version again.
             print(
-                f"[bold red]{lang.get_translation("config_invalid_game_version")}[/bold red]")
+                f"[bold indian_red1]{lang.get_translation("config_invalid_game_version")}[/bold indian_red1]")
 
 
 def ask_auto_update():

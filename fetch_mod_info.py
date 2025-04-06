@@ -64,14 +64,14 @@ client = HTTPClient()
 def get_mod_path():
     # Check if ModsPath and path exist in the config.
     if "ModsPath" not in global_cache.config_cache or "path" not in global_cache.config_cache["ModsPath"]:
-        print(f"[red]{lang.get_translation("error")}[/red] {lang.get_translation("fetch_mod_info_error_mods_path_missing")}")
+        print(f"[indian_red1]{lang.get_translation("error")}[/indian_red1] {lang.get_translation("fetch_mod_info_error_mods_path_missing")}")
         logging.error("Error: The ModsPath or 'path' key is missing in the configuration.")
         time.sleep(2)
         sys.exit(1)  # Stop the script with an error code
 
     mods_path = Path(global_cache.config_cache['ModsPath']['path']).resolve()
     if not mods_path.exists():
-        print(f"[red]{lang.get_translation("error")}[/red] {lang.get_translation("fetch_mod_info_error_mods_path_not_found").format(mods_path=mods_path)}")
+        print(f"[indian_red1]{lang.get_translation("error")}[/indian_red1] {lang.get_translation("fetch_mod_info_error_mods_path_not_found").format(mods_path=mods_path)}")
         logging.error(f"Error: The mods path {mods_path} is not found.")
         time.sleep(2)
         sys.exit(1)  # Stop the script with an error code

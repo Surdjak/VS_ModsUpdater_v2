@@ -34,7 +34,7 @@ def save_json(data, filename):
     try:
         with open(filename, 'w', encoding='utf-8') as json_file:
             json.dump(data, json_file, indent=4, ensure_ascii=False)
-        print(f"\n[cyan bold]{lang.get_translation("export_json_modilst")}[/cyan bold]\n[green]{filename}[/green]\n")
+        print(f"\n[bold cyan]{lang.get_translation("export_json_modilst")}[/bold cyan]\n[green]{filename}[/green]\n")
         logging.info(f"{filename} has been created successfully.")
     except PermissionError:
         logging.error(f"Error: No write permission for {filename}. Try running as administrator.")

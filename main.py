@@ -78,7 +78,7 @@ def set_console_title(title):
 def initialize_config():
     # Create config.ini if not present
     if not config.config_exists():
-        print(f'\n\t[yellow]First run detected - Set up config.ini -[/yellow]\n')
+        print(f'\n\t[dark_goldenrod]First run detected - Set up config.ini -[/dark_goldenrod]\n')
         # Configuration des logs avec log_level 'DEBUG' pour la première exécution.
         config.configure_logging('DEBUG')
         language = config.ask_language_choice()
@@ -90,11 +90,11 @@ def initialize_config():
         user_game_version = config.ask_game_version()
         auto_update = config.ask_auto_update()
 
-        print(f"\n- {language_cache["main_language_set_to"]}[blue]{language[1]}[/blue]")
-        print(f"- {language_cache["main_mods_folder_path"]}[blue]{mods_dir}[/blue]")
-        print(f"- {language_cache["main_game_version"]}[blue]{user_game_version}[/blue]")
+        print(f"\n- {language_cache["main_language_set_to"]}[dodger_blue1]{language[1]}[/dodger_blue1]")
+        print(f"- {language_cache["main_mods_folder_path"]}[dodger_blue1]{mods_dir}[/dodger_blue1]")
+        print(f"- {language_cache["main_game_version"]}[dodger_blue1]{user_game_version}[/dodger_blue1]")
         auto_update_choice = "Auto" if auto_update else "Manual"
-        print(f"- {language_cache["main_mods_update_choice"]}[blue]{auto_update_choice}[/blue]")
+        print(f"- {language_cache["main_mods_update_choice"]}[dodger_blue1]{auto_update_choice}[/dodger_blue1]")
 
         # Crée le fichier config.ini
         config.create_config(language, mods_dir, user_game_version, auto_update)
@@ -131,7 +131,7 @@ def initialize_config():
     global_cache.language_cache.update(lang.load_translations(lang_path))
 
     if migration_performed:
-        print(f"[yellow]{lang.get_translation("config_configuration_migrated").format(EXPECTED_VERSION=config.EXPECTED_VERSION)}[/yellow]")
+        print(f"[dark_goldenrod]{lang.get_translation("config_configuration_migrated").format(EXPECTED_VERSION=config.EXPECTED_VERSION)}[/dark_goldenrod]")
 
 
 def welcome_display():
@@ -140,7 +140,7 @@ def welcome_display():
     # Vérifie les mises à jour du script
     new_version, urlscript, latest_version = mu_script_update.modsupdater_update()
     if new_version:
-        text_script_new_version = f'[red]- {lang.get_translation("main_new_version_available")} -[/red]\n{urlscript} -'
+        text_script_new_version = f'[indian_red1]- {lang.get_translation("main_new_version_available")} -[/indian_red1]\n{urlscript} -'
         logging.info(f"Latest version: {latest_version} | Download: {urlscript}")
     else:
         text_script_new_version = f'[bold cyan]- {lang.get_translation("main_no_new_version_available")} - [/bold cyan]'
@@ -228,8 +228,8 @@ if __name__ == "__main__":
     excluded_mods = global_cache.mods_data.get('excluded_mods', [])
 
     if excluded_mods:
-        excluded_title_style = Style(color="yellow", bold=True)
-        excluded_mod_style = Style(color="red")
+        excluded_title_style = Style(color="dark_goldenrod", bold=True)
+        excluded_mod_style = Style(color="indian_red1")
 
         print(Text(f"\n{lang.get_translation('main_excluded_mods_title')}",
                    style=excluded_title_style))
@@ -244,7 +244,7 @@ if __name__ == "__main__":
     log_file_path = global_cache.config_cache.get('LOGS_PATH')
     if log_file_path:
         print(
-            f"[cyan bold]{lang.get_translation('main_logs_location')}[/cyan bold]\n[green]{log_file_path}[/green]\n")
+            f"[bold cyan]{lang.get_translation('main_logs_location')}[/bold cyan]\n[green]{log_file_path}[/green]\n")
     else:
         logging.warning("Could not retrieve logs path from global cache.")
         print(f"\n{lang.get_translation('main_logs_location_error')}\n")

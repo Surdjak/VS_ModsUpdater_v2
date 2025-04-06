@@ -75,7 +75,7 @@ def download_file(url, destination_path, progress_bar, task):
     total_size = int(response.headers.get('content-length', 0))
 
     if total_size == 0:
-        print(f"[bold red]{lang.get_translation("auto_file_size_unknown")}[/bold red]")
+        print(f"[bold indian_red1]{lang.get_translation("auto_file_size_unknown")}[/bold indian_red1]")
 
     with open(destination_path, 'wb') as file:
         for data in response.iter_content(chunk_size=1024):
@@ -152,7 +152,7 @@ def resume_mods_updated():
     logging.info("Followings mods have been updated (More details in updated_mods_changelog.txt):")
     for mod in global_cache.mods_data.get('mods_to_update'):
         print(f"- [green]{mod['Name']} (v{mod['Old_version']} {lang.get_translation("to")} v{mod['New_version']}):[/green]")
-        print(f"[bold][yellow]CHANGELOG:\n{mod['Changelog']}[/yellow][/bold]\n")
+        print(f"[bold][dark_goldenrod]CHANGELOG:\n{mod['Changelog']}[/dark_goldenrod][/bold]\n")
         logging.info(f"\t- {mod['Name']} (v{mod['Old_version']} to v{mod['New_version']})")
 
     # mod_updated_log.txt

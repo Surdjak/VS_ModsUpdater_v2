@@ -30,7 +30,7 @@
   "fetch_changelog_unknown_version": "unbekannte Version",
 
   "fetch_mod_info_error_mods_path_missing": "Der ModsPath oder der Schlüssel 'path' fehlt in der Konfiguration.",
-  "fetch_mod_info_error_mods_path_not_found": "Der Mods-Pfad [yellow]{mods_path}[/yellow] wurde nicht gefunden.",
+  "fetch_mod_info_error_mods_path_not_found": "Der Mods-Pfad [dark_goldenrod]{mods_path}[/dark_goldenrod] wurde nicht gefunden.",
   "fetch_mod_info_scanning_mods": "Mods werden gescannt...",
   "fetch_mod_info_fetching_mod_info": "Mod-Informationen von der API werden abgerufen...",
   "fetch_mod_info_fetching_mod_info_name": "Mod-Informationen werden abgerufen",
@@ -46,8 +46,8 @@
   "manual_download_completed": "Download abgeschlossen für",
   "manual_download_error": "Fehler beim Herunterladen",
 
-  "utils_warning_mods_directory_empty": "[red]Warnung: Der Mods-Ordner [magenta]{mods_dir_path}[/magenta] ist leer![/red]\nBitte fügen Sie Ihre Mod-Dateien hinzu.",
-  "utils_warning_directory_in_mods_folder": "[red]Warnung: Ordner im Mods-Ordner gefunden: {item_name}.[/red] Bitte stellen Sie sicher, dass Sie .zip-Dateien und keine Ordner haben.",
+  "utils_warning_mods_directory_empty": "[indian_red1]Warnung: Der Mods-Ordner [magenta]{mods_dir_path}[/magenta] ist leer![/indian_red1]\nBitte fügen Sie Ihre Mod-Dateien hinzu.",
+  "utils_warning_directory_in_mods_folder": "[indian_red1]Warnung: Ordner im Mods-Ordner gefunden: {item_name}.[/indian_red1] Bitte stellen Sie sicher, dass Sie .zip-Dateien und keine Ordner haben.",
   "utils_no_valid_mod_files_found": "Keine gültigen Mod-Dateien im Mods-Ordner gefunden.",
   "utils_error_invalid_max_workers": "Fehler: Ungültige Eingabe für max_workers. Muss eine ganze Zahl sein.",
   "utils_prg_terminated": "Programm beendet.",
