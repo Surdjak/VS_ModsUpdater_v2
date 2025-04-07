@@ -79,10 +79,10 @@ def initialize_config():
     # Create config.ini if not present
     if not config.config_exists():
         print(f'\n\t[dark_goldenrod]First run detected - Set up config.ini -[/dark_goldenrod]\n')
-        # Configuration des logs avec log_level 'DEBUG' pour la première exécution.
+        # Configure logging with log_level 'DEBUG' for the first run.
         config.configure_logging('DEBUG')
         language = config.ask_language_choice()
-        # Charge les traductions pour la langue choisie
+        # Load translations for the chosen language
         lang_path = Path(f"{config.LANG_PATH}/{language[0]}.json").resolve()
         language_cache = lang.load_translations(lang_path)
 
@@ -93,14 +93,14 @@ def initialize_config():
         print(f"\n- {language_cache["main_language_set_to"]}[dodger_blue1]{language[1]}[/dodger_blue1]")
         print(f"- {language_cache["main_mods_folder_path"]}[dodger_blue1]{mods_dir}[/dodger_blue1]")
         print(f"- {language_cache["main_game_version"]}[dodger_blue1]{user_game_version}[/dodger_blue1]")
-        auto_update_choice = "Auto" if auto_update else "Manual"
+        auto_update_choice = lang.get_translation("config_choose_update_mode_auto") if auto_update else lang.get_translation("config_choose_update_mode_manual")
         print(f"- {language_cache["main_mods_update_choice"]}[dodger_blue1]{auto_update_choice}[/dodger_blue1]")
 
-        # Crée le fichier config.ini
+        # Create config.ini file
         config.create_config(language, mods_dir, user_game_version, auto_update)
         print(f"\n{language_cache["main_config_file_created"]}")
 
-        # Demande si on continue ou si on quitte pour modifier config.ini (par ex. pour ajouter des mods à l'exception.)
+        # Ask if we continue or quit to modify config.ini (e.g., to add mods to the exception list.)
         print(f"{language_cache["main_update_or_modify_config"]}")
         while True:
             user_confirms_update = Prompt.ask(
@@ -135,9 +135,9 @@ def initialize_config():
 
 
 def welcome_display():
-    """Affiche le message de bienvenue centré dans la console."""
+    """Displays the welcome message centered in the console."""
 
-    # Vérifie les mises à jour du script
+    # Checks for script updates
     new_version, urlscript, latest_version = mu_script_update.modsupdater_update()
     if new_version:
         text_script_new_version = f'[indian_red1]- {lang.get_translation("main_new_version_available")} -[/indian_red1]\n{urlscript} -'
@@ -146,17 +146,17 @@ def welcome_display():
         text_script_new_version = f'[dodger_blue1]- {lang.get_translation("main_no_new_version_available")} - [/dodger_blue1]'
         logging.info("ModsUpdater - No new version")
 
-    # Obtient la largeur de la console
+    # Gets the console width
     try:
         column, _ = os.get_terminal_size()
     except OSError:
-        column = 80  # Valeur par défaut si la taille de la console ne peut pas être déterminée
+        column = 80  # Default value if console size cannot be determined
 
-    # Crée le titre et le centre
+    # Creates and centers the title
     txt_title = f'\n\n[dodger_blue1]{lang.get_translation("main_title").format(ModsUpdater_version=__version__)}[/dodger_blue1]'
     lines = txt_title.splitlines() + text_script_new_version.splitlines()
 
-    # Affiche les lignes centrées
+    # Displays the centered lines
     for line in lines:
         console.print(line.center(column))
 
@@ -224,6 +224,9 @@ if __name__ == "__main__":
     # PDF creation
     if not args.no_pdf:
         export_pdf.generate_pdf(global_cache.mods_data['installed_mods'])
+
+    # HTML modlist export
+    # export_html.format_mods_html_data(global_cache.mods_data['installed_mods'])
 
     excluded_mods = global_cache.mods_data.get('excluded_mods', [])
 

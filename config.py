@@ -492,10 +492,10 @@ def ask_auto_update():
             default=lang.get_translation("config_choose_update_mode_auto")
         ).lower()
 
-        if auto_update_input == "auto":
+        if auto_update_input == lang.get_translation("config_choose_update_mode_auto").lower():
             logging.info("Auto update selected.")
             return True
-        elif auto_update_input == "manual":
+        elif auto_update_input == lang.get_translation("config_choose_update_mode_manual").lower():
             logging.info("Manual update selected.")
             return False
         else:
