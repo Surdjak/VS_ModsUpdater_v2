@@ -13,7 +13,8 @@
   "main_title": "ModsUpdater for Vintage Story - v{ModsUpdater_version} (by Laerinok)",
   "main_mods_no_update": "No mods update available.",
   "main_press_enter_to_exit": "Press Enter to exit...",
-  "main_excluded_mods_title": "The following mods are excluded from the update:",
+  "main_max_game_version": "Maximum game version for mod updates: ",
+  "main_excluded_mods_title": "The following mods are excluded from the update: ",
   "main_logs_location": "Logs are saved here: ",
   "main_logs_location_error": "Could not retrieve logs location.",
 

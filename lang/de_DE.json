@@ -13,6 +13,7 @@
   "main_title": "ModsUpdater für Vintage Story - v{ModsUpdater_version} (von Laerinok)",
   "main_mods_no_update": "Keine Mods-Updates verfügbar.",
   "main_press_enter_to_exit": "Drücken Sie die Eingabetaste, um zu beenden...",
+  "main_max_game_version": "Maximale Spielversion für Mod-Updates: ",
   "main_excluded_mods_title": "Die folgenden Mods sind von der Aktualisierung ausgeschlossen:",
   "main_logs_location": "Logs werden hier gespeichert: ",
   "main_logs_location_error": "Protokollspeicherort konnte nicht abgerufen werden.",

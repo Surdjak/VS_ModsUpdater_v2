@@ -13,6 +13,7 @@
   "main_title": "ModsUpdater для Vintage Story - v{ModsUpdater_version} (від Laerinok)",
   "main_mods_no_update": "Оновлення модів недоступні.",
   "main_press_enter_to_exit": "Натисніть Enter для виходу...",
+  "main_max_game_version": "Максимальна версія гри для оновлень модів: ",
   "main_excluded_mods_title": "Наступні моди виключені з оновлення:",
   "main_logs_location": "Журнали збережено тут: ",
   "main_logs_location_error": "Не вдалося отримати розташування журналів.",

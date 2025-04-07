@@ -13,6 +13,7 @@
   "main_title": "Vintage Story用ModsUpdater - v{ModsUpdater_version} (Laerinok作)",
   "main_mods_no_update": "利用可能なMods更新はありません。",
   "main_press_enter_to_exit": "終了するにはEnterキーを押してください...",
+  "main_max_game_version": "Modアップデートの最大ゲームバージョン：",
   "main_excluded_mods_title": "以下のMODはアップデートから除外されています:",
   "main_logs_location": "ログはここに保存されます: ",
   "main_logs_location_error": "ログの場所を取得できませんでした。",
