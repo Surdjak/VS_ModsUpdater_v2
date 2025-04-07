@@ -107,7 +107,8 @@ SUPPORTED_LANGUAGES = {
     "PT": ["pt", "Português (Portugal)", '8'],
     "RU": ["ru", "Русский", '9'],
     "UA": ["uk", "Yкраїнська", '10'],
-    "CN": ["zh", "简体中文", '11']
+    "CN": ["zh", "简体中文", '11'],
+    "KR": ["ko", "한국어", '12']
 }
 DEFAULT_LANGUAGE = "en_US"
 
