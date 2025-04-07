@@ -1,5 +1,5 @@
 
-# - ModsUpdater for Vintage Story -
+# - ModsUpdater for Vintage Story (Windows/Linux)-
 
 This program automates the management of your mods for the game Vintage Story. It allows you to check for updates, download them (automatically or manually), and generate a list of your installed mods in JSON and PDF format.
 ## Key Features
@@ -17,7 +17,7 @@ This program automates the management of your mods for the game Vintage Story. I
 
 **Important Note Regarding Configuration Migration:**
 
-During updates of the ModsUpdater application, the format of the `config.ini` file may evolve. To facilitate these updates, the application includes an automatic migration mechanism. If an older version of the configuration file is detected, the application will attempt to convert it to the new format. In most cases, this migration will occur transparently. However, it is always recommended to check your `config.ini` file after an application update to ensure that all your settings are correctly preserved. In case of any issues, a backup of your old configuration (`config.old`) is kept (in the application directory).
+During updates of the ModsUpdater application, the format of the `config.ini` file may evolve. To facilitate these updates, the application includes an automatic migration mechanism. If an older version of the configuration file is detected, the application will attempt to convert it to the new format. In most cases, this migration will occur transparently. However, it is always recommended to check your `config.ini` file after an application update to ensure that all your settings are correctly preserved. In case of any issues, a backup of your old configuration (`config.old`) is kept (beside the `config.ini`file).
 
 ## Configuration (`config.ini`)
 
@@ -99,14 +99,14 @@ The script can be executed with arguments to customize its behavior:
 **Usage Examples:**
 
 ```bash
-.\VS_ModsUpdater.exe --modspath "D:\Vintage Story\mods" --no-pdf
+VS_ModsUpdater.exe --modspath "D:\Vintage Story\mods" --no-pdf
 ```
 This command will execute the script using the specified mods directory (`D:\Vintage Story\mods`) and will disable the generation of the PDF mod list file. The mods path specified here will replace the one configured in `config.ini`.
 
 
 
 ```bash
-.\VS_ModsUpdater.exe --log-level INFO --max-workers 6 --timeout 15
+VS_ModsUpdater.exe --log-level INFO --max-workers 6 --timeout 15
 ```
 This command will execute the script by setting the log level to `INFO`, using a maximum of 6 threads for mod processing, and a timeout of 15 seconds for HTTP requests. These parameters will replace those defined in the `config.ini` file for this execution.
 
@@ -114,3 +114,6 @@ This command will execute the script by setting the log level to `INFO`, using a
 ## License
 
 This program is distributed under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+
+=============================    
+(Latest update: 2025-04-07)
