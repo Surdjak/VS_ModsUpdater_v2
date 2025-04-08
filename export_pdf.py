@@ -33,7 +33,7 @@ Key functionalities include:
 """
 __author__ = "Laerinok"
 __version__ = "2.0.2"
-__date__ = "2025-04-06"  # Last update
+__date__ = "2025-04-08"  # Last update
 
 
 # export_pdf.py
@@ -343,9 +343,13 @@ def process_mod(mod_info):
     # Capitalize the first letter of the mod name
     mod_name = mod_name.capitalize()
 
-    if mod_info["Mod_url"] != "Local mod":
-        if mod_info['Latest_version_mod_url'] is not None:
-            filename = mod_info['Latest_version_mod_url'].split("dl=")[-1]
+    if mod_info.get('manual_update_mod_skipped'):
+        # If the manual update was skipped, use the filename of the installed version
+        filename = mod_info['Filename']
+        version = mod_info["Local_Version"]
+    elif mod_info["Mod_url"] != "Local mod":
+        if mod_info['latest_version_dl_url'] is not None:
+            filename = mod_info['latest_version_dl_url'].split("dl=")[-1]
             version = mod_info['mod_latest_version_for_game_version']
         else:
             filename = mod_info['Filename']
