@@ -48,7 +48,7 @@ from pathlib import Path
 
 from packaging.version import Version
 from rich import print
-from rich.progress import Progress
+from rich.progress import Progress, TextColumn, BarColumn, TimeElapsedColumn
 
 import config
 import global_cache
@@ -293,7 +293,16 @@ def scan_and_fetch_mod_info(mods_folder):
 
     mod_files = list(mods_folder.iterdir())
     total_files = len(mod_files)
-    with Progress() as progress:
+    fixed_bar_width = 40
+    with Progress(
+            TextColumn("[bold blue]{task.description}", justify="right"),
+            TextColumn("-"),
+            TimeElapsedColumn(),
+            TextColumn("-"),
+            BarColumn(bar_width=fixed_bar_width),
+            "[progress.percentage]{task.percentage:>3.0f}%",
+            "•",
+    ) as progress:
         task = progress.add_task(f"[cyan]{lang.get_translation("fetch_mod_info_scanning_mods")}", total=total_files)
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = []
@@ -314,37 +323,52 @@ def scan_and_fetch_mod_info(mods_folder):
     mod_ids = [mod['ModId'] for mod in global_cache.mods_data["installed_mods"]]
     mods = global_cache.mods_data["installed_mods"]  # Complete list of mods to associate the results.
 
-    with Progress() as progress:
-        api_task = progress.add_task(f"[green]{lang.get_translation("fetch_mod_info_fetching_mod_info")}",
-                                     total=len(mod_ids))
+    with Progress(
+            TextColumn("[bold blue]{task.description}", justify="right"),
+            TextColumn("-"),
+            TimeElapsedColumn(),
+            TextColumn("-"),
+            BarColumn(bar_width=fixed_bar_width),
+            "[progress.percentage]{task.percentage:>3.0f}%",
+            "•",
+            TextColumn("[bold green]{task.fields[mod_name]}"),
+            "•",
+    ) as progress:
+        api_task = progress.add_task(
+            f"[green]{lang.get_translation("fetch_mod_info_fetching_mod_info")}",
+            total=len(mod_ids), mod_name=" ")  # Initialise mod_name avec un espace
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             api_futures = []
-            # Use a dictionary to associate the mod with the future.
             future_to_mod = {}
             for mod in mods:
-                future = executor.submit(get_mod_api_data, mod)  # Pass the entire mod.
+                future = executor.submit(get_mod_api_data, mod)
                 api_futures.append(future)
-                future_to_mod[future] = mod  # Associate each future with its mod.
+                future_to_mod[future] = mod
             for future in as_completed(api_futures):
-                mod = future_to_mod[future]  # Retrieve the mod linked to the future.
-                result = future.result()  # Retrieve the result of each API call.
+                mod = future_to_mod[future]
+                result = future.result()
                 if result is None:
                     logging.warning(
                         f"Skipping mod {mod['Name']} due to missing API data.")
-                    continue  # Passe au mod suivant
+                    continue
                 mod_assetid, mod_url, mainfile_url, mod_latest_version_for_game_version, side = result
                 if mod_assetid and mod_url:
                     mod["AssetId"] = mod_assetid
                     mod["Mod_url"] = mod_url
-                    mod["mod_latest_version_for_game_version"] = mod_latest_version_for_game_version
+                    mod[
+                        "mod_latest_version_for_game_version"] = mod_latest_version_for_game_version
                     mod["Latest_version_mod_url"] = mainfile_url
                     mod["Side"] = side
-                    logging.debug(f"Received assetid: {mod_assetid} and mod_url: {mod_url} for mod: {mod['Name']}")
+                    logging.debug(
+                        f"Received assetid: {mod_assetid} and mod_url: {mod_url} for mod: {mod['Name']}")
                 else:
-                    logging.warning(f"Failed to retrieve assetid and mod_url for mod: {mod['Name']}")
+                    logging.warning(
+                        f"Failed to retrieve assetid and mod_url for mod: {mod['Name']}")
 
                 # Update the progress bar with the mod name.
-                progress.update(api_task, advance=1, description=f'[cyan]{lang.get_translation("fetch_mod_info_fetching_mod_info_name")} [green]{mod['Name']}')
+                progress.update(api_task, advance=1,
+                                description=f'[cyan]{lang.get_translation("fetch_mod_info_fetching_mod_info_name")}',
+                                mod_name=mod['Name'])
 
 
 if __name__ == "__main__":
