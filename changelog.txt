@@ -1,0 +1,11 @@
+v2.0.3:
+- Fixed: Correct mod icon is now displayed in the PDF modlist even if a manual update for that mod was skipped.
+- Fixed: modlist_json for manual mode: download links were not for the correct version.
+- Fixed: Incorrect input values for user responses.
+- Fixed: updated_mods_changelog.txt was not being populated correctly for manual download mode.
+- Added: Display of the maximum game version for mod updates.
+- Added: ko_KR.json file (Korean localization).
+- Improved: Display of the mod information retrieval progress bar.
+- Improved: Display of the mod download progress bar.
+- Improved: Display of the PDF creation progress bar.
+- Updated localization files.
