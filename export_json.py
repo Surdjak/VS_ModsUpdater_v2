@@ -14,7 +14,10 @@ Key functionalities include:
 """
 __author__ = "Laerinok"
 __version__ = "2.0.2"
-__date__ = "2025-04-06"  # Last update
+__date__ = "2025-04-08"  # Last update
+
+
+# export_json.py
 
 
 import json
@@ -48,6 +51,11 @@ def format_mods_data(mods_data):
     formatted_mods = []
 
     for mod_data in mods_data:
+        if mod_data.get('manual_update_mod_skipped'):
+            download_url = mod_data.get("installed_download_url", "")
+        else:
+            download_url = mod_data.get("latest_version_dl_url", "Local mod")
+
         # Create a dictionary for each formatted mod
         formatted_mod = {
             "Name": mod_data.get("Name", ""),
@@ -56,7 +64,7 @@ def format_mods_data(mods_data):
             "Side": mod_data.get("Side", ""),
             "Description": mod_data.get("Description", ""),
             "url_mod": mod_data.get("Mod_url", "Local mod"),
-            "url_download": mod_data.get("Latest_version_mod_url", "Local mod")
+            "installed_download_url": download_url
         }
         # Append the formatted mod to the list
         formatted_mods.append(formatted_mod)

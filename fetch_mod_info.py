@@ -234,6 +234,38 @@ def get_compatible_releases(mod_json, user_game_version, exclude_prerelease):
     return sorted_releases
 
 
+def get_installed_versions_download_urls(sorted_releases, global_cache_installed_mods):
+    """
+    Iterates through global_cache.mods_data["installed_mods"] and for each element,
+    compares Local_Version with release.get("modversion"). If they are equal,
+    retrieves the mainfile of the corresponding element in sorted_releases.
+
+    Args:
+        sorted_releases (list): List of dictionaries containing release information.
+        global_cache_installed_mods (list): List of dictionaries containing installed mods information.
+
+    Returns:
+        dict: A dictionary where the keys are the filenames of the installed mods
+              and the values are the corresponding mainfiles found in sorted_releases.
+    """
+    installed_urls = {}
+
+    if not global_cache_installed_mods or not sorted_releases:
+        return installed_urls
+
+    for installed_mod in global_cache_installed_mods:
+        installed_version = installed_mod.get("Local_Version")
+        installed_filename = installed_mod.get("Filename")
+
+        if installed_version and installed_filename:
+            for release in sorted_releases:
+                if release.get("modversion") == installed_version:
+                    installed_urls[installed_filename] = release.get("mainfile")
+                    break  # Once a match is found, proceed to the next installed mod
+
+    return installed_urls
+
+
 def get_mod_api_data(mod):
     """
     Retrieve mod infos from API
@@ -250,7 +282,7 @@ def get_mod_api_data(mod):
         mod["Mod_url"] = "Local mod"
         global_cache.mods_data["excluded_mods"].append({"Filename": mod['Filename']})
         logging.info(f"{mod['Name']} added to excluded mods")
-        return None, None, None, None, None
+        return None, None, None, None, None, None
     mod_assetid = mod_json["mod"]["assetid"]
     side = mod_json["mod"]["side"]
     mod_url = f"{global_cache.config_cache['URL_MOD_DB']}{mod_assetid}"
@@ -263,22 +295,27 @@ def get_mod_api_data(mod):
             mainfile_url = mainfile_excluded_file[0]
             encoded_mainfile_url = urllib.parse.quote(mainfile_url, safe=':/=?&')
             mod_latest_version_for_game_version = sorted_releases[0]['modversion']
-            return mod_assetid, mod_url, encoded_mainfile_url, mod_latest_version_for_game_version, side
+            return mod_assetid, mod_url, encoded_mainfile_url, mod_latest_version_for_game_version, side, None
         else:
             global_cache.mods_data["installed_mods"][-1]["Side"] = side
             global_cache.mods_data["installed_mods"][-1]["Mod_url"] = mod_url
-            return mod_assetid, mod_url, None, None, side
+            return mod_assetid, mod_url, None, None, side, None
 
     if not sorted_releases:
         global_cache.mods_data["installed_mods"][-1]["Side"] = side
         global_cache.mods_data["installed_mods"][-1]["Mod_url"] = mod_url
-        return mod_assetid, mod_url, None, None, side
+        return mod_assetid, mod_url, None, None, side, None
 
     mainfile_url = sorted_releases[0]['mainfile']
     encoded_mainfile_url = urllib.parse.quote(mainfile_url, safe=':/=?&')
 
+    installed_download_url = get_installed_versions_download_urls(sorted_releases, global_cache.mods_data["installed_mods"])
+    encoded_installed_download_url = None
+    for key, url in installed_download_url.items():
+        encoded_installed_download_url = urllib.parse.quote(url, safe=':/=?&')
+
     mod_latest_version_for_game_version = sorted_releases[0]['modversion']
-    return mod_assetid, mod_url, encoded_mainfile_url, mod_latest_version_for_game_version, side
+    return mod_assetid, mod_url, encoded_mainfile_url, mod_latest_version_for_game_version, side, encoded_installed_download_url
 
 
 # Entry point of the module: scans the mods folder and retrieves mod information.
@@ -351,14 +388,15 @@ def scan_and_fetch_mod_info(mods_folder):
                     logging.warning(
                         f"Skipping mod {mod['Name']} due to missing API data.")
                     continue
-                mod_assetid, mod_url, mainfile_url, mod_latest_version_for_game_version, side = result
+                mod_assetid, mod_url, mainfile_url, mod_latest_version_for_game_version, side, installed_download_url = result
                 if mod_assetid and mod_url:
                     mod["AssetId"] = mod_assetid
                     mod["Mod_url"] = mod_url
                     mod[
                         "mod_latest_version_for_game_version"] = mod_latest_version_for_game_version
-                    mod["Latest_version_mod_url"] = mainfile_url
+                    mod["latest_version_dl_url"] = mainfile_url
                     mod["Side"] = side
+                    mod["installed_download_url"] = installed_download_url
                     logging.debug(
                         f"Received assetid: {mod_assetid} and mod_url: {mod_url} for mod: {mod['Name']}")
                 else:

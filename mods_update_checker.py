@@ -78,7 +78,7 @@ def process_mod(mod, excluded_filenames, mods_to_update):
                 "New_version": mod['mod_latest_version_for_game_version'],
                 "Changelog": changelog,
                 "Filename": mod['Filename'],
-                "url_download": mod['Latest_version_mod_url']
+                "url_download": mod['latest_version_dl_url']
             })
         except Exception as e:
             logging.error(f"Failed to process changelog for {mod['Name']}: {e}")

@@ -96,8 +96,14 @@ def perform_manual_updates(mods_to_update):
             mod_updated_logger.info("\n\n")
 
         else:
+            # add key 'manual_update_mod_skipped' in installed_mods
             print(f"{lang.get_translation("manual_skipping_download")} {mod['Name']}.")
             logging.info(f"Skipping download for {mod['Name']}.")
+            # Update global_cache.mods_data['installed_mods']
+            for installed_mod in global_cache.mods_data['installed_mods']:
+                if installed_mod.get('Filename') == mod.get('Filename'):
+                    installed_mod['manual_update_mod_skipped'] = True
+                    break
 
 
 def download_mod(mod):
