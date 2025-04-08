@@ -220,6 +220,10 @@ if __name__ == "__main__":
             # Download Mods
             mods_manual_update.perform_manual_updates(global_cache.mods_data['mods_to_update'])
 
+        else:
+            print(lang.get_translation("main_mods_no_update"))
+            logging.info("No updates needed for mods.")
+
     # Modlist creation
     # args.no-json handled in export_json
     export_json.format_mods_data(global_cache.mods_data['installed_mods'])
