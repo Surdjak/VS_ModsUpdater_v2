@@ -60,6 +60,7 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image, Para
 from rich import print
 from rich.progress import Progress
 
+import cli
 import config
 import global_cache
 import lang
@@ -145,7 +146,6 @@ def get_default_icon_binary():
 
 # Function to create the PDF with Platypus.Table
 def create_pdf_with_table(modsdata, pdf_path):
-    # ... (cette fonction reste inchangée pour l'instant)
     num_mods = global_cache.total_mods
     # Initialize the PDF document
     doc = SimpleDocTemplate(pdf_path,
@@ -302,20 +302,22 @@ def create_pdf_with_table(modsdata, pdf_path):
     # Add the table to the document
     elements.append(table)
 
-    try:
-        # Build the PDF
-        def draw_background_and_footer(canvas):
-            draw_background(canvas)
-            draw_footer(canvas)
-        doc.build(elements,
-                  onFirstPage=lambda canvas, document: draw_background_and_footer(canvas),
-                  onLaterPages=lambda canvas, document: draw_background_and_footer(canvas))
-        print(f"\n[dodger_blue1]{lang.get_translation("export_pdf_modilst")}[/dodger_blue1]\n[green]{pdf_path}[/green]")
-        logging.info(f"PDF successfully created: {pdf_path}")
-    except PermissionError as e:
-        print(lang.get_translation("export_pdf_permission_error").format(pdf_path=pdf_path))
-        logging.error(f"{e} - PermissionError: Unable to access the file '{pdf_path}'. ")
-        sys.exit()
+    args = cli.parse_args()
+    if not args.no_pdf:
+        try:
+            # Build the PDF
+            def draw_background_and_footer(canvas):
+                draw_background(canvas)
+                draw_footer(canvas)
+            doc.build(elements,
+                      onFirstPage=lambda canvas, document: draw_background_and_footer(canvas),
+                      onLaterPages=lambda canvas, document: draw_background_and_footer(canvas))
+            print(f"\n[dodger_blue1]{lang.get_translation("export_pdf_modilst")}[/dodger_blue1]\n[green]{pdf_path}[/green]")
+            logging.info(f"PDF successfully created: {pdf_path}")
+        except PermissionError as e:
+            print(lang.get_translation("export_pdf_permission_error").format(pdf_path=pdf_path))
+            logging.error(f"{e} - PermissionError: Unable to access the file '{pdf_path}'. ")
+            sys.exit()
 
 
 def get_local_versions_of_excluded_mods(mods_data):

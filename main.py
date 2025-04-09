@@ -226,14 +226,17 @@ if __name__ == "__main__":
             logging.info("No updates needed for mods.")
 
     # Modlist creation
-    # args.no-json handled in export_json
+    # Generate JSON output of the installed mods data.
+    # The export_json module will internally check for the --no-json argument when saving the file,
+    # allowing it to manage its own logic for skipping the export if needed.
     export_json.format_mods_data(global_cache.mods_data['installed_mods'])
 
-    # PDF creation
-    if not args.no_pdf:
-        export_pdf.generate_pdf(global_cache.mods_data['installed_mods'])
+    # Generate a PDF report of the installed mods.
+    # The export_pdf module will internally check for the --no-pdf argument when saving the file,
+    # allowing it to manage its own logic for skipping the export if needed.
+    export_pdf.generate_pdf(global_cache.mods_data['installed_mods'])
 
-    # HTML modlist export
+    # Generate an HTML report of the installed mods.
     if not args.no_html:
         export_html.export_mods_to_html()
 
