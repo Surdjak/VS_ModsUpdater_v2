@@ -116,5 +116,23 @@ This command will execute the script by setting the log level to `INFO`, using a
 
 This program is distributed under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
 
+
+    
+=============================  
+Supported Languages:
+
+    Deutsch
+    English
+    Español
+    Français
+    Italiano
+    日本語
+    한국어 (From gitHub. Thanks purple8cloud)
+    Português (Brasil)
+    Português (Portugal)
+    Русский
+    Yкраїнська
+    简体中文
+
 =============================    
 (Latest update: 2025-04-09)
