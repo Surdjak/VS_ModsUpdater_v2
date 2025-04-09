@@ -36,7 +36,7 @@ __author__ = "Laerinok"
 __version__ = "2.0.2"
 __license__ = "GNU GPL v3"
 __description__ = "Mods Updater for Vintage Story"
-__date__ = "2025-04-06"  # Last update
+__date__ = "2025-04-09"  # Last update
 
 
 # main.py
@@ -57,6 +57,7 @@ from rich.text import Text
 
 import cli
 import config
+import export_html
 import export_json
 import export_pdf
 import fetch_mod_info
@@ -233,7 +234,8 @@ if __name__ == "__main__":
         export_pdf.generate_pdf(global_cache.mods_data['installed_mods'])
 
     # HTML modlist export
-    # export_html.format_mods_html_data(global_cache.mods_data['installed_mods'])
+    if not args.no_html:
+        export_html.export_mods_to_html()
 
     excluded_mods = global_cache.mods_data.get('excluded_mods', [])
 

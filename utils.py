@@ -56,6 +56,12 @@ def print_dict(dictionary):
         print(f"{key}: {value}")
 
 
+def list_display(my_list):
+    """Display each element from the list"""
+    for element in my_list:
+        print(element)
+
+
 def print_config_cache():
     """ Print the global_cache"""
     print(global_cache.config_cache)

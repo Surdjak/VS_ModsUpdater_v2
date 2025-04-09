@@ -55,6 +55,7 @@
     
     "export_json_modilst": "Lista de mods exportada como JSON:",
     "export_pdf_modilst": "Lista de mods exportada como PDF:",
+    "export_html_modilst": "Lista de mods exportada para HTML: ",
     "export_pdf_generating_file": "A gerar PDF...",
     "export_pdf_permission_error": "Não é possível aceder ao ficheiro '{pdf_path}'. O ficheiro pode estar aberto ou em uso por outro processo.\nFeche todas as aplicações que estão a usar este ficheiro e tente novamente.",
     "export_pdf_installed_mods": "mods instaladas",

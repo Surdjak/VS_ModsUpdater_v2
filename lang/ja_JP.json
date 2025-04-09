@@ -55,6 +55,7 @@
     
     "export_json_modilst": "ModリストをJSONとしてエクスポート：",
     "export_pdf_modilst": "ModリストをPDFとしてエクスポート：",
+    "export_html_modilst": "ModリストをHTMLにエクスポートしました: ",
     "export_pdf_generating_file": "PDFを生成中...",
     "export_pdf_permission_error": "ファイル「{pdf_path}」にアクセスできません。ファイルが開いているか、別のプロセスで使用されている可能性があります。\nこのファイルを使用しているアプリケーションをすべて閉じてから、もう一度お試しください。",
     "export_pdf_installed_mods": "インストール済みMod",

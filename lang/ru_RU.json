@@ -55,6 +55,7 @@
     
     "export_json_modilst": "Список модов экспортирован как JSON:",
     "export_pdf_modilst": "Список модов экспортирован как PDF:",
+    "export_html_modilst": "Список модов экспортирован в HTML: ",
     "export_pdf_generating_file": "Генерация PDF...",
     "export_pdf_permission_error": "Не удалось получить доступ к файлу '{pdf_path}'. Возможно, файл открыт или используется другим процессом.\nЗакройте все приложения, использующие этот файл, и попробуйте снова.",
     "export_pdf_installed_mods": "установленные моды",

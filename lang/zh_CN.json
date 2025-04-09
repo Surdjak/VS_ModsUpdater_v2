@@ -55,6 +55,7 @@
     
     "export_json_modilst": "模组列表导出为JSON：",
     "export_pdf_modilst": "模组列表导出为PDF：",
+    "export_html_modilst": "模组列表已导出到 HTML：",
     "export_pdf_generating_file": "正在生成PDF...",
     "export_pdf_permission_error": "无法访问文件“{pdf_path}”。该文件可能已被打开或正被另一个进程使用。\n请关闭所有使用此文件的应用程序，然后重试。",
     "export_pdf_installed_mods": "已安装模组",

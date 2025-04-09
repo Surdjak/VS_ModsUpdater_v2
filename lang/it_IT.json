@@ -55,6 +55,7 @@
     
     "export_json_modilst": "Elenco mod esportato come JSON:",
     "export_pdf_modilst": "Elenco mod esportato come PDF:",
+    "export_html_modilst": "Lista di mod esportata in HTML: ",
     "export_pdf_generating_file": "Generazione del PDF...",
     "export_pdf_permission_error": "Impossibile accedere al file '{pdf_path}'. Il file potrebbe essere aperto o in uso da un altro processo.\nChiudi tutte le applicazioni che utilizzano questo file e riprova.",
     "export_pdf_installed_mods": "mod installati",
