@@ -146,22 +146,22 @@ def welcome_display():
         text_script_new_version = f'[dodger_blue1]- {lang.get_translation("main_no_new_version_available")} - [/dodger_blue1]'
         logging.info("ModsUpdater - No new version")
 
-        # Gets the console width
-        try:
-            column, _ = os.get_terminal_size()
-        except OSError:
-            column = 80  # Default value if console size cannot be determined
+    # Gets the console width
+    try:
+        column, _ = os.get_terminal_size()
+    except OSError:
+        column = 80  # Default value if console size cannot be determined
 
-        # Creates and centers the title
-        txt_title = f'\n\n[dodger_blue1]{lang.get_translation("main_title").format(ModsUpdater_version=__version__)}[/dodger_blue1]'
-        lines = txt_title.splitlines() + text_script_new_version.splitlines()
+    # Creates and centers the title
+    txt_title = f'\n\n[dodger_blue1]{lang.get_translation("main_title").format(ModsUpdater_version=__version__)}[/dodger_blue1]'
+    lines = txt_title.splitlines() + text_script_new_version.splitlines()
 
-        # Displays the centered lines
-        for line in lines:
-            console.print(line.center(column))
+    # Displays the centered lines
+    for line in lines:
+        console.print(line.center(column))
 
-        # main_max_game_version
-        print(f'\n\n\t\t\t[dodger_blue1]{lang.get_translation("main_max_game_version")}{global_cache.config_cache['Game_Version']['user_game_version']}[/dodger_blue1]')
+    # main_max_game_version
+    print(f'\n\n\t\t\t[dodger_blue1]{lang.get_translation("main_max_game_version")}{global_cache.config_cache['Game_Version']['user_game_version']}[/dodger_blue1]')
 
 
 if __name__ == "__main__":
