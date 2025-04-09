@@ -53,7 +53,6 @@ def format_mods_html_data(mods_data):
         description = mod.get("Description", "No description available.")
         icon_binary = mod.get("IconBinary")
         mod_url = mod.get("Mod_url")
-        # icon_html = ""
         if icon_binary:
             base64_icon = base64.b64encode(icon_binary).decode('utf-8')
             mime_type = "image/png"  # Assuming the icons are in PNG format
@@ -79,7 +78,7 @@ def export_mods_to_html():
 
     logging.info("Starting mod list export to HTML.")
     try:
-        mods_data = global_cache.mods_data['installed_mods']
+        mods_data = sorted(global_cache.mods_data['installed_mods'], key=lambda mod: mod.get('Name', '').lower())
         logging.info(f"Found {len(mods_data)} installed mods.")
 
         num_installed_mods = len(mods_data)

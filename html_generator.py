@@ -48,9 +48,10 @@ def generate_basic_table(num_mods):
         str: A string containing the basic HTML structure of the table.
     """
     base_title = lang.get_translation("export_pdf_installed_mods")
-    title = f"{num_mods} {base_title}"
+    title = f"Vintage Story - {base_title}"
     banner_data_url = get_image_data_url("assets/banner.png")
-    banner_html = f'<img src="{banner_data_url}" alt="Banner" style="display: block; margin-left: auto; margin-right: auto; margin-bottom: 10px; width: 95%; max-width: 1200px;">' if banner_data_url else ""
+    banner_html = f'<img src="{banner_data_url}" alt="Banner" style="display: block; margin-left: auto; margin-right: auto; margin-top: 30px; margin-bottom: 100px; width: 95%; max-width: 1200px;">' if banner_data_url else ""
+    footer_text = '<a href="https://mods.vintagestory.at/modsupdater" target="_blank", style="color: black; font-size: 0.8em; text-decoration: none;">ModsUpdater by Laerinok</a>'
 
     html_table = f"""
     <!DOCTYPE html>
@@ -60,14 +61,30 @@ def generate_basic_table(num_mods):
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{title}</title>
     <style>
-        body {{
-            display: flex;
-            flex-direction: column;
-            align-items: center; /* Center the page content */
-            font-family: sans-serif; /* More readable default font */
-            background-color: #c8dc9f; /* Light soft green background color */
-            margin: 20px; /* Margin around the content */
-        }}
+body {{
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center the page content horizontally */
+    font-family: sans-serif;
+    background-color: #c8dc9f;
+    margin: 20px;
+    position: relative; /* Important for the absolute positioning of the footer */
+    min-height: 100vh; /* Ensures the body takes at least the height of the screen */
+    padding-bottom: 60px; /* Adds space at the bottom for the footer */
+    box-sizing: border-box; /* Includes padding and border in the width and height */
+}}
+
+footer {{
+    position: absolute;
+    bottom: 10px;
+    left: 50%; /* Positionne le bord gauche au centre */
+    transform: translateX(-50%); /* Déplace l'élément de la moitié de sa largeur vers la gauche pour le centrer */
+    background-color: #f0f5dc;
+    padding: 5px 10px;
+    border-radius: 5px;
+    box-shadow: 1px 1px 3px #888888;
+    margin-top: 20px; /* Crée un peu d'espace au-dessus du footer */
+}}
         h1 {{
             color: #333;
             text-align: center; /* Center the title */
@@ -123,18 +140,14 @@ def generate_basic_table(num_mods):
 </head>
 <body>
     {banner_html}
-    <h1>{title}</h1>
+    <h1>{num_mods} {base_title}</h1>
     <table>
-        <thead>
-            <tr>
-                <th>Icon</th>
-                <th>Name (Version)</th>
-                <th>Description</th>
-            </tr>
-        </thead>
         <tbody>
-            </tbody>
+        </tbody>
     </table>
+    <footer>
+        {footer_text}
+    </footer>
 </body>
 </html>
     """
