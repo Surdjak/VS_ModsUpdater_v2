@@ -90,8 +90,9 @@ The script can be executed with arguments to customize its behavior:
 
 - `--no-pause`: Disables the pause at the end of the script execution. Useful for non-interactive execution or in automated scripts.
 - `--modspath "<path>"`: Allows you to specify the path to the Vintage Story mods directory directly during execution. The path must be enclosed in quotation marks if it contains spaces. This argument replaces the path defined in the `config.ini` file.
-- `--no-pdf`: Disables the automatic generation of the mod list in PDF format at the end of execution.
 - `--no-json`: Disables the automatic generation of the mod list in JSON format at the end of execution.
+- `--no-pdf`: Disables the automatic generation of the mod list in PDF format at the end of execution.
+- `--no-html`: Disables the automatic generation of the mod list in HTML format at the end of execution.
 - `--log-level <level>`: Sets the level of detail for logs recorded by the application. Possible options are: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` (in uppercase). This argument replaces the log level defined in the `[Logging]` section of `config.ini`.
 - `--max-workers <number>`: Allows you to specify the maximum number of threads to use for mod processing. This argument replaces the `max_workers` value defined in the `[Options]` section of `config.ini`.
 - `--timeout <seconds>`: Sets the timeout in seconds for HTTP requests during update checks and mod downloads. This argument replaces the `timeout` value defined in the `[Options]` section of `config.ini`.
@@ -115,5 +116,23 @@ This command will execute the script by setting the log level to `INFO`, using a
 
 This program is distributed under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
 
+
+    
+=============================  
+Supported Languages:
+
+    Deutsch
+    English
+    Español
+    Français
+    Italiano
+    日本語
+    한국어 (From gitHub. Thanks purple8cloud)
+    Português (Brasil)
+    Português (Portugal)
+    Русский
+    Yкраїнська
+    简体中文
+
 =============================    
-(Latest update: 2025-04-07)
+(Latest update: 2025-04-09)
