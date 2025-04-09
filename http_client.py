@@ -26,7 +26,7 @@ API calls, downloading files, and any HTTP requests requiring a persistent sessi
 
 
 __author__ = "Laerinok"
-__version__ = "2.0.2"
+__version__ = "2.1.0"
 __date__ = "2025-04-03"  # Last update
 
 
