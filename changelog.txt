@@ -1,4 +1,4 @@
-v2.0.3:
+v2.1.0:
 - Fixed (welcome_display): Ensures that the update status message is always displayed. A logic issue prevented the "No new version available" message from being shown.
 - Fixed: Correct mod icon is now displayed in the PDF modlist even if a manual update for that mod was skipped.
 - Fixed: modlist_json for manual mode: download links were not for the correct version.
