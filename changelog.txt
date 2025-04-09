@@ -1,0 +1,17 @@
+v2.1.1:
+- Fixed: Ensure mod icons are extracted when PDF export is disabled. The `if not args.no_pdf:` condition was moved within the `export_pdf` module to wrap only the PDF generation steps. This ensures that the icon extraction logic, which runs before PDF generation, is always executed, making icons available for other export formats (like HTML) even if PDF export is skipped.
+
+v2.1.0:
+- Fixed (welcome_display): Ensures that the update status message is always displayed. A logic issue prevented the "No new version available" message from being shown.
+- Fixed: Correct mod icon is now displayed in the PDF modlist even if a manual update for that mod was skipped.
+- Fixed: modlist_json for manual mode: download links were not for the correct version.
+- Fixed: Incorrect input values for user responses.
+- Fixed: updated_mods_changelog.txt was not being populated correctly for manual download mode.
+- Added: Functionality to export the list of installed mods to an HTML file.
+- Added: New command-line argument `--no-html` to disable HTML mod list export.
+- Added: Display of the maximum game version for mod updates.
+- Added: ko_KR.json file (Korean localization).
+- Improved: Display of the mod information retrieval progress bar.
+- Improved: Display of the mod download progress bar.
+- Improved: Display of the PDF creation progress bar.
+- Updated: Language files with translations for the HTML export feature and the `--no-html` option.

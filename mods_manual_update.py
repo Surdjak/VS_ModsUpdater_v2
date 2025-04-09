@@ -22,7 +22,7 @@ It retrieves changelogs for mods that need updates and prompts the user to downl
 """
 
 __author__ = "Laerinok"
-__version__ = "2.0.2"
+__version__ = "2.1.1"
 __date__ = "2025-04-03"  # Last update
 
 # mods_manual_update.py
@@ -32,9 +32,11 @@ import os
 from pathlib import Path
 
 from rich import print
+from rich.console import Console
 from rich.progress import Progress
 from rich.prompt import Prompt
 
+import config
 import global_cache
 import lang
 from http_client import HTTPClient
@@ -42,9 +44,21 @@ from utils import extract_filename_from_url
 
 timeout = global_cache.config_cache["Options"].get("timeout", 10)
 client = HTTPClient()
+console = Console()
 
 """
-parcourir global_cache['mods_to_update'], afficher changelog, proposer de mettre à jour, et si oui, telecharger la maj
+This module handles manual updates for Vintage Story mods.
+It retrieves changelogs for mods that need updates and prompts the user to download them.
+
+Key functionalities include:
+- Iterating through a list of mods identified for update.
+- Displaying the changelog for each mod to the user in the console.
+- Prompting the user to confirm whether they want to download the update for each mod.
+- If the user confirms, downloading the updated mod file from its download URL.
+- Logging the details of each manual update in both the application log and a dedicated mod update log file.
+- Deleting the previous version of the mod file from the mods directory before downloading the new one.
+- Updating the local version information of the updated mod in the application's global cache.
+- Skipping the download for a mod if the user chooses not to update it manually.
 """
 
 
@@ -59,15 +73,37 @@ def perform_manual_updates(mods_to_update):
         print(f"\n[green]{mod['Name']} (v{mod['Old_version']} {lang.get_translation("to")} v{mod['New_version']})[/green]")
         print(f"[bold][dark_goldenrod]CHANGELOG:\n{mod['Changelog']}[/dark_goldenrod][/bold]\n")
 
-        download_choice = Prompt.ask(lang.get_translation("manual_download_mod_prompt"), choices=["y", "n"], default="y").lower()
+        download_choice = Prompt.ask(lang.get_translation("manual_download_mod_prompt"), choices=[lang.get_translation("yes")[0], lang.get_translation("no")[0]], default=lang.get_translation("yes")[0]).lower()
 
-        if download_choice == "y":
+        if download_choice == lang.get_translation("yes")[0]:
             download_mod(mod)
+            # add to # app_log.txt
             logging.info(
                 f"\t- {mod['Name']} (v{mod['Old_version']} {lang.get_translation("to")} v{mod['New_version']})")
+            # add to # mod_updated_log.txt
+            mod_updated_logger = config.configure_mod_updated_logging()
+            name_version = f"*** {mod['Name']} (v{mod['Old_version']} {lang.get_translation("to")} v{mod['New_version']}) ***"
+            mod_updated_logger.info("================================")
+            mod_updated_logger.info(name_version)
+            if mod.get('Changelog'):
+                # Simple formatting to make the changelog readable.
+                changelog = mod['Changelog']
+
+                changelog = changelog.replace("\n",
+                                              "\n\t")  # Add tabulation for each new line
+                mod_updated_logger.info(f"Changelog:\n\t{changelog}")
+
+            mod_updated_logger.info("\n\n")
+
         else:
+            # add key 'manual_update_mod_skipped' in installed_mods
             print(f"{lang.get_translation("manual_skipping_download")} {mod['Name']}.")
             logging.info(f"Skipping download for {mod['Name']}.")
+            # Update global_cache.mods_data['installed_mods']
+            for installed_mod in global_cache.mods_data['installed_mods']:
+                if installed_mod.get('Filename') == mod.get('Filename'):
+                    installed_mod['manual_update_mod_skipped'] = True
+                    break
 
 
 def download_mod(mod):

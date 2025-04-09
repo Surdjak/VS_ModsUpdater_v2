@@ -22,7 +22,7 @@
 
 
 __author__ = "Laerinok"
-__version__ = "2.0.2"  # Don't forget to change EXPECTED_VERSION
+__version__ = "2.1.1"  # Don't forget to change EXPECTED_VERSION
 __date__ = "2025-04-06"  # Last update
 
 
@@ -43,7 +43,7 @@ import lang
 import utils
 
 # The target version after migration
-EXPECTED_VERSION = "2.0.2"
+EXPECTED_VERSION = "2.1.1"
 
 # Variable to enable/disable the download - for my test
 download_enabled = True  # Set to False to disable downloads
@@ -107,7 +107,8 @@ SUPPORTED_LANGUAGES = {
     "PT": ["pt", "Português (Portugal)", '8'],
     "RU": ["ru", "Русский", '9'],
     "UA": ["uk", "Yкраїнська", '10'],
-    "CN": ["zh", "简体中文", '11']
+    "CN": ["zh", "简体中文", '11'],
+    "KR": ["ko", "한국어", '12']
 }
 DEFAULT_LANGUAGE = "en_US"
 
@@ -491,10 +492,10 @@ def ask_auto_update():
             default=lang.get_translation("config_choose_update_mode_auto")
         ).lower()
 
-        if auto_update_input == "auto":
+        if auto_update_input == lang.get_translation("config_choose_update_mode_auto").lower():
             logging.info("Auto update selected.")
             return True
-        elif auto_update_input == "manual":
+        elif auto_update_input == lang.get_translation("config_choose_update_mode_manual").lower():
             logging.info("Manual update selected.")
             return False
         else:

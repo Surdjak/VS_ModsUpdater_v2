@@ -32,8 +32,8 @@ Key functionalities include:
 
 """
 __author__ = "Laerinok"
-__version__ = "2.0.2"
-__date__ = "2025-04-06"  # Last update
+__version__ = "2.1.1"
+__date__ = "2025-04-09"  # Last update
 
 
 # export_pdf.py
@@ -60,6 +60,7 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image, Para
 from rich import print
 from rich.progress import Progress
 
+import cli
 import config
 import global_cache
 import lang
@@ -69,32 +70,37 @@ from utils import validate_workers
 logging.getLogger("PIL").setLevel(logging.WARNING)
 
 
-def resize_image(image_data, max_width=100, max_height=100):
+def resize_image(image_data, max_size=100):
     """
-    Resize the image to fit within the specified max width and height while maintaining the aspect ratio.
+    Resize the image to fit within the specified max width or height while maintaining the aspect ratio.
+    Returns the resized image data in PNG format with compression.
     """
     try:
-        # Load the image into a Pillow object
         image = PILImage.open(BytesIO(image_data))
+        width, height = image.size
 
-        # Calculate the new size preserving the aspect ratio
-        image.thumbnail((max_width, max_height))
+        if width > max_size or height > max_size:
+            if width > height:
+                new_width = max_size
+                new_height = int(height * (max_size / width))
+            else:
+                new_height = max_size
+                new_width = int(width * (max_size / height))
+            image = image.resize((new_width, new_height), PILImage.Resampling.LANCZOS)
 
-        # Save the resized image to a BytesIO object
         output_io = BytesIO()
-        image.save(output_io, format='PNG')
+        image.save(output_io, format='PNG', optimize=True)
         output_io.seek(0)  # Reset pointer to the beginning
-        return output_io
+        return output_io.getvalue()  # Return the binary data
     except Exception as e:
         logging.error(f"Error resizing image: {e}")
-    return None
+    return image_data  # Return original data if resizing fails
 
 
-def extract_icon(zip_path):
+def extract_icon_binary(zip_path):
     """
-    Extracts and resizes 'modicon.png' from the ZIP archive.
-    If the file is not a ZIP file or doesn't contain 'modicon.png', returns a default icon ('assets/no_icon.png').
-    If the file is a ZIP and contains 'modicon.png', resizes and returns the icon.
+    Extracts 'modicon.png' as binary data from the ZIP archive.
+    If the file is not a ZIP file or doesn't contain 'modicon.png', returns the default icon binary.
     """
     try:
         # Check if the file is a ZIP file
@@ -104,51 +110,42 @@ def extract_icon(zip_path):
             decoded_zip_path = Path(decoded_zip_path)
 
             with zipfile.ZipFile(decoded_zip_path, 'r') as zip_ref:
-                # If 'modicon.png' is not in the ZIP, treat it like a non-ZIP file and use default icon
+                # If 'modicon.png' is not in the ZIP, use default icon
                 if 'modicon.png' not in zip_ref.namelist():
                     logging.debug(
                         f"'modicon.png' not found in {zip_path}, using default icon.")
-                    return get_default_icon()
+                    return get_default_icon_binary()
 
                 # Read 'modicon.png' from the ZIP
                 icon_data = zip_ref.read('modicon.png')
                 logging.debug(f"Found 'modicon.png' in {zip_path}.")
-                # Resize the image (adjust max width/height as needed)
-                resized_icon = resize_image(icon_data, max_width=100, max_height=100)
-                if resized_icon:
-                    return resized_icon
+                return icon_data
 
         # If it's not a ZIP file or 'modicon.png' was not found, use the default icon
-        return get_default_icon()
+        return get_default_icon_binary()
 
     except Exception as e:
         logging.error(f"Error extracting icon from {zip_path}: {e}")
-        return get_default_icon()
+        return get_default_icon_binary()
 
 
-def get_default_icon():
+def get_default_icon_binary():
     """
-    Loads and resizes the default icon ('assets/no_icon.png').
+    Loads and returns the binary data of the default icon ('assets/no_icon.png').
     """
     default_icon_path = Path(config.APPLICATION_PATH) / 'assets' / 'no_icon.png'
     if default_icon_path.exists():
         with open(default_icon_path, 'rb') as f:
             icon_data = f.read()
         logging.debug(f"Using default icon from {default_icon_path}.")
-        # Resize the default icon
-        resized_icon = resize_image(icon_data, max_width=100, max_height=100)
-        if resized_icon:
-            return resized_icon
+        return icon_data
     else:
         logging.debug(f"Default icon 'no_icon.png' not found at {default_icon_path}.")
-        return None  # Return None if default icon is not found
+        return None
 
 
 # Function to create the PDF with Platypus.Table
 def create_pdf_with_table(modsdata, pdf_path):
-    """
-    Create a PDF listing all the mods with their icons, names, versions, and descriptions using Platypus.Table.
-    """
     num_mods = global_cache.total_mods
     # Initialize the PDF document
     doc = SimpleDocTemplate(pdf_path,
@@ -299,26 +296,28 @@ def create_pdf_with_table(modsdata, pdf_path):
         ('GRID', (0, 0), (-1, -1), 1, colors.black),                 # Grid lines
         ('FONTNAME', (0, 0), (-1, -1), 'NotoSansCJKsc-Regular'),                 # Normal font for rows
         ('FONTSIZE', (0, 0), (-1, -1), 8),                          # Font size
-        ('BACKGROUND', (0, 0), (-1, -1), (240/255, 245/255, 220/255)),  # Alternating row background (light soft green)
+        ('BACKGROUND', (0, 0), (-1, -1), (240/255, 245 / 255, 220 / 255)),  # Alternating row background (light soft green)
     ]))
 
     # Add the table to the document
     elements.append(table)
 
-    try:
-        # Build the PDF
-        def draw_background_and_footer(canvas):
-            draw_background(canvas)
-            draw_footer(canvas)
-        doc.build(elements,
-                  onFirstPage=lambda canvas, document: draw_background_and_footer(canvas),
-                  onLaterPages=lambda canvas, document: draw_background_and_footer(canvas))
-        print(f"\n[dodger_blue1]{lang.get_translation("export_pdf_modilst")}[/dodger_blue1]\n[green]{pdf_path}[/green]")
-        logging.info(f"PDF successfully created: {pdf_path}")
-    except PermissionError as e:
-        print(lang.get_translation("export_pdf_permission_error").format(pdf_path=pdf_path))
-        logging.error(f"{e} - PermissionError: Unable to access the file '{pdf_path}'. ")
-        sys.exit()
+    args = cli.parse_args()
+    if not args.no_pdf:
+        try:
+            # Build the PDF
+            def draw_background_and_footer(canvas):
+                draw_background(canvas)
+                draw_footer(canvas)
+            doc.build(elements,
+                      onFirstPage=lambda canvas, document: draw_background_and_footer(canvas),
+                      onLaterPages=lambda canvas, document: draw_background_and_footer(canvas))
+            print(f"\n[dodger_blue1]{lang.get_translation("export_pdf_modilst")}[/dodger_blue1]\n[green]{pdf_path}[/green]")
+            logging.info(f"PDF successfully created: {pdf_path}")
+        except PermissionError as e:
+            print(lang.get_translation("export_pdf_permission_error").format(pdf_path=pdf_path))
+            logging.error(f"{e} - PermissionError: Unable to access the file '{pdf_path}'. ")
+            sys.exit()
 
 
 def get_local_versions_of_excluded_mods(mods_data):
@@ -343,9 +342,13 @@ def process_mod(mod_info):
     # Capitalize the first letter of the mod name
     mod_name = mod_name.capitalize()
 
-    if mod_info["Mod_url"] != "Local mod":
-        if mod_info['Latest_version_mod_url'] is not None:
-            filename = mod_info['Latest_version_mod_url'].split("dl=")[-1]
+    if mod_info.get('manual_update_mod_skipped'):
+        # If the manual update was skipped, use the filename of the installed version
+        filename = mod_info['Filename']
+        version = mod_info["Local_Version"]
+    elif mod_info["Mod_url"] != "Local mod":
+        if mod_info['latest_version_dl_url'] is not None:
+            filename = mod_info['latest_version_dl_url'].split("dl=")[-1]
             version = mod_info['mod_latest_version_for_game_version']
         else:
             filename = mod_info['Filename']
@@ -358,14 +361,32 @@ def process_mod(mod_info):
     if mod_info['ModId'] in excluded_local_versions:
         version = excluded_local_versions[mod_info['ModId']]
 
+    icon_binary_data = extract_icon_binary(
+        Path(global_cache.config_cache['ModsPath']['path']) / filename)
+
+    resized_icon_binary_data_pdf = None
+    if icon_binary_data:
+        resized_icon_binary_data_pdf = resize_image(icon_binary_data, max_size=25)  # Resize for PDF
+
+    resized_icon_binary_data_html = None
+    if icon_binary_data:
+        resized_icon_binary_data_html = resize_image(icon_binary_data, max_size=100)  # Resize for HTML
+
+    # Update global_cache.mods_data directly
+    if 'installed_mods' in global_cache.mods_data:
+        for mod in global_cache.mods_data['installed_mods']:
+            if mod.get('ModId') == mod_info['ModId']:
+                mod['IconBinary'] = resized_icon_binary_data_html
+                logging.debug(f"Updated global_cache for mod '{mod_name}' with resized IconBinary.")
+                break  # Found the mod, no need to continue the loop
+
     return {
         mod_info["ModId"]: {
             "name": mod_name,
             "version": version,
             "description": mod_info["Description"] if mod_info["Description"] is not None else "",
             "url_moddb": mod_info["Mod_url"],
-            "icon": extract_icon(
-                Path(global_cache.config_cache['ModsPath']['path']) / filename)
+            "icon": BytesIO(resized_icon_binary_data_pdf) if resized_icon_binary_data_pdf else None  # Use resized for PDF
         }
     }
 

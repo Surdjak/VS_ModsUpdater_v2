@@ -33,10 +33,10 @@ Key functionalities include:
 
 """
 __author__ = "Laerinok"
-__version__ = "2.0.2"
+__version__ = "2.1.1"
 __license__ = "GNU GPL v3"
 __description__ = "Mods Updater for Vintage Story"
-__date__ = "2025-04-06"  # Last update
+__date__ = "2025-04-09"  # Last update
 
 
 # main.py
@@ -57,6 +57,7 @@ from rich.text import Text
 
 import cli
 import config
+import export_html
 import export_json
 import export_pdf
 import fetch_mod_info
@@ -79,10 +80,10 @@ def initialize_config():
     # Create config.ini if not present
     if not config.config_exists():
         print(f'\n\t[dark_goldenrod]First run detected - Set up config.ini -[/dark_goldenrod]\n')
-        # Configuration des logs avec log_level 'DEBUG' pour la première exécution.
+        # Configure logging with log_level 'DEBUG' for the first run.
         config.configure_logging('DEBUG')
         language = config.ask_language_choice()
-        # Charge les traductions pour la langue choisie
+        # Load translations for the chosen language
         lang_path = Path(f"{config.LANG_PATH}/{language[0]}.json").resolve()
         language_cache = lang.load_translations(lang_path)
 
@@ -93,14 +94,14 @@ def initialize_config():
         print(f"\n- {language_cache["main_language_set_to"]}[dodger_blue1]{language[1]}[/dodger_blue1]")
         print(f"- {language_cache["main_mods_folder_path"]}[dodger_blue1]{mods_dir}[/dodger_blue1]")
         print(f"- {language_cache["main_game_version"]}[dodger_blue1]{user_game_version}[/dodger_blue1]")
-        auto_update_choice = "Auto" if auto_update else "Manual"
+        auto_update_choice = lang.get_translation("config_choose_update_mode_auto") if auto_update else lang.get_translation("config_choose_update_mode_manual")
         print(f"- {language_cache["main_mods_update_choice"]}[dodger_blue1]{auto_update_choice}[/dodger_blue1]")
 
-        # Crée le fichier config.ini
+        # Create config.ini file
         config.create_config(language, mods_dir, user_game_version, auto_update)
         print(f"\n{language_cache["main_config_file_created"]}")
 
-        # Demande si on continue ou si on quitte pour modifier config.ini (par ex. pour ajouter des mods à l'exception.)
+        # Ask if we continue or quit to modify config.ini (e.g., to add mods to the exception list.)
         print(f"{language_cache["main_update_or_modify_config"]}")
         while True:
             user_confirms_update = Prompt.ask(
@@ -135,9 +136,9 @@ def initialize_config():
 
 
 def welcome_display():
-    """Affiche le message de bienvenue centré dans la console."""
+    """Displays the welcome message centered in the console."""
 
-    # Vérifie les mises à jour du script
+    # Checks for script updates
     new_version, urlscript, latest_version = mu_script_update.modsupdater_update()
     if new_version:
         text_script_new_version = f'[indian_red1]- {lang.get_translation("main_new_version_available")} -[/indian_red1]\n{urlscript} -'
@@ -146,19 +147,22 @@ def welcome_display():
         text_script_new_version = f'[dodger_blue1]- {lang.get_translation("main_no_new_version_available")} - [/dodger_blue1]'
         logging.info("ModsUpdater - No new version")
 
-    # Obtient la largeur de la console
+    # Gets the console width
     try:
         column, _ = os.get_terminal_size()
     except OSError:
-        column = 80  # Valeur par défaut si la taille de la console ne peut pas être déterminée
+        column = 80  # Default value if console size cannot be determined
 
-    # Crée le titre et le centre
+    # Creates and centers the title
     txt_title = f'\n\n[dodger_blue1]{lang.get_translation("main_title").format(ModsUpdater_version=__version__)}[/dodger_blue1]'
     lines = txt_title.splitlines() + text_script_new_version.splitlines()
 
-    # Affiche les lignes centrées
+    # Displays the centered lines
     for line in lines:
         console.print(line.center(column))
+
+    # main_max_game_version
+    print(f'\n\n\t\t\t[dodger_blue1]{lang.get_translation("main_max_game_version")}{global_cache.config_cache['Game_Version']['user_game_version']}[/dodger_blue1]')
 
 
 if __name__ == "__main__":
@@ -217,13 +221,24 @@ if __name__ == "__main__":
             # Download Mods
             mods_manual_update.perform_manual_updates(global_cache.mods_data['mods_to_update'])
 
+        else:
+            print(lang.get_translation("main_mods_no_update"))
+            logging.info("No updates needed for mods.")
+
     # Modlist creation
-    # args.no-json handled in export_json
+    # Generate JSON output of the installed mods data.
+    # The export_json module will internally check for the --no-json argument when saving the file,
+    # allowing it to manage its own logic for skipping the export if needed.
     export_json.format_mods_data(global_cache.mods_data['installed_mods'])
 
-    # PDF creation
-    if not args.no_pdf:
-        export_pdf.generate_pdf(global_cache.mods_data['installed_mods'])
+    # Generate a PDF report of the installed mods.
+    # The export_pdf module will internally check for the --no-pdf argument when saving the file,
+    # allowing it to manage its own logic for skipping the export if needed.
+    export_pdf.generate_pdf(global_cache.mods_data['installed_mods'])
+
+    # Generate an HTML report of the installed mods.
+    if not args.no_html:
+        export_html.export_mods_to_html()
 
     excluded_mods = global_cache.mods_data.get('excluded_mods', [])
 

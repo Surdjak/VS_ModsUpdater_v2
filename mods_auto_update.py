@@ -32,7 +32,7 @@ Key functionalities include:
 
 """
 __author__ = "Laerinok"
-__version__ = "2.0.2"
+__version__ = "2.1.1"
 __date__ = "2025-04-06"  # Last update
 
 
@@ -46,7 +46,7 @@ from pathlib import Path
 
 from rich import print
 from rich.console import Console
-from rich.progress import Progress
+from rich.progress import Progress, TextColumn, BarColumn, TimeElapsedColumn
 
 import config
 import global_cache
@@ -59,9 +59,9 @@ client = HTTPClient()
 console = Console()
 
 
-def download_file(url, destination_path, progress_bar, task):
+def download_file(url, destination_path):
     """
-    Download the file from the given URL and save it to the destination path with a progress bar using Rich.
+    Download the file from the given URL and save it to the destination path.
     Implements error handling and additional security measures.
     """
     if not config.download_enabled:
@@ -80,7 +80,7 @@ def download_file(url, destination_path, progress_bar, task):
     with open(destination_path, 'wb') as file:
         for data in response.iter_content(chunk_size=1024):
             file.write(data)
-            progress_bar.update(task, advance=len(data))  # Update progress bar in the same task
+            # Ne plus mettre à jour la barre de progression ici
 
     logging.info(f"Download completed: {destination_path}")
 
@@ -89,10 +89,21 @@ def download_mods_to_update(mods_data):
     """
     Download all mods that require updates using multithreading with a progress bar for each download.
     """
-    # Initialize the Rich Progress bar
-    with Progress() as progress:
+    fixed_bar_width = 40
+
+    # Initialize the Rich Progress bar with your custom layout
+    with Progress(
+        TextColumn("[bold blue]{task.description}", justify="right"),
+        TextColumn("-"),
+        TimeElapsedColumn(),
+        TextColumn("-"),
+        BarColumn(bar_width=fixed_bar_width),
+        "[progress.percentage]{task.percentage:>3.0f}%",
+        "•",
+        TextColumn("[bold green]{task.fields[mod_name]}"), # On garde cette ligne
+    ) as progress:
         # Create a single task for all downloads
-        task = progress.add_task(f"[cyan]{lang.get_translation("auto_downloading_mods")}", total=len(mods_data))
+        task = progress.add_task(f"[cyan]{lang.get_translation("auto_downloading_mods")}", total=len(mods_data), mod_name=" ") # Initialise mod_name avec un espace
 
         # Create a thread pool executor for parallel downloads
         max_workers = validate_workers()
@@ -100,7 +111,7 @@ def download_mods_to_update(mods_data):
             futures = []
             for mod in mods_data:
                 url = mod['url_download']
-                # Extract the filename from the URL (using the name from the URL)
+                # Extract the filename from the URL
                 filename = os.path.basename(url)
                 filename = extract_filename_from_url(filename)
 
@@ -108,8 +119,8 @@ def download_mods_to_update(mods_data):
                 destination_folder = Path(global_cache.config_cache['ModsPath']['path']).resolve()
                 destination_path = destination_folder / filename  # Combine folder path and filename
 
-                # Submit download tasks to the thread pool with progress bar
-                futures.append(executor.submit(download_file, url, destination_path, progress, task))
+                # Submit download tasks to the thread pool
+                futures.append(executor.submit(download_file, url, destination_path))
 
                 # Erase old file
                 file_to_erase = mod['Filename']
@@ -137,13 +148,12 @@ def download_mods_to_update(mods_data):
                         installed_mod['Local_Version'] = mod['New_version']
                         break  # Stop searching once found
 
-                # Update the progress for each mod with mod name or file name
-                mod_name = mod['Name']  # Get the mod name from the data
-                progress.update(task, advance=1, description=f"[cyan]{lang.get_translation("auto_downloading_mod_name")} [green]{mod_name}")
-
             # Wait for all downloads to finish
-            for future in futures:
-                future.result()  # This will raise an exception if something went wrong
+            for i, future in enumerate(futures):
+                future.result()
+                mod = mods_data[i]
+                mod_name = mod['Name']
+                progress.update(task, completed=i + 1, mod_name=mod_name)
 
 
 def resume_mods_updated():
@@ -165,15 +175,14 @@ def resume_mods_updated():
         mod_updated_logger.info("================================")
         mod_updated_logger.info(name_version)
         if mod.get('Changelog'):
-            # Formatage simple pour rendre le changelog lisible
+            # Simple formatting to make the changelog readable.
             changelog = mod['Changelog']
 
-            # Si tu veux organiser par section, tu peux ajouter des sauts de ligne ou autres
             changelog = changelog.replace("\n",
-                                          "\n\t")  # Ajouter une tabulation pour chaque nouvelle ligne
+                                          "\n\t")  # Add tabulation for each new line
             mod_updated_logger.info(f"Changelog:\n\t{changelog}")
 
-        mod_updated_logger.info("\n\n")  # Ligne vide pour espacement
+        mod_updated_logger.info("\n\n")
 
 
 if __name__ == "__main__":

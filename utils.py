@@ -17,7 +17,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 __author__ = "Laerinok"
-__version__ = "2.0.2"
+__version__ = "2.1.1"
 __date__ = "2025-04-03"  # Last update
 
 
@@ -54,6 +54,12 @@ def print_dict(dictionary):
     """Print a dictionary in a structured format."""
     for key, value in dictionary.items():
         print(f"{key}: {value}")
+
+
+def list_display(my_list):
+    """Display each element from the list"""
+    for element in my_list:
+        print(element)
 
 
 def print_config_cache():
