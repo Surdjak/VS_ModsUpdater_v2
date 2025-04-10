@@ -61,7 +61,7 @@
     "export_pdf_installed_mods": "설치된 모드들",
   
     "error": "에러:",
-    "yes": "네,",
-    "no": "아니오",
+    "yes": "y",
+    "no": "n",
     "to": "까지"
   }
