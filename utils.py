@@ -98,7 +98,7 @@ def check_mods_directory(mods_dir):
     # Loop through all files in the 'Mods' directory
     for item in mods_dir_path.iterdir():
         if item.is_dir():
-            print(lang.get_translation("utils_warning_directory_in_mods_folder"))
+            print(f"{lang.get_translation("utils_warning_directory_in_mods_folder").format(item_name=item.name)}")
             logging.error(f"Warning: Directory found in Mods folder: {item.name}. Please ensure you have .zip files, not folders.")
         elif item.suffix.lower() in ['.zip', '.cs']:
             found_valid_file = True  # We found at least one valid file

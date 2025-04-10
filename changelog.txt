@@ -1,3 +1,6 @@
+v2.1.2:
+- Fixedx: Improved the warning message displayed when a directory is found in the Mods folder. It now includes the name of the directory in question, providing clearer context to the user.
+
 v2.1.1:
 - Fixed: Ensure mod icons are extracted when PDF export is disabled. The `if not args.no_pdf:` condition was moved within the `export_pdf` module to wrap only the PDF generation steps. This ensures that the icon extraction logic, which runs before PDF generation, is always executed, making icons available for other export formats (like HTML) even if PDF export is skipped.
 
