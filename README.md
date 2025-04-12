@@ -2,6 +2,9 @@
 # - ModsUpdater for Vintage Story (Windows/Linux)-
 
 This program automates the management of your mods for the game Vintage Story. It allows you to check for updates, download them (automatically or manually), and generate a list of your installed mods in JSON and PDF format.
+
+[ModsUpdater on ModDB](https://mods.vintagestory.at/modsupdater) / [ModsUpdater for Linux on ModDB](https://mods.vintagestory.at/modsupdaterforlinux)
+
 ## Key Features
 
 - Script Update Check: Checks if a new version of the ModsUpdater tool is available.
