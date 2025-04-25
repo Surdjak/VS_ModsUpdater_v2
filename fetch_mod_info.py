@@ -32,7 +32,7 @@ Key functionalities include:
 
 __author__ = "Laerinok"
 __version__ = "2.1.1"
-__date__ = "2025-04-03"  # Last update
+__date__ = "2025-04-25"  # Last update
 
 # fetch_mod_info.py
 
@@ -50,6 +50,7 @@ from packaging.version import Version
 from rich import print
 from rich.progress import Progress, TextColumn, BarColumn, TimeElapsedColumn
 
+import cli
 import config
 import global_cache
 import lang
@@ -69,7 +70,12 @@ def get_mod_path():
         time.sleep(2)
         sys.exit(1)  # Stop the script with an error code
 
-    mods_path = Path(global_cache.config_cache['ModsPath']['path']).resolve()
+    args = cli.parse_args()
+    if args.modspath:
+        mods_path = args.modspath  # use the argument modspath if present.
+    else:
+        mods_path = Path(global_cache.config_cache['ModsPath']['path']).resolve()
+
     if not mods_path.exists():
         print(f"[indian_red1]{lang.get_translation("error")}[/indian_red1] {lang.get_translation("fetch_mod_info_error_mods_path_not_found").format(mods_path=mods_path)}")
         logging.error(f"Error: The mods path {mods_path} is not found.")
