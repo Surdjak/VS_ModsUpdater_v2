@@ -33,10 +33,10 @@ Key functionalities include:
 
 """
 __author__ = "Laerinok"
-__version__ = "2.1.1"
+__version__ = "2.1.2"
 __license__ = "GNU GPL v3"
 __description__ = "Mods Updater for Vintage Story"
-__date__ = "2025-04-09"  # Last update
+__date__ = "2025-04-25"  # Last update
 
 
 # main.py
@@ -180,12 +180,9 @@ if __name__ == "__main__":
 
     mods_path = fetch_mod_info.get_mod_path()
 
-    if args.modspath:  # use the argument modspath if present.
-        mods_path = args.modspath
-
     # Check if the 'Mods' folder is not empty and contains only archive files, not extracted archive folders.
-
     utils.check_mods_directory(mods_path)
+
     # Fetch mods info
     fetch_mod_info.scan_and_fetch_mod_info(mods_path)
 

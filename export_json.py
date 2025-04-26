@@ -13,7 +13,7 @@ Key functionalities include:
 
 """
 __author__ = "Laerinok"
-__version__ = "2.1.1"
+__version__ = "2.1.2"
 __date__ = "2025-04-08"  # Last update
 
 
