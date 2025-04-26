@@ -32,7 +32,7 @@ Key functionalities include:
 
 __author__ = "Laerinok"
 __version__ = "2.1.2"
-__date__ = "2025-04-25"  # Last update
+__date__ = "2025-04-26"  # Last update
 
 # fetch_mod_info.py
 
@@ -72,7 +72,8 @@ def get_mod_path():
 
     args = cli.parse_args()
     if args.modspath:
-        mods_path = args.modspath  # use the argument modspath if present.
+        mods_path = args.modspath.resolve()  # use the argument modspath if present.
+        global_cache.config_cache['ModsPath']['path'] = mods_path
     else:
         mods_path = Path(global_cache.config_cache['ModsPath']['path']).resolve()
 
