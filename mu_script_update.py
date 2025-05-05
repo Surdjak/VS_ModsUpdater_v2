@@ -30,8 +30,8 @@ Key functionalities include:
 """
 
 __author__ = "Laerinok"
-__version__ = "2.1.2"
-__date__ = "2025-04-01"  # Last update
+__version__ = "2.1.3"
+__date__ = "2025-04-27"  # Last update
 
 # mu_script_update.py
 
@@ -82,7 +82,7 @@ def modsupdater_update():
 
     latest_version = match.group(0) if match else None
     download_link = first_row.select_one("td:nth-of-type(6) a.downloadbutton")
-    download_url = f"{config.URL_BASE_MODS}{download_link['href']}" if download_link else None
+    download_url = f"{config.URL_BASE_MODS}{download_link['href'][1:]}" if download_link else None
 
     # Ensure both version and download URL are found
     if not latest_version or not download_url:
