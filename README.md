@@ -138,4 +138,4 @@ Supported Languages:
     简体中文
 
 =============================    
-(Latest update: 2025-04-09)
+(Latest update: 2025-05-08)
