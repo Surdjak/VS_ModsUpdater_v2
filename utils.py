@@ -251,7 +251,7 @@ def get_latest_game_version(url_api='https://mods.vintagestory.at/api'):
     gameversion_data = response.json()  # Retrieves JSON content
     logging.info(f"Game version data retrieved.")
     # Retrieve the latest version
-    return gameversion_data['gameversions'][-1]['name']
+    return gameversion_data['gameversions'][0]['name']
 
 
 def extract_filename_from_url(url):
