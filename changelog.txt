@@ -1,3 +1,6 @@
+v2.1.4:
+- Fixed: Adapted API call for game version retrieval. The Vintage Story Mods API no longer prepends a 'v' to game version strings (e.g., v1.20.11 is now 1.20.11). The application's logic for fetching the latest game version has been updated to reflect this change, resolving InvalidVersion errors.
+
 v2.1.3:
 - Fixed: The download link for ModsUpdater was broken due to a character issue.
 - Build System: Migrated the binary creation process from Nuitka to cx_Freeze. This change aims to improve build compatibility and simplify the packaging workflow.
