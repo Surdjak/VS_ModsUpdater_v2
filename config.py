@@ -23,7 +23,7 @@
 
 __author__ = "Laerinok"
 __version__ = "2.1.3"  # Don't forget to change EXPECTED_VERSION
-__date__ = "2025-06-02"  # Last update
+__date__ = "2025-04-06"  # Last update
 
 
 # config.py
@@ -188,7 +188,7 @@ def rename_old_config(config_file_path):
 
 def read_version_from_config_file():
     config_parser = configparser.ConfigParser()
-    config_parser.read(CONFIG_FILE, encoding='utf-8')  # Read the configuration file
+    config_parser.read(CONFIG_FILE)  # Read the configuration file
     return config_parser.get('ModsUpdater', 'version', fallback=None)
 
 
@@ -286,7 +286,7 @@ def migrate_config(old_config):
 
     # Step 5: Write the updated configuration while preserving section order
     try:
-        with open(CONFIG_FILE, "w", encoding='utf-8') as configfile:
+        with open(CONFIG_FILE, "w") as configfile:
             for section in DEFAULT_CONFIG.keys():
                 if section in new_config:
                     configfile.write(f"[{section}]\n")
@@ -321,7 +321,7 @@ def create_config(language, mod_folder, user_game_version, auto_update):
         for key, value in options.items():
             config_parser.set(section, key, str(value))
     try:
-        with open(CONFIG_FILE, 'w', encoding='utf-8') as configfile:
+        with open(CONFIG_FILE, 'w') as configfile:
             config_parser.write(configfile)
             logging.info(f"Config.ini file created at {CONFIG_FILE}")
     except (FileNotFoundError, IOError, PermissionError) as e:
@@ -340,7 +340,7 @@ def load_config():
 
     try:
         config_parser = configparser.ConfigParser()
-        config_parser.read(CONFIG_FILE, encoding='utf-8')
+        config_parser.read(CONFIG_FILE)
 
         # ### Populate global_cache ###
         global_cache.config_cache['APPLICATION_PATH'] = APPLICATION_PATH
