@@ -22,16 +22,15 @@
 """
 __author__ = "Laerinok"
 __version__ = "2.1.3"
-__date__ = "2025-04-01"  # Last update
+__date__ = "2025-06-20"  # Last update
 
 # mods_update_checker.py
 
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-import fetch_changelog
 import global_cache
-from utils import version_compare, check_excluded_mods
+from utils import version_compare, check_excluded_mods, convert_html_to_markdown
 
 
 def check_for_mod_updates():
@@ -71,12 +70,17 @@ def process_mod(mod, excluded_filenames, mods_to_update):
 
     if mod.get("mod_latest_version_for_game_version") and version_compare(mod["Local_Version"], mod["mod_latest_version_for_game_version"]):
         try:
-            changelog = fetch_changelog.get_raw_changelog(mod['Name'], mod['AssetId'], mod['mod_latest_version_for_game_version'])
+            # changelog = fetch_changelog.get_raw_changelog(mod['Name'], mod['AssetId'], mod['mod_latest_version_for_game_version'])
+            # The changelog (HTML) is already available in mod["Changelog"]
+            raw_changelog_html = mod.get("Changelog", "")
+
+            # Convert HTML changelog to Markdown
+            changelog_markdown = convert_html_to_markdown(raw_changelog_html)
             mods_to_update.append({
                 "Name": mod['Name'],
                 "Old_version": mod['Local_Version'],
                 "New_version": mod['mod_latest_version_for_game_version'],
-                "Changelog": changelog,
+                "Changelog": changelog_markdown,
                 "Filename": mod['Filename'],
                 "url_download": mod['latest_version_dl_url']
             })

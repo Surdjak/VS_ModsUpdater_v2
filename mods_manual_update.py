@@ -23,7 +23,7 @@ It retrieves changelogs for mods that need updates and prompts the user to downl
 
 __author__ = "Laerinok"
 __version__ = "2.1.3"
-__date__ = "2025-04-03"  # Last update
+__date__ = "2025-06-20"  # Last update
 
 # mods_manual_update.py
 
@@ -71,7 +71,7 @@ def perform_manual_updates(mods_to_update):
     """
     for mod in mods_to_update:
         print(f"\n[green]{mod['Name']} (v{mod['Old_version']} {lang.get_translation("to")} v{mod['New_version']})[/green]")
-        print(f"[bold][dark_goldenrod]CHANGELOG:\n{mod['Changelog']}[/dark_goldenrod][/bold]\n")
+        print(f"[bold][dark_goldenrod]:\n{mod['Changelog']}[/dark_goldenrod][/bold]\n")
 
         download_choice = Prompt.ask(lang.get_translation("manual_download_mod_prompt"), choices=[lang.get_translation("yes")[0], lang.get_translation("no")[0]], default=lang.get_translation("yes")[0]).lower()
 
@@ -91,7 +91,7 @@ def perform_manual_updates(mods_to_update):
 
                 changelog = changelog.replace("\n",
                                               "\n\t")  # Add tabulation for each new line
-                mod_updated_logger.info(f"Changelog:\n\t{changelog}")
+                mod_updated_logger.info(f"\n\t{changelog}")
 
             mod_updated_logger.info("\n\n")
 
@@ -110,6 +110,9 @@ def download_mod(mod):
     """
     Downloads the specified mod.
     """
+    if not config.download_enabled:
+        logging.info(f"Skipping download - for TEST")
+        return  # Skip download (and erase) if disabled
     url = mod['url_download']
     filename = extract_filename_from_url(os.path.basename(url))
     destination_folder = Path(global_cache.config_cache['ModsPath']['path']).resolve()

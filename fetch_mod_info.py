@@ -32,7 +32,7 @@ Key functionalities include:
 
 __author__ = "Laerinok"
 __version__ = "2.1.3"
-__date__ = "2025-04-26"  # Last update
+__date__ = "2025-06-20"  # Last update
 
 # fetch_mod_info.py
 
@@ -64,9 +64,12 @@ client = HTTPClient()
 
 def get_mod_path():
     # Check if ModsPath and path exist in the config.
-    if "ModsPath" not in global_cache.config_cache or "path" not in global_cache.config_cache["ModsPath"]:
-        print(f"[indian_red1]{lang.get_translation("error")}[/indian_red1] {lang.get_translation("fetch_mod_info_error_mods_path_missing")}")
-        logging.error("Error: The ModsPath or 'path' key is missing in the configuration.")
+    if "ModsPath" not in global_cache.config_cache or "path" not in \
+            global_cache.config_cache["ModsPath"]:
+        print(
+            f"[indian_red1]{lang.get_translation("error")}[/indian_red1] {lang.get_translation("fetch_mod_info_error_mods_path_missing")}")
+        logging.error(
+            "Error: The ModsPath or 'path' key is missing in the configuration.")
         time.sleep(2)
         sys.exit(1)  # Stop the script with an error code
 
@@ -78,7 +81,8 @@ def get_mod_path():
         mods_path = Path(global_cache.config_cache['ModsPath']['path']).resolve()
 
     if not mods_path.exists():
-        print(f"[indian_red1]{lang.get_translation("error")}[/indian_red1] {lang.get_translation("fetch_mod_info_error_mods_path_not_found").format(mods_path=mods_path)}")
+        print(
+            f"[indian_red1]{lang.get_translation("error")}[/indian_red1] {lang.get_translation("fetch_mod_info_error_mods_path_not_found").format(mods_path=mods_path)}")
         logging.error(f"Error: The mods path {mods_path} is not found.")
         time.sleep(2)
         sys.exit(1)  # Stop the script with an error code
@@ -166,7 +170,8 @@ def process_mod_file(file, mods_data, invalid_files):
             invalid_files.append(
                 file.name)  # Add corrupted file name to invalid files list
     elif file.suffix == '.cs':
-        local_mod_version, side, namespace, modid, mod_url_dl, description = get_cs_info(file)
+        local_mod_version, side, namespace, modid, mod_url_dl, description = get_cs_info(
+            file)
         if local_mod_version and namespace and modid:
             mods_data["installed_mods"].append({
                 "Name": namespace,
@@ -202,7 +207,7 @@ def get_mainfile_from_excluded_mods(sorted_releases, excluded_mods):
 
 def get_compatible_releases(mod_json, user_game_version, exclude_prerelease):
     """
-    Retrieve all compatible releases for the mod based on the user_game_version.
+    Retrieve all compatible releases for the mod based on the user_game_version and changelogs
 
     A release is considered compatible if at least one of its tag versions has the same major and minor version
     as user_game_version and is less than or equal to user_game_version.
@@ -218,10 +223,12 @@ def get_compatible_releases(mod_json, user_game_version, exclude_prerelease):
             try:
                 tag_ver = Version(tag.lstrip("v"))
                 # Exclude pre-releases if the option is enabled
-                if exclude_prerelease.lower() == "true" and Version(release['modversion']).is_prerelease:
+                if exclude_prerelease.lower() == "true" and Version(
+                        release['modversion']).is_prerelease:
                     continue
                     # Include release if the tag is compatible
-                if tag_ver <= user_ver and (tag_ver.major, tag_ver.minor) == (user_ver.major, user_ver.minor):
+                if tag_ver <= user_ver and (tag_ver.major, tag_ver.minor) == (
+                        user_ver.major, user_ver.minor):
                     compatible_releases.append(release)
                     break  # Stop checking other tags for this release.
             except Exception:
@@ -275,54 +282,89 @@ def get_installed_versions_download_urls(sorted_releases, global_cache_installed
 
 def get_mod_api_data(mod):
     """
-    Retrieve mod infos from API
+    Retrieve mod infos from API, including the changelog for the latest compatible version.
     """
     modid = mod['ModId']
     logging.debug(f"Attempting to fetch data for mod '{modid}' from API.")
     mod_url_api = f'{config.URL_BASE_MOD_API}{modid}'
     logging.debug(f"Retrieving mod info from: {mod_url_api}")
-    response = client.get(mod_url_api, timeout=int(global_cache.config_cache["Options"]["timeout"]))
-    response.raise_for_status()
-    mod_json = response.json()
-    if mod_json['statuscode'] != '200':  # if mod not on modDB
-        logging.warning(f"Failed to retrieve mod info for mod: {modid} at link {mod_url_api}")
+
+    # Initialize changelog to None
+    changelog = None
+
+    try:
+        response = client.get(mod_url_api, timeout=int(
+            global_cache.config_cache["Options"]["timeout"]))
+        response.raise_for_status()  # Lève une exception pour les codes d'erreur HTTP (4xx ou 5xx)
+        mod_json = response.json()
+    except Exception as e:  # Capturer les erreurs de requête ou de connexion
+        logging.warning(
+            f"Failed to retrieve mod info for mod: {modid} at link {mod_url_api}. Error: {e}")
         mod["Mod_url"] = "Local mod"
         global_cache.mods_data["excluded_mods"].append({"Filename": mod['Filename']})
         logging.info(f"{mod['Name']} added to excluded mods")
-        return None, None, None, None, None, None
+        # Return None for all 7 expected fields, including the new changelog field
+        return None, None, None, None, None, None, None
+
+    if mod_json['statuscode'] != '200':  # if mod not on modDB or other specific API issue
+        logging.warning(
+            f"Failed to retrieve mod info for mod: {modid} (status code {mod_json['statuscode']}) at link {mod_url_api}")
+        mod["Mod_url"] = "Local mod"
+        global_cache.mods_data["excluded_mods"].append({"Filename": mod['Filename']})
+        logging.info(f"{mod['Name']} added to excluded mods")
+        return None, None, None, None, None, None, None  # Add None for changelog
+
     mod_assetid = mod_json["mod"]["assetid"]
     side = mod_json["mod"]["side"]
     mod_url = f"{global_cache.config_cache['URL_MOD_DB']}{mod_assetid}"
     exclude_prerelease = global_cache.config_cache['Options']['exclude_prerelease_mods']
-    sorted_releases = get_compatible_releases(mod_json, global_cache.config_cache['Game_Version']['user_game_version'], exclude_prerelease)
-    mainfile_excluded_file = get_mainfile_from_excluded_mods(sorted_releases, global_cache.mods_data['excluded_mods'])
 
-    if any(excluded_mod['Filename'] == mod['Filename'] for excluded_mod in global_cache.mods_data['excluded_mods']):
+    sorted_releases = get_compatible_releases(mod_json,
+                                              global_cache.config_cache['Game_Version'][
+                                                  'user_game_version'],
+                                              exclude_prerelease)
+
+    if sorted_releases:
+        # If compatible releases are found, retrieve the changelog from the latest one
+        changelog = sorted_releases[0].get('changelog')
+
+    mainfile_excluded_file = get_mainfile_from_excluded_mods(sorted_releases,
+                                                             global_cache.mods_data[
+                                                                 'excluded_mods'])
+
+    if any(excluded_mod['Filename'] == mod['Filename'] for excluded_mod in
+           global_cache.mods_data['excluded_mods']):
         if mainfile_excluded_file:
             mainfile_url = mainfile_excluded_file[0]
             encoded_mainfile_url = urllib.parse.quote(mainfile_url, safe=':/=?&')
             mod_latest_version_for_game_version = sorted_releases[0]['modversion']
-            return mod_assetid, mod_url, encoded_mainfile_url, mod_latest_version_for_game_version, side, None
+            # Add changelog to the return tuple
+            return mod_assetid, mod_url, encoded_mainfile_url, mod_latest_version_for_game_version, side, None, changelog
         else:
             global_cache.mods_data["installed_mods"][-1]["Side"] = side
             global_cache.mods_data["installed_mods"][-1]["Mod_url"] = mod_url
-            return mod_assetid, mod_url, None, None, side, None
+            # Add changelog to the return tuple
+            return mod_assetid, mod_url, None, None, side, None, changelog
 
     if not sorted_releases:
         global_cache.mods_data["installed_mods"][-1]["Side"] = side
         global_cache.mods_data["installed_mods"][-1]["Mod_url"] = mod_url
-        return mod_assetid, mod_url, None, None, side, None
+        # Add changelog to the return tuple (it will be None if sorted_releases is empty)
+        return mod_assetid, mod_url, None, None, side, None, changelog
 
     mainfile_url = sorted_releases[0]['mainfile']
     encoded_mainfile_url = urllib.parse.quote(mainfile_url, safe=':/=?&')
 
-    installed_download_url = get_installed_versions_download_urls(sorted_releases, global_cache.mods_data["installed_mods"])
+    installed_download_url = get_installed_versions_download_urls(sorted_releases,
+                                                                  global_cache.mods_data[
+                                                                      "installed_mods"])
     encoded_installed_download_url = None
     for key, url in installed_download_url.items():
         encoded_installed_download_url = urllib.parse.quote(url, safe=':/=?&')
 
     mod_latest_version_for_game_version = sorted_releases[0]['modversion']
-    return mod_assetid, mod_url, encoded_mainfile_url, mod_latest_version_for_game_version, side, encoded_installed_download_url
+    # Final addition of changelog to the function's return
+    return mod_assetid, mod_url, encoded_mainfile_url, mod_latest_version_for_game_version, side, encoded_installed_download_url, changelog
 
 
 # Entry point of the module: scans the mods folder and retrieves mod information.
@@ -347,7 +389,9 @@ def scan_and_fetch_mod_info(mods_folder):
             "[progress.percentage]{task.percentage:>3.0f}%",
             "•",
     ) as progress:
-        task = progress.add_task(f"[cyan]{lang.get_translation("fetch_mod_info_scanning_mods")}", total=total_files)
+        task = progress.add_task(
+            f"[cyan]{lang.get_translation("fetch_mod_info_scanning_mods")}",
+            total=total_files)
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = []
             for file in mods_folder.iterdir():
@@ -357,7 +401,8 @@ def scan_and_fetch_mod_info(mods_folder):
 
             for idx, future in enumerate(as_completed(futures)):
                 future.result()  # Wait for completion and handle exceptions
-                progress.update(task, advance=1)  # Update the progress bar after each file.
+                progress.update(task,
+                                advance=1)  # Update the progress bar after each file.
 
     # Sort the mods by "Name."
     global_cache.mods_data["installed_mods"].sort(
@@ -365,7 +410,8 @@ def scan_and_fetch_mod_info(mods_folder):
 
     # Prepare the API calls with multithreading and the progress bar.
     mod_ids = [mod['ModId'] for mod in global_cache.mods_data["installed_mods"]]
-    mods = global_cache.mods_data["installed_mods"]  # Complete list of mods to associate the results.
+    mods = global_cache.mods_data[
+        "installed_mods"]  # Complete list of mods to associate the results.
 
     with Progress(
             TextColumn("[bold blue]{task.description}", justify="right"),
@@ -390,12 +436,9 @@ def scan_and_fetch_mod_info(mods_folder):
                 future_to_mod[future] = mod
             for future in as_completed(api_futures):
                 mod = future_to_mod[future]
-                result = future.result()
-                if result is None:
-                    logging.warning(
-                        f"Skipping mod {mod['Name']} due to missing API data.")
-                    continue
-                mod_assetid, mod_url, mainfile_url, mod_latest_version_for_game_version, side, installed_download_url = result
+                # Now unpack 7 values from the result tuple
+                mod_assetid, mod_url, mainfile_url, mod_latest_version_for_game_version, side, installed_download_url, changelog_from_api = future.result()
+
                 if mod_assetid and mod_url:
                     mod["AssetId"] = mod_assetid
                     mod["Mod_url"] = mod_url
@@ -404,11 +447,12 @@ def scan_and_fetch_mod_info(mods_folder):
                     mod["latest_version_dl_url"] = mainfile_url
                     mod["Side"] = side
                     mod["installed_download_url"] = installed_download_url
+                    mod["Changelog"] = changelog_from_api  # Store the changelog
                     logging.debug(
-                        f"Received assetid: {mod_assetid} and mod_url: {mod_url} for mod: {mod['Name']}")
+                        f"Received assetid: {mod_assetid}, mod_url: {mod_url}, and changelog for mod: {mod['Name']}")
                 else:
                     logging.warning(
-                        f"Failed to retrieve assetid and mod_url for mod: {mod['Name']}")
+                        f"Failed to retrieve API data for mod: {mod['Name']}. Skipping update for this mod.")
 
                 # Update the progress bar with the mod name.
                 progress.update(api_task, advance=1,

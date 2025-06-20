@@ -18,7 +18,7 @@
 
 __author__ = "Laerinok"
 __version__ = "2.1.3"
-__date__ = "2025-04-03"  # Last update
+__date__ = "2025-06-20"  # Last update
 
 
 # utils.py
@@ -33,6 +33,7 @@ import zipfile
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
+import html2text
 from packaging.version import Version, InvalidVersion
 from rich import print
 from rich.console import Console
@@ -324,6 +325,17 @@ def backup_mods(mods_to_backup):
 
 def escape_rich_tags(text):
     return text.replace("[", r"\[").replace("]", r"\]")
+
+
+def convert_html_to_markdown(html_content):
+    """
+    Convert HTML content to Markdown.
+    """
+    converter = html2text.HTML2Text()
+    converter.ignore_links = False  # Keep links
+    converter.ignore_images = False  # Keep images
+    converter.body_width = 0  # Prevent forced line breaks
+    return converter.handle(html_content)
 
 
 def exit_program(msg=None, extra_msg=None, do_exit=True):

@@ -33,7 +33,7 @@ Key functionalities include:
 """
 __author__ = "Laerinok"
 __version__ = "2.1.3"
-__date__ = "2025-04-06"  # Last update
+__date__ = "2025-06-20"  # Last update
 
 
 # mods_auto_update.py
@@ -100,10 +100,10 @@ def download_mods_to_update(mods_data):
         BarColumn(bar_width=fixed_bar_width),
         "[progress.percentage]{task.percentage:>3.0f}%",
         "•",
-        TextColumn("[bold green]{task.fields[mod_name]}"), # On garde cette ligne
+        TextColumn("[bold green]{task.fields[mod_name]}"),
     ) as progress:
         # Create a single task for all downloads
-        task = progress.add_task(f"[cyan]{lang.get_translation("auto_downloading_mods")}", total=len(mods_data), mod_name=" ") # Initialise mod_name avec un espace
+        task = progress.add_task(f"[cyan]{lang.get_translation("auto_downloading_mods")}", total=len(mods_data), mod_name=" ")
 
         # Create a thread pool executor for parallel downloads
         max_workers = validate_workers()
@@ -164,7 +164,7 @@ def resume_mods_updated():
         old_version = escape_rich_tags(str(mod['Old_version']))
         new_version = escape_rich_tags(str(mod['New_version']))
         console.print(f"- [green]{mod['Name']} (v{old_version} {lang.get_translation("to")} v{new_version}):[/green]")
-        print(f"[bold][dark_goldenrod]CHANGELOG:\n{mod['Changelog']}[/dark_goldenrod][/bold]\n")
+        print(f"[bold][dark_goldenrod]\n{mod['Changelog']}[/dark_goldenrod][/bold]\n")
         logging.info(f"\t- {mod['Name']} (v{mod['Old_version']} to v{mod['New_version']})")
 
     # mod_updated_log.txt
