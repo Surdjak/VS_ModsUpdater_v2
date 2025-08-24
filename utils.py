@@ -90,7 +90,7 @@ def check_mods_directory(mods_dir):
 
     # Check if the directory is empty
     if not any(mods_dir_path.iterdir()):
-        console.print(lang.get_translation("utils_warning_mods_directory_empty"))
+        console.print(f'{lang.get_translation("utils_warning_mods_directory_empty").format(mods_dir_path=mods_dir_path)}')
         logging.error(f"Warning: The Mods directory {mods_dir_path} is empty!")
         exit_program(extra_msg="Empty mods folder")
 
