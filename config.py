@@ -385,20 +385,20 @@ def load_config():
                 global_cache.mods_data["excluded_mods"].append({"Filename": mod})
 
                 # Handle the game version
-            user_game_version = global_cache.config_cache.get("Game_Version", {}).get(
-                "user_game_version")
-            if user_game_version == "None":
-                user_game_version = None
-            if not user_game_version:
-                latest_game_version = utils.get_latest_game_version()
-                if latest_game_version:
-                    global_cache.config_cache.setdefault("Game_Version", {})[
-                        "user_game_version"] = latest_game_version
-                    logging.info(
-                        f"Game version set to the latest available version: {latest_game_version}")
-                else:
-                    logging.warning(
-                        "Unable to retrieve the latest game version. The version is left empty.")
+                user_game_version = global_cache.config_cache.get("Game_Version", {}).get(
+                    "user_game_version")
+                if user_game_version == "None":
+                    user_game_version = None
+                if not user_game_version:
+                    latest_game_version = utils.get_latest_game_version()
+                    if latest_game_version:
+                        global_cache.config_cache.setdefault("Game_Version", {})[
+                            "user_game_version"] = latest_game_version
+                        logging.info(
+                            f"Game version set to the latest available version: {latest_game_version}")
+                    else:
+                        logging.warning(
+                            "Unable to retrieve the latest game version. The version is left empty.")
     except Exception as e:
         logging.error(f"Error occurred while loading the config.ini file: {e}")
         raise
