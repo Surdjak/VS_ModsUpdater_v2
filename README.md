@@ -99,6 +99,8 @@ The script can be executed with arguments to customize its behavior:
 - `--log-level <level>`: Sets the level of detail for logs recorded by the application. Possible options are: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` (in uppercase). This argument replaces the log level defined in the `[Logging]` section of `config.ini`.
 - `--max-workers <number>`: Allows you to specify the maximum number of threads to use for mod processing. This argument replaces the `max_workers` value defined in the `[Options]` section of `config.ini`.
 - `--timeout <seconds>`: Sets the timeout in seconds for HTTP requests during update checks and mod downloads. This argument replaces the `timeout` value defined in the `[Options]` section of `config.ini`.
+- `--install-modlist`: Download mods from modlist.json to the mods folder.
+- `--force-update`: Force a re-download and re-install of all mods, regardless of version.
 
 **Usage Examples:**
 
@@ -138,4 +140,4 @@ Supported Languages:
     简体中文
 
 =============================    
-(Latest update: 2025-05-08)
+(Latest update: 2025-08-24)

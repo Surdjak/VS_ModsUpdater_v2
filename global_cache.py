@@ -25,8 +25,8 @@ This module handles caching for various global data used throughout the script. 
 - Mod-related data (mod info, updates, etc.)
 """
 __author__ = "Laerinok"
-__version__ = "2.1.3"
-__date__ = "2025-03-28"  # Last update
+__version__ = "2.2.0"
+__date__ = "2025-08-24"  # Last update
 
 
 # global_cache.py

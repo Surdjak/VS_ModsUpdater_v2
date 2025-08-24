@@ -33,10 +33,10 @@ Key functionalities include:
 
 """
 __author__ = "Laerinok"
-__version__ = "2.1.3"
+__version__ = "2.2.0"
 __license__ = "GNU GPL v3"
 __description__ = "Mods Updater for Vintage Story"
-__date__ = "2025-04-25"  # Last update
+__date__ = "2025-08-24"  # Last update
 
 
 # main.py
@@ -64,8 +64,10 @@ import fetch_mod_info
 import global_cache
 import lang
 import mods_auto_update
+import mods_install
 import mods_manual_update
 import mods_update_checker
+from utils import exit_program
 
 console = Console()
 
@@ -180,14 +182,19 @@ if __name__ == "__main__":
 
     mods_path = fetch_mod_info.get_mod_path()
 
+    # Install from modlist.json
+    if args.install_modlist:
+        mods_install.main()
+        exit_program()
+
     # Check if the 'Mods' folder is not empty and contains only archive files, not extracted archive folders.
     utils.check_mods_directory(mods_path)
 
     # Fetch mods info
     fetch_mod_info.scan_and_fetch_mod_info(mods_path)
 
-    # Mods update checker
-    mods_update_checker.check_for_mod_updates()
+    # Check for updates and pass the --force-update flag
+    mods_update_checker.check_for_mod_updates(args.force_update)
 
     # Choice for auto/manual update
     auto_update_str = global_cache.config_cache['Options']['auto_update']

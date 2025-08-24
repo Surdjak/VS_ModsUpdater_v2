@@ -32,8 +32,8 @@ Key functionalities include:
 
 """
 __author__ = "Laerinok"
-__version__ = "2.1.3"
-__date__ = "2025-04-06"  # Last update
+__version__ = "2.2.0"
+__date__ = "2025-08-24"  # Last update
 
 
 # mods_auto_update.py
@@ -42,6 +42,7 @@ __date__ = "2025-04-06"  # Last update
 import logging
 import os
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 from pathlib import Path
 
 from rich import print
@@ -100,17 +101,17 @@ def download_mods_to_update(mods_data):
         BarColumn(bar_width=fixed_bar_width),
         "[progress.percentage]{task.percentage:>3.0f}%",
         "•",
-        TextColumn("[bold green]{task.fields[mod_name]}"), # On garde cette ligne
+        TextColumn("[bold green]{task.fields[mod_name]}"),
     ) as progress:
         # Create a single task for all downloads
-        task = progress.add_task(f"[cyan]{lang.get_translation("auto_downloading_mods")}", total=len(mods_data), mod_name=" ") # Initialise mod_name avec un espace
+        task = progress.add_task(f"[cyan]{lang.get_translation("auto_downloading_mods")}", total=len(mods_data), mod_name=" ")
 
         # Create a thread pool executor for parallel downloads
         max_workers = validate_workers()
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = []
             for mod in mods_data:
-                url = mod['url_download']
+                url = mod['download_url']
                 # Extract the filename from the URL
                 filename = os.path.basename(url)
                 filename = extract_filename_from_url(filename)
@@ -159,27 +160,31 @@ def download_mods_to_update(mods_data):
 def resume_mods_updated():
     # app_log.txt
     print(f"\n{lang.get_translation("auto_mods_updated_resume")}")
-    logging.info("Followings mods have been updated (More details in updated_mods_changelog.txt):")
+    logging.info(
+        "Followings mods have been updated (More details in updated_mods_changelog.txt):")
+    # Capture the current date and time
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
     for mod in global_cache.mods_data.get('mods_to_update'):
         old_version = escape_rich_tags(str(mod['Old_version']))
         new_version = escape_rich_tags(str(mod['New_version']))
-        console.print(f"- [green]{mod['Name']} (v{old_version} {lang.get_translation("to")} v{new_version}):[/green]")
-        print(f"[bold][dark_goldenrod]CHANGELOG:\n{mod['Changelog']}[/dark_goldenrod][/bold]\n")
-        logging.info(f"\t- {mod['Name']} (v{mod['Old_version']} to v{mod['New_version']})")
+
+        console.print(
+            f"- [green]{mod['Name']} (v{old_version} {lang.get_translation("to")} v{new_version})[/green]")
+        print(f"[bold][dark_goldenrod]\n{mod['Changelog']}[/dark_goldenrod][/bold]\n")
+        logging.info(
+            f"\t- {mod['Name']} (v{mod['Old_version']} to v{mod['New_version']})")
 
     # mod_updated_log.txt
     mod_updated_logger = config.configure_mod_updated_logging()
 
     for mod in global_cache.mods_data.get('mods_to_update', []):
-        name_version = f"*** {mod['Name']} (v{mod['Old_version']} {lang.get_translation("to")} v{mod['New_version']}) ***"
+        name_version = f"*** {mod['Name']} (v{mod['Old_version']} {lang.get_translation("to")} v{mod['New_version']}) - Updated on {current_time} ***"
         mod_updated_logger.info("================================")
         mod_updated_logger.info(name_version)
         if mod.get('Changelog'):
-            # Simple formatting to make the changelog readable.
             changelog = mod['Changelog']
-
-            changelog = changelog.replace("\n",
-                                          "\n\t")  # Add tabulation for each new line
+            changelog = changelog.replace("\n", "\n\t")
             mod_updated_logger.info(f"Changelog:\n\t{changelog}")
 
         mod_updated_logger.info("\n\n")

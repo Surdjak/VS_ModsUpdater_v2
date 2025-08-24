@@ -17,8 +17,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 __author__ = "Laerinok"
-__version__ = "2.1.3"
-__date__ = "2025-04-03"  # Last update
+__version__ = "2.2.0"
+__date__ = "2025-08-24"  # Last update
 
 
 # utils.py
@@ -33,6 +33,7 @@ import zipfile
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
+import html2text
 from packaging.version import Version, InvalidVersion
 from rich import print
 from rich.console import Console
@@ -89,7 +90,7 @@ def check_mods_directory(mods_dir):
 
     # Check if the directory is empty
     if not any(mods_dir_path.iterdir()):
-        console.print(lang.get_translation("utils_warning_mods_directory_empty"))
+        console.print(f'{lang.get_translation("utils_warning_mods_directory_empty").format(mods_dir_path=mods_dir_path)}')
         logging.error(f"Warning: The Mods directory {mods_dir_path} is empty!")
         exit_program(extra_msg="Empty mods folder")
 
@@ -251,7 +252,7 @@ def get_latest_game_version(url_api='https://mods.vintagestory.at/api'):
     gameversion_data = response.json()  # Retrieves JSON content
     logging.info(f"Game version data retrieved.")
     # Retrieve the latest version
-    return gameversion_data['gameversions'][0]['name'][1:]
+    return gameversion_data['gameversions'][-1]['name']
 
 
 def extract_filename_from_url(url):
@@ -324,6 +325,17 @@ def backup_mods(mods_to_backup):
 
 def escape_rich_tags(text):
     return text.replace("[", r"\[").replace("]", r"\]")
+
+
+def convert_html_to_markdown(html_content):
+    """
+    Convert HTML content to Markdown.
+    """
+    converter = html2text.HTML2Text()
+    converter.ignore_links = False  # Keep links
+    converter.ignore_images = False  # Keep images
+    converter.body_width = 0  # Prevent forced line breaks
+    return converter.handle(html_content)
 
 
 def exit_program(msg=None, extra_msg=None, do_exit=True):

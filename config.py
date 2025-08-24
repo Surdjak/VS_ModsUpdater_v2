@@ -22,8 +22,8 @@
 
 
 __author__ = "Laerinok"
-__version__ = "2.1.3"  # Don't forget to change EXPECTED_VERSION
-__date__ = "2025-04-06"  # Last update
+__version__ = "2.2.0"  # Don't forget to change EXPECTED_VERSION
+__date__ = "2025-08-24"  # Last update
 
 
 # config.py
@@ -43,7 +43,7 @@ import lang
 import utils
 
 # The target version after migration
-EXPECTED_VERSION = "2.1.3"
+EXPECTED_VERSION = "2.2.0"
 
 # Variable to enable/disable the download - for my test
 download_enabled = True  # Set to False to disable downloads
@@ -188,7 +188,7 @@ def rename_old_config(config_file_path):
 
 def read_version_from_config_file():
     config_parser = configparser.ConfigParser()
-    config_parser.read(CONFIG_FILE)  # Read the configuration file
+    config_parser.read(CONFIG_FILE, encoding='utf-8')  # Read the configuration file
     return config_parser.get('ModsUpdater', 'version', fallback=None)
 
 
@@ -286,7 +286,7 @@ def migrate_config(old_config):
 
     # Step 5: Write the updated configuration while preserving section order
     try:
-        with open(CONFIG_FILE, "w") as configfile:
+        with open(CONFIG_FILE, "w", encoding='utf-8') as configfile:
             for section in DEFAULT_CONFIG.keys():
                 if section in new_config:
                     configfile.write(f"[{section}]\n")
@@ -321,7 +321,7 @@ def create_config(language, mod_folder, user_game_version, auto_update):
         for key, value in options.items():
             config_parser.set(section, key, str(value))
     try:
-        with open(CONFIG_FILE, 'w') as configfile:
+        with open(CONFIG_FILE, 'w', encoding='utf-8') as configfile:
             config_parser.write(configfile)
             logging.info(f"Config.ini file created at {CONFIG_FILE}")
     except (FileNotFoundError, IOError, PermissionError) as e:
@@ -340,7 +340,7 @@ def load_config():
 
     try:
         config_parser = configparser.ConfigParser()
-        config_parser.read(CONFIG_FILE)
+        config_parser.read(CONFIG_FILE, encoding='utf-8')
 
         # ### Populate global_cache ###
         global_cache.config_cache['APPLICATION_PATH'] = APPLICATION_PATH
@@ -364,8 +364,7 @@ def load_config():
             global_cache.config_cache['TEMP_PATH'] = TEMP_PATH
             global_cache.config_cache['LOGS_PATH'] = LOGS_PATH
             global_cache.config_cache['BACKUP_FOLDER'] = BACKUP_FOLDER
-            global_cache.config_cache[
-                'MODLIST_FOLDER'] = MODLIST_FOLDER
+            global_cache.config_cache['MODLIST_FOLDER'] = MODLIST_FOLDER
             global_cache.config_cache['LANG_PATH'] = LANG_PATH
             global_cache.config_cache["MODS_PATHS"] = {
                 "Windows": Path(
@@ -385,20 +384,20 @@ def load_config():
                 global_cache.mods_data["excluded_mods"].append({"Filename": mod})
 
                 # Handle the game version
-            user_game_version = global_cache.config_cache.get("Game_Version", {}).get(
-                "user_game_version")
-            if user_game_version == "None":
-                user_game_version = None
-            if not user_game_version:
-                latest_game_version = utils.get_latest_game_version()
-                if latest_game_version:
-                    global_cache.config_cache.setdefault("Game_Version", {})[
-                        "user_game_version"] = latest_game_version
-                    logging.info(
-                        f"Game version set to the latest available version: {latest_game_version}")
-                else:
-                    logging.warning(
-                        "Unable to retrieve the latest game version. The version is left empty.")
+                user_game_version = global_cache.config_cache.get("Game_Version", {}).get(
+                    "user_game_version")
+                if user_game_version == "None":
+                    user_game_version = None
+                if not user_game_version:
+                    latest_game_version = utils.get_latest_game_version()
+                    if latest_game_version:
+                        global_cache.config_cache.setdefault("Game_Version", {})[
+                            "user_game_version"] = latest_game_version
+                        logging.info(
+                            f"Game version set to the latest available version: {latest_game_version}")
+                    else:
+                        logging.warning(
+                            "Unable to retrieve the latest game version. The version is left empty.")
     except Exception as e:
         logging.error(f"Error occurred while loading the config.ini file: {e}")
         raise

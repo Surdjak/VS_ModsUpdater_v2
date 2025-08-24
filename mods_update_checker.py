@@ -21,20 +21,19 @@
 
 """
 __author__ = "Laerinok"
-__version__ = "2.1.3"
-__date__ = "2025-04-01"  # Last update
+__version__ = "2.2.0"
+__date__ = "2025-08-24"  # Last update
 
 # mods_update_checker.py
 
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-import fetch_changelog
 import global_cache
-from utils import version_compare, check_excluded_mods
+from utils import version_compare, check_excluded_mods, convert_html_to_markdown
 
 
-def check_for_mod_updates():
+def check_for_mod_updates(force_update=False):
     """
     This module automates the process of checking for updates to installed mods.
     It compares local mod versions with the latest available versions and retrieves changelogs for mods that require updates.
@@ -47,38 +46,64 @@ def check_for_mod_updates():
     - Utilizing multithreading to efficiently process multiple mods.
     - Providing detailed logging for debugging and monitoring.
     """
-    check_excluded_mods()  # Update excluded mods list#
-    excluded_filenames = [mod['Filename'] for mod in global_cache.mods_data.get("excluded_mods", [])]
+    check_excluded_mods()  # Update excluded mods list
+    excluded_filenames = [mod['Filename'] for mod in
+                          global_cache.mods_data.get("excluded_mods", [])]
     mods_to_update = []
 
     with ThreadPoolExecutor() as executor:
         futures = []
         for mod in global_cache.mods_data.get("installed_mods", []):
-            futures.append(executor.submit(process_mod, mod, excluded_filenames, mods_to_update))
+            # Pass the force_update flag to the worker function
+            futures.append(executor.submit(process_mod, mod, excluded_filenames, force_update))
+
+        # We collect the results from the threads
         for future in as_completed(futures):
-            future.result()
+            mod_data = future.result()
+            if mod_data:
+                mods_to_update.append(mod_data)
 
-    global_cache.mods_data['mods_to_update'] = sorted(mods_to_update, key=lambda mod: mod["Name"].lower())
+    global_cache.mods_data['mods_to_update'] = sorted(mods_to_update,
+                                                      key=lambda mod: mod[
+                                                          "Name"].lower())
 
 
-def process_mod(mod, excluded_filenames, mods_to_update):
+def process_mod(mod, excluded_filenames, force_update): # Add the new argument here
     """
     Processes a single mod to check for updates and fetch changelog.
+    Returns the mod data if an update is found, otherwise None.
     """
     if mod['Filename'] in excluded_filenames:
         logging.info(f"Skipping excluded mod: {mod['Name']}")
-        return
+        return None  # We return None if the mod is excluded
 
-    if mod.get("mod_latest_version_for_game_version") and version_compare(mod["Local_Version"], mod["mod_latest_version_for_game_version"]):
+    # New condition: force update OR a new version is available
+    if force_update or (mod.get("mod_latest_version_for_game_version") and version_compare(
+            mod["Local_Version"], mod["mod_latest_version_for_game_version"])):
         try:
-            changelog = fetch_changelog.get_raw_changelog(mod['Name'], mod['AssetId'], mod['mod_latest_version_for_game_version'])
-            mods_to_update.append({
+            # Update the download URL in the global cache to match the new version
+            mod['installed_download_url'] = mod['latest_version_dl_url']
+
+            # Gets the changelog. If the key is missing, returns None.
+            raw_changelog_html = mod.get("Changelog")
+
+            # Checks if the changelog is None before trying to convert it
+            changelog_markdown = ""
+            if raw_changelog_html is not None:
+                # Converts the HTML changelog to Markdown
+                changelog_markdown = convert_html_to_markdown(raw_changelog_html)
+            else:
+                logging.info(f"Changelog for {mod['Name']} not available.")
+
+            return {
                 "Name": mod['Name'],
                 "Old_version": mod['Local_Version'],
                 "New_version": mod['mod_latest_version_for_game_version'],
-                "Changelog": changelog,
+                "Changelog": changelog_markdown,
                 "Filename": mod['Filename'],
-                "url_download": mod['latest_version_dl_url']
-            })
+                "download_url": mod['latest_version_dl_url']
+            }
         except Exception as e:
             logging.error(f"Failed to process changelog for {mod['Name']}: {e}")
+            return None
+    return None
