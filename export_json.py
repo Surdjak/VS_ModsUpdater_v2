@@ -51,10 +51,7 @@ def format_mods_data(mods_data):
     formatted_mods = []
 
     for mod_data in mods_data:
-        if mod_data.get('manual_update_mod_skipped'):
-            download_url = mod_data.get("installed_download_url", "")
-        else:
-            download_url = mod_data.get("latest_version_dl_url", "Local mod")
+        download_url = mod_data.get("installed_download_url", "Local mod")
 
         # Create a dictionary for each formatted mod
         formatted_mod = {
