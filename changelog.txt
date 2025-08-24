@@ -1,4 +1,6 @@
 v2.1.4:
+- Added: Added a new command-line argument (--install-mods) to download all mods listed in modlist.json to the designated mods folder.
+- Fixed an issue where the warning message for an empty mods directory was not displaying the directory path correctly.
 - Fixed: Exported JSON data now correctly lists installed mod's download URL. Previously, the installed_download_url could show the latest available version instead of the exact version you have installed. This has been corrected to ensure the exported data is accurate for all mods, regardless of their update status.
 - Fixed and improved mod changelog retrieval. Mod changelog information is now fetched directly from the API.
 - Fixed: Adapted API call for game version retrieval. The Vintage Story Mods API no longer prepends a 'v' to game version strings (e.g., v1.20.11 is now 1.20.11).
