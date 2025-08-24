@@ -110,7 +110,7 @@ def download_mods_to_update(mods_data):
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = []
             for mod in mods_data:
-                url = mod['url_download']
+                url = mod['download_url']
                 # Extract the filename from the URL
                 filename = os.path.basename(url)
                 filename = extract_filename_from_url(filename)

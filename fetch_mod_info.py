@@ -54,9 +54,8 @@ import cli
 import config
 import global_cache
 import lang
-import utils
 from http_client import HTTPClient
-from utils import fix_json, is_zip_valid
+from utils import fix_json, is_zip_valid, validate_workers
 
 timeout = global_cache.config_cache["Options"].get("timeout", 10)
 client = HTTPClient()
@@ -375,7 +374,7 @@ def scan_and_fetch_mod_info(mods_folder):
     """
     invalid_files = []  # List of invalid or corrupted files.
 
-    max_workers = utils.validate_workers()
+    max_workers = validate_workers()
 
     mod_files = list(mods_folder.iterdir())
     total_files = len(mod_files)
@@ -461,5 +460,4 @@ def scan_and_fetch_mod_info(mods_folder):
 
 
 if __name__ == "__main__":
-    # pense-bete only
     pass

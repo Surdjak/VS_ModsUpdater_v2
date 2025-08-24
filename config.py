@@ -23,7 +23,7 @@
 
 __author__ = "Laerinok"
 __version__ = "2.1.3"  # Don't forget to change EXPECTED_VERSION
-__date__ = "2025-06-02"  # Last update
+__date__ = "2025-06-23"  # Last update
 
 
 # config.py
@@ -46,7 +46,7 @@ import utils
 EXPECTED_VERSION = "2.1.3"
 
 # Variable to enable/disable the download - for my test
-download_enabled = True  # Set to False to disable downloads
+download_enabled = False  # Set to False to disable downloads
 
 # Constant for os
 SYSTEM = platform.system()

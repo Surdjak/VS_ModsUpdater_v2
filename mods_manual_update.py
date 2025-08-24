@@ -113,7 +113,7 @@ def download_mod(mod):
     if not config.download_enabled:
         logging.info(f"Skipping download - for TEST")
         return  # Skip download (and erase) if disabled
-    url = mod['url_download']
+    url = mod['download_url']
     filename = extract_filename_from_url(os.path.basename(url))
     destination_folder = Path(global_cache.config_cache['ModsPath']['path']).resolve()
     destination_path = destination_folder / filename
