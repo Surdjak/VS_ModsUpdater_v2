@@ -280,6 +280,14 @@ def get_mod_api_data(mod):
     mod_url = f"{global_cache.config_cache['URL_MOD_DB']}{mod_assetid}"
     exclude_prerelease = global_cache.config_cache['Options']['exclude_prerelease_mods']
 
+    installed_download_urls_dict = get_installed_versions_download_urls(
+        mod_json.get("mod", {}).get("releases", []), [mod])
+
+    encoded_installed_download_url = None
+    if mod['Filename'] in installed_download_urls_dict:
+        url_to_encode = installed_download_urls_dict[mod['Filename']]
+        encoded_installed_download_url = urllib.parse.quote(url_to_encode, safe=':/=?&')
+
     sorted_releases = get_compatible_releases(mod_json,
                                               global_cache.config_cache['Game_Version'][
                                                   'user_game_version'],
@@ -300,24 +308,15 @@ def get_mod_api_data(mod):
         else:
             global_cache.mods_data["installed_mods"][-1]["Side"] = side
             global_cache.mods_data["installed_mods"][-1]["Mod_url"] = mod_url
-            return mod_assetid, mod_url, None, None, side, None, changelog
+            return mod_assetid, mod_url, None, None, side, encoded_installed_download_url, changelog
 
     if not sorted_releases:
         global_cache.mods_data["installed_mods"][-1]["Side"] = side
         global_cache.mods_data["installed_mods"][-1]["Mod_url"] = mod_url
-        return mod_assetid, mod_url, None, None, side, None, changelog
+        return mod_assetid, mod_url, None, None, side, encoded_installed_download_url, changelog
 
     mainfile_url = sorted_releases[0]['mainfile']
     encoded_mainfile_url = urllib.parse.quote(mainfile_url, safe=':/=?&')
-
-    # Correction : Utiliser la nouvelle fonction pour trouver l'URL exacte de la version installée
-    installed_download_urls_dict = get_installed_versions_download_urls(
-        mod_json.get("mod", {}).get("releases", []), [mod])
-
-    encoded_installed_download_url = None
-    if mod['Filename'] in installed_download_urls_dict:
-        url_to_encode = installed_download_urls_dict[mod['Filename']]
-        encoded_installed_download_url = urllib.parse.quote(url_to_encode, safe=':/=?&')
 
     mod_latest_version_for_game_version = sorted_releases[0]['modversion']
     return mod_assetid, mod_url, encoded_mainfile_url, mod_latest_version_for_game_version, side, encoded_installed_download_url, changelog

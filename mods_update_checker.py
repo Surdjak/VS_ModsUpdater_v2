@@ -80,6 +80,9 @@ def process_mod(mod, excluded_filenames):
     if mod.get("mod_latest_version_for_game_version") and version_compare(
             mod["Local_Version"], mod["mod_latest_version_for_game_version"]):
         try:
+            # Update the download URL in the global cache to match the new version
+            mod['installed_download_url'] = mod['latest_version_dl_url']
+
             # Gets the changelog. If the key is missing, returns None.
             raw_changelog_html = mod.get("Changelog")
 
