@@ -1,4 +1,5 @@
 v2.1.4:
+- Added: Update date and time are now displayed in updated_mods_changelog.txt
 - Added: Added a new command-line argument (--install-mods) to download all mods listed in modlist.json to the designated mods folder.
 - Fixed an issue where the warning message for an empty mods directory was not displaying the directory path correctly.
 - Fixed: Exported JSON data now correctly lists installed mod's download URL. Previously, the installed_download_url could show the latest available version instead of the exact version you have installed. This has been corrected to ensure the exported data is accurate for all mods, regardless of their update status.

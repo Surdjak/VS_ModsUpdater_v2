@@ -35,6 +35,7 @@ from rich import print
 from rich.console import Console
 from rich.progress import Progress
 from rich.prompt import Prompt
+from datetime import datetime
 
 import config
 import global_cache
@@ -65,11 +66,10 @@ Key functionalities include:
 def perform_manual_updates(mods_to_update):
     """
     Processes the mods to update, displays changelogs, and prompts the user to download.
-
-    Args:
-        mods_to_update (list): List of mods to update.
     """
     for mod in mods_to_update:
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
         print(f"\n[green]{mod['Name']} (v{mod['Old_version']} {lang.get_translation("to")} v{mod['New_version']})[/green]")
         print(f"[bold][dark_goldenrod]:\n{mod['Changelog']}[/dark_goldenrod][/bold]\n")
 
@@ -77,29 +77,24 @@ def perform_manual_updates(mods_to_update):
 
         if download_choice == lang.get_translation("yes")[0]:
             download_mod(mod)
-            # add to # app_log.txt
+            # Add to # app_log.txt
             logging.info(
-                f"\t- {mod['Name']} (v{mod['Old_version']} {lang.get_translation("to")} v{mod['New_version']})")
-            # add to # mod_updated_log.txt
+                f"\t- {mod['Name']} (v{mod['Old_version']} {lang.get_translation("to")} v{mod['New_version']}) - Updated on {current_time}")
+
+            # Add to # mod_updated_log.txt
             mod_updated_logger = config.configure_mod_updated_logging()
-            name_version = f"*** {mod['Name']} (v{mod['Old_version']} {lang.get_translation("to")} v{mod['New_version']}) ***"
+            name_version = f"*** {mod['Name']} (v{mod['Old_version']} {lang.get_translation("to")} v{mod['New_version']}) - Updated on {current_time} ***"
             mod_updated_logger.info("================================")
             mod_updated_logger.info(name_version)
             if mod.get('Changelog'):
-                # Simple formatting to make the changelog readable.
                 changelog = mod['Changelog']
-
-                changelog = changelog.replace("\n",
-                                              "\n\t")  # Add tabulation for each new line
+                changelog = changelog.replace("\n", "\n\t")
                 mod_updated_logger.info(f"\n\t{changelog}")
 
             mod_updated_logger.info("\n\n")
-
         else:
-            # add key 'manual_update_mod_skipped' in installed_mods
             print(f"{lang.get_translation("manual_skipping_download")} {mod['Name']}.")
             logging.info(f"Skipping download for {mod['Name']}.")
-            # Update global_cache.mods_data['installed_mods']
             for installed_mod in global_cache.mods_data['installed_mods']:
                 if installed_mod.get('Filename') == mod.get('Filename'):
                     installed_mod['manual_update_mod_skipped'] = True

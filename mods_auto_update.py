@@ -33,7 +33,7 @@ Key functionalities include:
 """
 __author__ = "Laerinok"
 __version__ = "2.1.3"
-__date__ = "2025-06-20"  # Last update
+__date__ = "2025-08-24"  # Last update
 
 
 # mods_auto_update.py
@@ -42,6 +42,7 @@ __date__ = "2025-06-20"  # Last update
 import logging
 import os
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 from pathlib import Path
 
 from rich import print
@@ -159,27 +160,31 @@ def download_mods_to_update(mods_data):
 def resume_mods_updated():
     # app_log.txt
     print(f"\n{lang.get_translation("auto_mods_updated_resume")}")
-    logging.info("Followings mods have been updated (More details in updated_mods_changelog.txt):")
+    logging.info(
+        "Followings mods have been updated (More details in updated_mods_changelog.txt):")
+    # Capture the current date and time
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
     for mod in global_cache.mods_data.get('mods_to_update'):
         old_version = escape_rich_tags(str(mod['Old_version']))
         new_version = escape_rich_tags(str(mod['New_version']))
-        console.print(f"- [green]{mod['Name']} (v{old_version} {lang.get_translation("to")} v{new_version}):[/green]")
+
+        console.print(
+            f"- [green]{mod['Name']} (v{old_version} {lang.get_translation("to")} v{new_version})[/green]")
         print(f"[bold][dark_goldenrod]\n{mod['Changelog']}[/dark_goldenrod][/bold]\n")
-        logging.info(f"\t- {mod['Name']} (v{mod['Old_version']} to v{mod['New_version']})")
+        logging.info(
+            f"\t- {mod['Name']} (v{mod['Old_version']} to v{mod['New_version']})")
 
     # mod_updated_log.txt
     mod_updated_logger = config.configure_mod_updated_logging()
 
     for mod in global_cache.mods_data.get('mods_to_update', []):
-        name_version = f"*** {mod['Name']} (v{mod['Old_version']} {lang.get_translation("to")} v{mod['New_version']}) ***"
+        name_version = f"*** {mod['Name']} (v{mod['Old_version']} {lang.get_translation("to")} v{mod['New_version']}) - Updated on {current_time} ***"
         mod_updated_logger.info("================================")
         mod_updated_logger.info(name_version)
         if mod.get('Changelog'):
-            # Simple formatting to make the changelog readable.
             changelog = mod['Changelog']
-
-            changelog = changelog.replace("\n",
-                                          "\n\t")  # Add tabulation for each new line
+            changelog = changelog.replace("\n", "\n\t")
             mod_updated_logger.info(f"Changelog:\n\t{changelog}")
 
         mod_updated_logger.info("\n\n")
