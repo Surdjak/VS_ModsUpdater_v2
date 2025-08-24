@@ -26,7 +26,7 @@ API calls, downloading files, and any HTTP requests requiring a persistent sessi
 
 
 __author__ = "Laerinok"
-__version__ = "2.1.3"
+__version__ = "2.2.0"
 __date__ = "2025-08-24"  # Last update
 
 
@@ -51,6 +51,7 @@ def parse_args():
     parser.add_argument('--max-workers', type=int, help='Set the maximum number of workers for downloads')
     parser.add_argument('--timeout', type=int, help='Set the timeout for downloads')
     parser.add_argument('--install-modlist', action='store_true', help='Download mods from modlist.json to the mods folder.')
+    parser.add_argument('--force-update', action='store_true', help='Force a re-download and re-install of all mods, regardless of version.')
 
     args = parser.parse_args()
 

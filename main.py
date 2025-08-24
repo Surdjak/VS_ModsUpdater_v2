@@ -33,7 +33,7 @@ Key functionalities include:
 
 """
 __author__ = "Laerinok"
-__version__ = "2.1.3"
+__version__ = "2.2.0"
 __license__ = "GNU GPL v3"
 __description__ = "Mods Updater for Vintage Story"
 __date__ = "2025-08-24"  # Last update
@@ -193,8 +193,8 @@ if __name__ == "__main__":
     # Fetch mods info
     fetch_mod_info.scan_and_fetch_mod_info(mods_path)
 
-    # Mods update checker
-    mods_update_checker.check_for_mod_updates()
+    # Check for updates and pass the --force-update flag
+    mods_update_checker.check_for_mod_updates(args.force_update)
 
     # Choice for auto/manual update
     auto_update_str = global_cache.config_cache['Options']['auto_update']

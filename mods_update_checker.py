@@ -21,7 +21,7 @@
 
 """
 __author__ = "Laerinok"
-__version__ = "2.1.3"
+__version__ = "2.2.0"
 __date__ = "2025-08-24"  # Last update
 
 # mods_update_checker.py
@@ -33,7 +33,7 @@ import global_cache
 from utils import version_compare, check_excluded_mods, convert_html_to_markdown
 
 
-def check_for_mod_updates():
+def check_for_mod_updates(force_update=False):
     """
     This module automates the process of checking for updates to installed mods.
     It compares local mod versions with the latest available versions and retrieves changelogs for mods that require updates.
@@ -54,7 +54,8 @@ def check_for_mod_updates():
     with ThreadPoolExecutor() as executor:
         futures = []
         for mod in global_cache.mods_data.get("installed_mods", []):
-            futures.append(executor.submit(process_mod, mod, excluded_filenames))
+            # Pass the force_update flag to the worker function
+            futures.append(executor.submit(process_mod, mod, excluded_filenames, force_update))
 
         # We collect the results from the threads
         for future in as_completed(futures):
@@ -67,7 +68,7 @@ def check_for_mod_updates():
                                                           "Name"].lower())
 
 
-def process_mod(mod, excluded_filenames):
+def process_mod(mod, excluded_filenames, force_update): # Add the new argument here
     """
     Processes a single mod to check for updates and fetch changelog.
     Returns the mod data if an update is found, otherwise None.
@@ -76,9 +77,9 @@ def process_mod(mod, excluded_filenames):
         logging.info(f"Skipping excluded mod: {mod['Name']}")
         return None  # We return None if the mod is excluded
 
-    # We check if an online version is available and if it is more recent
-    if mod.get("mod_latest_version_for_game_version") and version_compare(
-            mod["Local_Version"], mod["mod_latest_version_for_game_version"]):
+    # New condition: force update OR a new version is available
+    if force_update or (mod.get("mod_latest_version_for_game_version") and version_compare(
+            mod["Local_Version"], mod["mod_latest_version_for_game_version"])):
         try:
             # Update the download URL in the global cache to match the new version
             mod['installed_download_url'] = mod['latest_version_dl_url']
@@ -105,4 +106,4 @@ def process_mod(mod, excluded_filenames):
         except Exception as e:
             logging.error(f"Failed to process changelog for {mod['Name']}: {e}")
             return None
-    return None  # We return None if no update is found
+    return None

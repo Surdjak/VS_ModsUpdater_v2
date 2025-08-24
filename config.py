@@ -22,8 +22,8 @@
 
 
 __author__ = "Laerinok"
-__version__ = "2.1.3"  # Don't forget to change EXPECTED_VERSION
-__date__ = "2025-06-23"  # Last update
+__version__ = "2.2.0"  # Don't forget to change EXPECTED_VERSION
+__date__ = "2025-08-24"  # Last update
 
 
 # config.py
@@ -43,10 +43,10 @@ import lang
 import utils
 
 # The target version after migration
-EXPECTED_VERSION = "2.1.3"
+EXPECTED_VERSION = "2.2.0"
 
 # Variable to enable/disable the download - for my test
-download_enabled = False  # Set to False to disable downloads
+download_enabled = True  # Set to False to disable downloads
 
 # Constant for os
 SYSTEM = platform.system()
@@ -364,8 +364,7 @@ def load_config():
             global_cache.config_cache['TEMP_PATH'] = TEMP_PATH
             global_cache.config_cache['LOGS_PATH'] = LOGS_PATH
             global_cache.config_cache['BACKUP_FOLDER'] = BACKUP_FOLDER
-            global_cache.config_cache[
-                'MODLIST_FOLDER'] = MODLIST_FOLDER
+            global_cache.config_cache['MODLIST_FOLDER'] = MODLIST_FOLDER
             global_cache.config_cache['LANG_PATH'] = LANG_PATH
             global_cache.config_cache["MODS_PATHS"] = {
                 "Windows": Path(
