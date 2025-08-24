@@ -28,22 +28,22 @@ The `config.ini` file contains the configuration parameters for the application.
 
 ```ini
 [ModsUpdater]
-version: 2.0.1
+version = 2.0.1
 ```
 * `version`: Current version of the ModsUpdater application (information).
 
 ```ini
 [Logging]
-log_level: INFO
+log_level = INFO
 ```
 * `log_level`: Level of detail for logs recorded by the application (e.g., DEBUG, INFO, WARNING, ERROR). DEBUG will display the most details.
 
 ```ini
 [Options]
-exclude_prerelease_mods: false
-auto_update: true
-max_workers: 4
-timeout 10
+exclude_prerelease_mods = false
+auto_update = true
+max_workers = 4
+timeout = 10
 ```
 * `exclude_prerelease_mods`: true to exclude pre-release mod versions during update checks, false to include them.
 * `auto_update`: true to enable automatic downloading of updates (after checking), false to use manual mode where you confirm each download.
@@ -52,9 +52,9 @@ timeout 10
 
 ```ini
 [Backup_Mods]
-backup_folder`: backup_mods
-max_backups`: 3
-modlist_folder`: Modlist
+backup_folder = backup_mods
+max_backups = 3
+modlist_folder = Modlist
 ```
 * `backup_folder`: Name of the directory (created in the application directory by default) where mod backups will be stored. **You can also specify a full path if you wish to store backups elsewhere.**
 * `max_backups`: Maximum number of mod backups to keep. Older backups will be deleted when this limit is reached.
@@ -62,19 +62,19 @@ modlist_folder`: Modlist
 
 ```ini
 [ModsPath]
-path: D:\Game\VintagestoryData\Mods
+path = D:\Game\VintagestoryData\Mods
 ```
 * `path`: Full path to the directory where your Vintage Story mods are installed on your computer. This is crucial for the application to find your mods. (Example for Windows: D:\Game\VintagestoryData\Mods)
 
 ```ini
 [Language]
-language: en_US
+language = en_US
 ```
 * `language`: Language code to use for the application interface (e.g., en_US for English, fr_FR for French). This value must correspond to the name of a file (without the `.json` extension) present in the `lang` subdirectory of the application. Make sure the corresponding language file exists.
 
 ```ini
 [Game_Version]
-user_game_version: 1.20.5
+user_game_version = 1.20.5
 ```    
 * `user_game_version`:    Maximum game version target for mod updates.
   * If you specify a version (for example, 1.20.5), the application will not download mod updates that are only compatible with Vintage Story versions higher than the one specified.
@@ -82,7 +82,7 @@ user_game_version: 1.20.5
 
 ```ini
 [Mod_Exclusion]
-mods: mod_a.zip, my_old_mod.cs
+mods = mod_a.zip, my_old_mod.cs
 ```
 * `mods`: List of filenames (without the path) of mods to ignore during update checks and downloads. Filenames should be separated by **commas and spaces** (e.g., mod_a.zip, my_old_mod.cs).
 
