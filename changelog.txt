@@ -1,3 +1,11 @@
+v2.3.0:
+- Added: support for a new API to check for ModsUpdater updates.
+- Added: Improved console output with clickable links and better-centered text.
+- Changed: Migrated from web scraping (BeautifulSoup) to a direct API for a more reliable update check.
+- Changed: Separated Windows and Linux update URLs in the configuration file.
+- Fixed: Resolved issues with misaligned text in the console display.
+- Fixed: Removed unused code and imports for better performance and readability.
+
 v2.2.2:
 - Improved the configuration for the game version. The program now automatically uses the latest version of the game if no specific version is indicated in `config.ini`.
 - For clarity, the `config.ini` file now shows 'latest_version' instead of being empty when this option is selected.

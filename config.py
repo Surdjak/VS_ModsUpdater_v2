@@ -118,8 +118,8 @@ URL_BASE_MOD_DOWNLOAD = "https://moddbcdn.vintagestory.at/"
 URL_BASE_MODS = 'https://mods.vintagestory.at/'
 URL_MOD_DB = "https://mods.vintagestory.at/show/mod/"
 URL_SCRIPT = {
-    "windows": 'https://mods.vintagestory.at/modsupdater#tab-files',
-    "linux": 'https://mods.vintagestory.at/modsupdaterforlinux#tab-files'
+    "windows": 'https://mods.vintagestory.at/api/mod/1403',
+    "linux": 'https://mods.vintagestory.at/api/mod/1525'
 }
 
 # Default configuration
