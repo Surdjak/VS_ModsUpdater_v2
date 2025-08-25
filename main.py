@@ -33,7 +33,7 @@ Key functionalities include:
 
 """
 __author__ = "Laerinok"
-__version__ = "2.2.0"
+__version__ = "2.2.1"
 __license__ = "GNU GPL v3"
 __description__ = "Mods Updater for Vintage Story"
 __date__ = "2025-08-25"  # Last update
