@@ -22,8 +22,8 @@
 
 
 __author__ = "Laerinok"
-__version__ = "2.2.1"  # Don't forget to change EXPECTED_VERSION
-__date__ = "2025-08-24"  # Last update
+__version__ = "2.2.2"  # Don't forget to change EXPECTED_VERSION
+__date__ = "2025-08-25"  # Last update
 
 
 # config.py
@@ -43,7 +43,7 @@ import lang
 import utils
 
 # The target version after migration
-EXPECTED_VERSION = "2.2.1"
+EXPECTED_VERSION = "2.2.2"
 
 # Variable to enable/disable the download - for my test
 download_enabled = True  # Set to False to disable downloads

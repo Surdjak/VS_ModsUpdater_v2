@@ -16,7 +16,7 @@
 """
 """
 __author__ = "Laerinok"
-__version__ = "2.2.1"
+__version__ = "2.2.2"
 __date__ = "2025-08-24"  # Last update
 
 
