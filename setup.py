@@ -16,7 +16,7 @@ exe = Executable(
 
 setup(
     name="VS_ModsUpdater",
-    version="2.2.1",
+    version="2.2.2",
     description="ModsUpdater for Vintage Story",
     author="Laerinok",
     license="GNU GPLv3",

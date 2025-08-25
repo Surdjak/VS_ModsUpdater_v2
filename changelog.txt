@@ -1,3 +1,7 @@
+v2.2.2:
+- Improved the configuration for the game version. The program now automatically uses the latest version of the game if no specific version is indicated in `config.ini`.
+- For clarity, the `config.ini` file now shows 'latest_version' instead of being empty when this option is selected.
+
 v2.2.1:
 - Fixed: a bug that caused the application to crash when using the --force-update option on mods that did not have a new version available.
 - Fixed: Addressed an issue where progress messages for specific modlist exports (PDF, JSON) would run even when their respective --no- flags were used.

@@ -22,8 +22,8 @@
 
 
 __author__ = "Laerinok"
-__version__ = "2.2.1"  # Don't forget to change EXPECTED_VERSION
-__date__ = "2025-08-24"  # Last update
+__version__ = "2.2.2"  # Don't forget to change EXPECTED_VERSION
+__date__ = "2025-08-25"  # Last update
 
 
 # config.py
@@ -43,7 +43,7 @@ import lang
 import utils
 
 # The target version after migration
-EXPECTED_VERSION = "2.2.1"
+EXPECTED_VERSION = "2.2.2"
 
 # Variable to enable/disable the download - for my test
 download_enabled = True  # Set to False to disable downloads
@@ -130,7 +130,7 @@ DEFAULT_CONFIG = {
     "Backup_Mods": {"backup_folder": "backup_mods", "max_backups": str(3), "modlist_folder": "modlist"},
     "ModsPath": {"path": MODS_PATHS[SYSTEM]},
     "Language": {"language": DEFAULT_LANGUAGE},
-    "Game_Version": {"user_game_version": str("")},
+    "Game_Version": {"user_game_version": "latest_version"},
     "Mod_Exclusion": {'mods': ""}
 }
 
@@ -247,7 +247,7 @@ def migrate_config(old_config):
         user_game_version = old_config["Game_Version_max"].get("version")
         user_game_version = None if str(
             user_game_version) == "100.0.0" else user_game_version
-        new_config["Game_Version"]["user_game_version"] = user_game_version or 'None'
+        new_config["Game_Version"]["user_game_version"] = user_game_version or 'latest_version'
         logging.debug("Migrated Game_Version_max to user_game_version: %s",
                       user_game_version)
 
@@ -349,55 +349,64 @@ def load_config():
         for section in config_parser.sections():
             global_cache.config_cache[section] = {key: value for key, value in
                                                   config_parser.items(section)}
-            # Fill with constants
-            global_cache.config_cache['SYSTEM'] = platform.system()
-            global_cache.config_cache['HOME_PATH'] = Path.home()
-            global_cache.config_cache['XDG_CONFIG_HOME_PATH'] = os.getenv(
-                'XDG_CONFIG_HOME',
-                str(global_cache.config_cache['HOME_PATH'] / '.config'))
-            global_cache.config_cache['URL_BASE_MOD_API'] = URL_BASE_MOD_API
-            global_cache.config_cache['URL_BASE_MOD_DOWNLOAD'] = URL_BASE_MOD_DOWNLOAD
-            global_cache.config_cache['URL_BASE_MODS'] = URL_BASE_MODS
-            global_cache.config_cache['URL_MOD_DB'] = URL_MOD_DB
-            # Paths
-            global_cache.config_cache['CONFIG_FILE'] = CONFIG_FILE
-            global_cache.config_cache['TEMP_PATH'] = TEMP_PATH
-            global_cache.config_cache['LOGS_PATH'] = LOGS_PATH
-            global_cache.config_cache['BACKUP_FOLDER'] = BACKUP_FOLDER
-            global_cache.config_cache['MODLIST_FOLDER'] = MODLIST_FOLDER
-            global_cache.config_cache['LANG_PATH'] = LANG_PATH
-            global_cache.config_cache["MODS_PATHS"] = {
-                "Windows": Path(
-                    HOME_PATH) / 'AppData' / 'Roaming' / 'VintagestoryData' / 'Mods',
-                "Linux": Path(XDG_CONFIG_HOME_PATH) / 'VintagestoryData' / 'Mods'
-            }
-            # Fill cache with user-agent
-            global_cache.config_cache['USER_AGENTS'] = USER_AGENTS
 
-            # Retrieve excluded mods from the config file
-            excluded_mods = config_parser.get("Mod_Exclusion", "mods",
-                                              fallback="").split(", ")
+        # Fill with constants
+        global_cache.config_cache['SYSTEM'] = platform.system()
+        global_cache.config_cache['HOME_PATH'] = Path.home()
+        global_cache.config_cache['XDG_CONFIG_HOME_PATH'] = os.getenv(
+            'XDG_CONFIG_HOME',
+            str(global_cache.config_cache['HOME_PATH'] / '.config'))
+        global_cache.config_cache['URL_BASE_MOD_API'] = URL_BASE_MOD_API
+        global_cache.config_cache['URL_BASE_MOD_DOWNLOAD'] = URL_BASE_MOD_DOWNLOAD
+        global_cache.config_cache['URL_BASE_MODS'] = URL_BASE_MODS
+        global_cache.config_cache['URL_MOD_DB'] = URL_MOD_DB
+        # Paths
+        global_cache.config_cache['CONFIG_FILE'] = CONFIG_FILE
+        global_cache.config_cache['TEMP_PATH'] = TEMP_PATH
+        global_cache.config_cache['LOGS_PATH'] = LOGS_PATH
+        global_cache.config_cache['BACKUP_FOLDER'] = BACKUP_FOLDER
+        global_cache.config_cache['MODLIST_FOLDER'] = MODLIST_FOLDER
+        global_cache.config_cache['LANG_PATH'] = LANG_PATH
+        global_cache.config_cache["MODS_PATHS"] = {
+            "Windows": Path(
+                HOME_PATH) / 'AppData' / 'Roaming' / 'VintagestoryData' / 'Mods',
+            "Linux": Path(XDG_CONFIG_HOME_PATH) / 'VintagestoryData' / 'Mods'
+        }
+        # Fill cache with user-agent
+        global_cache.config_cache['USER_AGENTS'] = USER_AGENTS
 
-            # Ensure we don't have empty strings in the list
-            excluded_mods = [mod.strip() for mod in excluded_mods if mod.strip()]
-            for mod in excluded_mods:
-                global_cache.mods_data["excluded_mods"].append({"Filename": mod})
+        # Retrieve excluded mods from the config file
+        excluded_mods = config_parser.get("Mod_Exclusion", "mods",
+                                          fallback="").split(", ")
 
-                # Handle the game version
-                user_game_version = global_cache.config_cache.get("Game_Version", {}).get(
-                    "user_game_version")
-                if user_game_version == "None":
-                    user_game_version = None
-                if not user_game_version:
-                    latest_game_version = utils.get_latest_game_version()
-                    if latest_game_version:
-                        global_cache.config_cache.setdefault("Game_Version", {})[
-                            "user_game_version"] = latest_game_version
-                        logging.info(
-                            f"Game version set to the latest available version: {latest_game_version}")
-                    else:
-                        logging.warning(
-                            "Unable to retrieve the latest game version. The version is left empty.")
+        # Ensure we don't have empty strings in the list
+        excluded_mods = [mod.strip() for mod in excluded_mods if mod.strip()]
+        for mod in excluded_mods:
+            global_cache.mods_data["excluded_mods"].append({"Filename": mod})
+
+        # Handle the game version
+        user_game_version = global_cache.config_cache.get("Game_Version", {}).get(
+            "user_game_version")
+
+        # Explicitly handle old configurations with "None" or empty values
+        if user_game_version in ["None", ""]:
+            user_game_version = "latest_version"
+            global_cache.config_cache.setdefault("Game_Version", {})[
+                "user_game_version"] = "latest_version"
+            logging.info(
+                "Detected old game version setting. Updated to 'latest_version'.")
+
+        if user_game_version == 'latest_version':
+            latest_game_version = utils.get_latest_game_version()
+            if latest_game_version:
+                global_cache.config_cache.setdefault("Game_Version", {})[
+                    "user_game_version"] = latest_game_version
+                logging.info(
+                    f"Game version set to the latest available version: {latest_game_version}")
+            else:
+                logging.warning(
+                    "Unable to retrieve the latest game version. The version is left empty.")
+
     except Exception as e:
         logging.error(f"Error occurred while loading the config.ini file: {e}")
         raise
@@ -469,7 +478,7 @@ def ask_game_version():
 
         # If the user left the input empty, it will use the last game version
         if user_game_version == "":
-            user_game_version = None
+            user_game_version = "latest_version"
             return user_game_version
 
         # If valid, complete and return the version
