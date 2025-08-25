@@ -22,8 +22,8 @@ It supports multithreaded downloads from a 'modlist.json' file.
 """
 
 __author__ = "Laerinok"
-__version__ = "2.2.0"
-__date__ = "2025-08-24"  # Last update
+__version__ = "2.2.1"
+__date__ = "2025-08-25"  # Last update
 
 # mods_install.py
 
@@ -144,16 +144,18 @@ def install_mods_from_json(json_path: Path, mods_dir: Path):
 
     # 4. Use ThreadPoolExecutor for concurrent downloads
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        # Create a progress bar
+        # Create a progress bar with the mod name column
         with Progress(
                 TextColumn("[progress.description]{task.description}"),
                 BarColumn(),
                 TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
                 TimeRemainingColumn(),
                 TransferSpeedColumn(),
+                "•",
+                TextColumn("[bold green]{task.fields[mod_name]}"),
         ) as progress:
             total_tasks = progress.add_task("[cyan]Downloading Mods...",
-                                            total=len(mods_list))
+                                            total=len(mods_list), mod_name=" ")
 
             futures = {}
 
@@ -177,7 +179,8 @@ def install_mods_from_json(json_path: Path, mods_dir: Path):
                 except Exception as e:
                     logging.error(f"An error occurred during task for {mod_name}: {e}")
                 finally:
-                    progress.update(total_tasks, advance=1)
+                    # Update the progress bar with the current mod name
+                    progress.update(total_tasks, advance=1, mod_name=mod_name)
 
     logging.info("All download tasks have been processed.")
     print("All mod downloads completed.")

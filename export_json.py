@@ -13,8 +13,8 @@ Key functionalities include:
 
 """
 __author__ = "Laerinok"
-__version__ = "2.2.0"
-__date__ = "2025-08-24"  # Last update
+__version__ = "2.2.1"
+__date__ = "2025-08-25"  # Last update
 
 
 # export_json.py
@@ -26,7 +26,6 @@ from pathlib import Path
 
 from rich import print
 
-import cli
 import global_cache
 import lang
 
@@ -45,7 +44,7 @@ def save_json(data, filename):
         logging.error(f"Unexpected error while saving {filename}: {e}")
 
 
-def format_mods_data(mods_data):
+def format_mods_data(mods_data, args):
     mods_data.sort(key=lambda mod: mod["ModId"].lower() if mod["ModId"] else "")
     # Create a new list for the formatted mods
     formatted_mods = []
@@ -75,7 +74,6 @@ def format_mods_data(mods_data):
     global_cache.modinfo_json_cache = final_data
     # Save data to modlist.json
     filename = (Path(global_cache.config_cache['MODLIST_FOLDER']) / 'modlist.json').resolve()
-    args = cli.parse_args()
     if not args.no_json:
         save_json(final_data, filename)
 
