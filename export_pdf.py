@@ -33,7 +33,7 @@ Key functionalities include:
 """
 __author__ = "Laerinok"
 __version__ = "2.2.0"
-__date__ = "2025-08-24"  # Last update
+__date__ = "2025-08-25"  # Last update
 
 
 # export_pdf.py
@@ -145,7 +145,7 @@ def get_default_icon_binary():
 
 
 # Function to create the PDF with Platypus.Table
-def create_pdf_with_table(modsdata, pdf_path):
+def create_pdf_with_table(modsdata, pdf_path, args):
     num_mods = global_cache.total_mods
     # Initialize the PDF document
     doc = SimpleDocTemplate(pdf_path,
@@ -295,14 +295,15 @@ def create_pdf_with_table(modsdata, pdf_path):
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),                      # Middle vertical align
         ('GRID', (0, 0), (-1, -1), 1, colors.black),                 # Grid lines
         ('FONTNAME', (0, 0), (-1, -1), 'NotoSansCJKsc-Regular'),                 # Normal font for rows
-        ('FONTSIZE', (0, 0), (-1, -1), 8),                          # Font size
+        ('FONTSIZE', (0, 0), (-1, 0), 8),                          # Font size
         ('BACKGROUND', (0, 0), (-1, -1), (240/255, 245 / 255, 220 / 255)),  # Alternating row background (light soft green)
     ]))
 
     # Add the table to the document
     elements.append(table)
 
-    args = cli.parse_args()
+    # Check the flag here to decide whether to build the PDF.
+    # The `args` object is now passed as a parameter from `generate_pdf`.
     if not args.no_pdf:
         try:
             # Build the PDF
@@ -398,7 +399,7 @@ def normalize_string_case_insensitive(s):
 
 
 # Main function to orchestrate the PDF generation
-def generate_pdf(mod_info_data):
+def generate_pdf(mod_info_data, args):
     """
     Generates the PDF with a list of mods and their details using multithreading.
     """
@@ -418,16 +419,35 @@ def generate_pdf(mod_info_data):
 
     max_workers = validate_workers()
 
-    with Progress() as progress:
-        task = progress.add_task(f"[cyan]{lang.get_translation("export_pdf_generating_file")}", total=global_cache.total_mods)
+    # The mod processing will always run, but the progress bar will only be displayed
+    # if --no-pdf is not used.
+    if not args.no_pdf:
+        with Progress() as progress:
+            task = progress.add_task(
+                f"[cyan]{lang.get_translation("export_pdf_generating_file")}",
+                total=global_cache.total_mods)
 
+            with concurrent.futures.ThreadPoolExecutor(
+                    max_workers=max_workers) as executor:
+                futures = [executor.submit(process_mod, mod_info) for mod_info in
+                           global_cache.mods_data['installed_mods']]
+
+                for future in concurrent.futures.as_completed(futures):
+                    result = future.result()
+                    mod_info_for_pdf.update(result)
+                    progress.update(task, advance=1)
+    else:
+        # If PDF generation is disabled, processing runs without a progress bar.
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = [executor.submit(process_mod, mod_info) for mod_info in global_cache.mods_data['installed_mods']]
+            futures = [executor.submit(process_mod, mod_info) for mod_info in
+                       global_cache.mods_data['installed_mods']]
 
             for future in concurrent.futures.as_completed(futures):
                 result = future.result()
                 mod_info_for_pdf.update(result)
-                progress.update(task, advance=1)
 
-    sorted_mod_info = dict(sorted(mod_info_for_pdf.items(), key=lambda item: normalize_string_case_insensitive(item[1]['name'])))
-    create_pdf_with_table(sorted_mod_info, output_pdf_path)
+    sorted_mod_info = dict(sorted(mod_info_for_pdf.items(),
+                                  key=lambda item: normalize_string_case_insensitive(
+                                      item[1]['name'])))
+    # Pass the args object to the function that will handle the PDF creation.
+    create_pdf_with_table(sorted_mod_info, output_pdf_path, args)

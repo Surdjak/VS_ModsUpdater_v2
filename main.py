@@ -36,7 +36,7 @@ __author__ = "Laerinok"
 __version__ = "2.2.0"
 __license__ = "GNU GPL v3"
 __description__ = "Mods Updater for Vintage Story"
-__date__ = "2025-08-24"  # Last update
+__date__ = "2025-08-25"  # Last update
 
 
 # main.py
@@ -233,12 +233,12 @@ if __name__ == "__main__":
     # Generate JSON output of the installed mods data.
     # The export_json module will internally check for the --no-json argument when saving the file,
     # allowing it to manage its own logic for skipping the export if needed.
-    export_json.format_mods_data(global_cache.mods_data['installed_mods'])
+    export_json.format_mods_data(global_cache.mods_data['installed_mods'], args)
 
     # Generate a PDF report of the installed mods.
     # The export_pdf module will internally check for the --no-pdf argument when saving the file,
     # allowing it to manage its own logic for skipping the export if needed.
-    export_pdf.generate_pdf(global_cache.mods_data['installed_mods'])
+    export_pdf.generate_pdf(global_cache.mods_data['installed_mods'], args)
 
     # Generate an HTML report of the installed mods.
     if not args.no_html:
