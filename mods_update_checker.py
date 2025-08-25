@@ -22,7 +22,7 @@
 """
 __author__ = "Laerinok"
 __version__ = "2.2.0"
-__date__ = "2025-08-24"  # Last update
+__date__ = "2025-08-25"  # Last update
 
 # mods_update_checker.py
 
@@ -68,7 +68,7 @@ def check_for_mod_updates(force_update=False):
                                                           "Name"].lower())
 
 
-def process_mod(mod, excluded_filenames, force_update): # Add the new argument here
+def process_mod(mod, excluded_filenames, force_update):
     """
     Processes a single mod to check for updates and fetch changelog.
     Returns the mod data if an update is found, otherwise None.
@@ -77,33 +77,39 @@ def process_mod(mod, excluded_filenames, force_update): # Add the new argument h
         logging.info(f"Skipping excluded mod: {mod['Name']}")
         return None  # We return None if the mod is excluded
 
-    # New condition: force update OR a new version is available
-    if force_update or (mod.get("mod_latest_version_for_game_version") and version_compare(
-            mod["Local_Version"], mod["mod_latest_version_for_game_version"])):
-        try:
-            # Update the download URL in the global cache to match the new version
-            mod['installed_download_url'] = mod['latest_version_dl_url']
+    # Determine the correct download URL
+    download_url = mod.get("latest_version_dl_url")
+    changelog_markdown = ""
 
-            # Gets the changelog. If the key is missing, returns None.
-            raw_changelog_html = mod.get("Changelog")
+    # Check if a new version is available or if a force update is requested
+    if mod.get("mod_latest_version_for_game_version") and version_compare(
+            mod["Local_Version"], mod["mod_latest_version_for_game_version"]):
+        # A new version is available, use its URL and changelog
+        raw_changelog_html = mod.get("Changelog")
+        if raw_changelog_html is not None:
+            changelog_markdown = convert_html_to_markdown(raw_changelog_html)
+        else:
+            logging.info(f"Changelog for {mod['Name']} not available.")
 
-            # Checks if the changelog is None before trying to convert it
-            changelog_markdown = ""
-            if raw_changelog_html is not None:
-                # Converts the HTML changelog to Markdown
-                changelog_markdown = convert_html_to_markdown(raw_changelog_html)
-            else:
-                logging.info(f"Changelog for {mod['Name']} not available.")
+    elif force_update:
+        # No new version, but force update is active, use the installed version's URL
+        download_url = mod.get("installed_download_url")
+        # For a forced update, the changelog is not relevant, we can keep it blank or copy the existing one.
+        # Here we just keep it blank as it's a re-install of the same version.
 
-            return {
-                "Name": mod['Name'],
-                "Old_version": mod['Local_Version'],
-                "New_version": mod['mod_latest_version_for_game_version'],
-                "Changelog": changelog_markdown,
-                "Filename": mod['Filename'],
-                "download_url": mod['latest_version_dl_url']
-            }
-        except Exception as e:
-            logging.error(f"Failed to process changelog for {mod['Name']}: {e}")
-            return None
+    else:
+        # No update needed and no force update, so we don't return any data
+        return None
+
+    if download_url:
+        return {
+            "Name": mod['Name'],
+            "Old_version": mod['Local_Version'],
+            "New_version": mod.get('mod_latest_version_for_game_version',
+                                   mod['Local_Version']),
+            "Changelog": changelog_markdown,
+            "Filename": mod['Filename'],
+            "download_url": download_url
+        }
+
     return None
