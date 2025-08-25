@@ -2,6 +2,7 @@ v2.2.1:
 - Fixed: a bug that caused the application to crash when using the --force-update option on mods that did not have a new version available.
 - Fixed: Addressed an issue where progress messages for specific modlist exports (PDF, JSON) would run even when their respective --no- flags were used.
 - Fixed: Restructured the export logic to ensure command-line arguments are parsed only once and correctly passed to all export functions.
+- Featured: - The `install-modlist` command now shows the name of the mod being downloaded in the progress bar.
 
 v2.2.0:
 - Added: --force-update argument: Added a new command-line argument that forces a re-download and re-installation of all mods, even if their versions are already up to date. This is useful for repairing corrupted files or performing a clean install.
