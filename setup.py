@@ -2,8 +2,7 @@ from cx_Freeze import setup, Executable
 
 # Options pour inclure les packages et fichiers nécessaires
 build_exe_options = {
-    "build_exe": "build/VS_ModsUpdater",
-    "include_files": ["README.md", "readme.txt", "changelog.txt", "LICENSE.md", "requirements.txt", "assets", "fonts", "lang"],
+    "include_files": ["README.md", "changelog.txt", "LICENSE.md", "requirements.txt", "assets", "fonts", "lang"],
     "excludes": []
 }
 
