@@ -31,8 +31,8 @@ Key functionalities include:
 """
 
 __author__ = "Laerinok"
-__version__ = "2.2.2"
-__date__ = "2025-08-24"  # Last update
+__version__ = "2.3.0"
+__date__ = "2025-08-26"  # Last update
 
 # fetch_mod_info.py
 
