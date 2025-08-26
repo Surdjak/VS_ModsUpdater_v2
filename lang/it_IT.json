@@ -17,6 +17,8 @@
     "main_excluded_mods_title": "I seguenti mod sono esclusi dall'aggiornamento:",
     "main_logs_location": "I log sono salvati qui: ",
     "main_logs_location_error": "Impossibile recuperare la posizione dei log.",
+    "main_show_changelog_prompt": "Vuoi vedere il changelog? (y/n)",
+    "main_changelog_title": "Changelog",
     
     "config_ask_mod_directory": "Inserisci il percorso della tua cartella dei mod. Lascia vuoto per il percorso predefinito",
     "config_configuration_migrated": "Configurazione migrata con successo alla versione {EXPECTED_VERSION}.",

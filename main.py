@@ -49,6 +49,7 @@ from pathlib import Path
 
 from rich import print
 from rich.console import Console
+from rich.panel import Panel
 from rich.prompt import Prompt
 from rich.style import Style
 from rich.text import Text
@@ -151,33 +152,45 @@ def welcome_display():
     """Displays the welcome message centered in the console."""
 
     # Checks for script updates
-    new_version, urlscript, latest_version = mu_script_update.modsupdater_update()
+    new_version, urlscript, latest_version, changelog_text = mu_script_update.modsupdater_update()
+
+    # Center the main title first
+    title_text = f"\n\n[dodger_blue1]{lang.get_translation('main_title').format(ModsUpdater_version=__version__)}[/dodger_blue1]"
+    console.print(title_text, justify="center")
 
     # Handles the update message and logs
     if new_version:
-        # Message for the log file (full URL)
+        # Log message with the full URL
         logging.info(f"Latest version: {latest_version} | Download: {urlscript}")
 
-        # Message for console display (clickable rich link)
-        text_script_new_version = f'[indian_red1]- {lang.get_translation("main_new_version_available")} -[/indian_red1]'
-        download_link_text = f"[link={urlscript}]Download v{latest_version}[/link]"
+        # Display a simple message for the new version and a download link
+        console.print(
+            f'[indian_red1]- {lang.get_translation("main_new_version_available")} -[/indian_red1]',
+            justify="center")
+        console.print(
+            f'[bold][link={urlscript}]Download v{latest_version}[/link][/bold]',
+            justify="center")
 
-        # Create and print the centered elements correctly
-        title_text = f"\n\n[dodger_blue1]{lang.get_translation('main_title').format(ModsUpdater_version=__version__)}[/dodger_blue1]"
+        # Prompt the user to show the changelog
+        show_changelog = Prompt.ask(
+            f"\n{lang.get_translation('main_show_changelog_prompt')}",
+            choices=["y", "n"],
+            default="n"
+        )
 
-        console.print(title_text, justify="center")
-        console.print(text_script_new_version, justify="center")
-        console.print(download_link_text, justify="center")
+        if show_changelog.lower() == "y":
+            changelog_panel = Panel(
+                changelog_text,
+                title=lang.get_translation("main_changelog_title"),
+                border_style="dodger_blue1"
+            )
+            console.print(changelog_panel, justify="left")
 
     else:
         # Message for both log and display
         logging.info("ModsUpdater - No new version")
+
         text_script_new_version = f'[dodger_blue1]- {lang.get_translation("main_no_new_version_available")} - [/dodger_blue1]'
-
-        # Create and print the centered elements correctly
-        title_text = f"\n\n[dodger_blue1]{lang.get_translation('main_title').format(ModsUpdater_version=__version__)}[/dodger_blue1]"
-
-        console.print(title_text, justify="center")
         console.print(text_script_new_version, justify="center")
 
     # main_max_game_version

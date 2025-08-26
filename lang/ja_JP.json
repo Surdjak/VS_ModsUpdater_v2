@@ -17,6 +17,8 @@
     "main_excluded_mods_title": "以下のModはアップデートから除外されます：",
     "main_logs_location": "ログはここに保存されます：",
     "main_logs_location_error": "ログの場所を取得できませんでした。",
+    "main_show_changelog_prompt": "変更履歴を見ますか？ (y/n)",
+    "main_changelog_title": "変更履歴",
     
     "config_ask_mod_directory": "Modフォルダへのパスを入力してください。デフォルトパスの場合は空白のままにしてください",
     "config_configuration_migrated": "構成はバージョン{EXPECTED_VERSION}に正常に移行されました。",

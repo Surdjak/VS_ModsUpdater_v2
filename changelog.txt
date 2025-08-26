@@ -1,8 +1,7 @@
 v2.3.0:
+- Added: a user prompt that allows displaying the changelog for new script updates on demand.
 - Added: support for a new API to check for ModsUpdater updates.
 - Added: Improved console output with clickable links and better-centered text.
-- Changed: Migrated from web scraping (BeautifulSoup) to a direct API for a more reliable update check.
-- Changed: Separated Windows and Linux update URLs in the configuration file.
 - Fixed: Resolved issues with misaligned text in the console display.
 - Fixed: Removed unused code and imports for better performance and readability.
 

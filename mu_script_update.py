@@ -10,7 +10,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -25,13 +25,13 @@ Key functionalities include:
 - Fetching and parsing the ModDB API response to locate version information and download links.
 - Extracting the latest version number and download URL from the JSON content.
 - Comparing the current script version with the latest available version.
-- Returning a boolean indicating whether an update is available, along with the download URL and latest version.
+- Returning a boolean indicating whether an update is available, along with the download URL, latest version and changelog text.
 - Handling potential network errors and JSON parsing issues, with appropriate logging.
 """
 
 __author__ = "Laerinok"
-__version__ = "2.2.0"
-__date__ = "2025-08-24"  # Last update
+__version__ = "2.2.2"
+__date__ = "2025-08-26"  # Last update
 
 # mu_script_update.py
 
@@ -47,11 +47,12 @@ client = HTTPClient()
 
 def modsupdater_update():
     """
-    Fetches and verifies the latest ModsUpdater version via the ModDB API.
+    Fetches and verifies the latest ModsUpdater version via the ModDB API,
+    and also retrieves the changelog.
 
     Returns:
-        tuple: A tuple containing (new_version_available, download_url, latest_version)
-               or (None, None, None) if an error occurs.
+        tuple: A tuple containing (new_version_available, download_url, latest_version, changelog_text)
+               or (None, None, None, None) if an error occurs.
     """
     logging.info("Checking for the latest ModsUpdater script version via API...")
 
@@ -60,7 +61,7 @@ def modsupdater_update():
 
     if not api_url:
         logging.error(f"API URL is not defined for the system '{system}'.")
-        return None, None, None
+        return None, None, None, None
 
     try:
         response = client.get(api_url, timeout=int(
@@ -69,33 +70,34 @@ def modsupdater_update():
 
         data = response.json()
 
-        # Check for nested 'mod' and 'releases' keys to ensure correct JSON structure
         if "mod" not in data or "releases" not in data["mod"] or not data["mod"][
             "releases"]:
             logging.error("API response did not contain a valid mod or releases list.")
-            return None, None, None
+            return None, None, None, None
 
-        # Access the first element of the 'releases' list via the 'mod' dictionary
         latest_release = data["mod"]["releases"][0]
         latest_version = latest_release.get("modversion")
         download_url = latest_release.get("mainfile")
+        changelog_html = latest_release.get("changelog")
 
-        if not latest_version or not download_url:
+        if not latest_version or not download_url or not changelog_html:
             logging.error(
-                "The API response did not contain complete version or download information.")
-            return None, None, None
+                "The API response did not contain complete version, download, or changelog information.")
+            return None, None, None, None
 
-        # Compare the current version with the latest available version
+        # Convert the HTML changelog to a readable Markdown format for the console.
+        changelog_text = utils.convert_html_to_markdown(changelog_html)
+
         new_version = utils.version_compare(__version__, latest_version)
 
         logging.info(
             f"Current version: {__version__}, Latest version: {latest_version}")
 
-        return new_version, download_url, latest_version
+        return new_version, download_url, latest_version, changelog_text
 
     except Exception as e:
         logging.error(f"Error while checking for an update via the API: {e}")
-        return None, None, None
+        return None, None, None, None
 
 
 if __name__ == "__main__":

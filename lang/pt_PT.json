@@ -17,6 +17,8 @@
     "main_excluded_mods_title": "As seguintes mods estão excluídas da atualização:",
     "main_logs_location": "Os registos são guardados aqui: ",
     "main_logs_location_error": "Não foi possível recuperar a localização dos registos.",
+    "main_show_changelog_prompt": "Deseja ver o registo de alterações? (y/n)",
+    "main_changelog_title": "Registo de alterações",
     
     "config_ask_mod_directory": "Introduza o caminho para a sua pasta de mods. Deixe em branco para o caminho predefinido",
     "config_configuration_migrated": "Configuração migrada com sucesso para a versão {EXPECTED_VERSION}.",

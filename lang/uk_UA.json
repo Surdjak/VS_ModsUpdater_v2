@@ -17,6 +17,8 @@
     "main_excluded_mods_title": "Наступні моди виключено з оновлення:",
     "main_logs_location": "Журнали збережено тут: ",
     "main_logs_location_error": "Не вдалося отримати розташування журналів.",
+    "main_show_changelog_prompt": "Хочете переглянути журнал змін? (y/n)",
+    "main_changelog_title": "Журнал змін",
     
     "config_ask_mod_directory": "Введіть шлях до папки з модами. Залиште порожнім для шляху за замовчуванням",
     "config_configuration_migrated": "Конфігурацію успішно перенесено до версії {EXPECTED_VERSION}.",
