@@ -89,8 +89,8 @@ def modsupdater_update():
         logging.error("Failed to extract version or download URL for URL: %s", url_script)
         return None, None, None
 
-    # Compare with the current version
-    new_version = utils.version_compare(__version__, latest_version)
+    # Compare with the current version. Only check if behind. Being ahead does not matter as we do not have a max version
+    new_version = utils.version_compare(__version__, latest_version) == utils.VersionCompareState.LOCAL_VERSION_BEHIND
 
     return new_version, download_url, latest_version
 
