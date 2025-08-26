@@ -74,7 +74,8 @@ console = Console()
 def set_console_title(title):
     """Sets the console title if running on Windows"""
     if platform.system() == 'Windows':
-        ctypes.windll.kernel32.SetConsoleTitleW(title)
+        # Ignore mypy type checking since SetConsoleTitleW is dynamic
+        ctypes.windll.kernel32.SetConsoleTitleW(title)  # type: ignore
 
 
 def initialize_config():
@@ -226,7 +227,9 @@ if __name__ == "__main__":
     utils.check_mods_directory(mods_path)
 
     # Fetch mods info
-    fetch_mod_info.scan_and_fetch_mod_info(mods_path)
+    # fetch_mod_info.scan_and_fetch_mod_info(mods_path)
+    mod_data = fetch_mod_info.scan_and_fetch_mod_info(mods_path)
+    excluded_mods = mod_data['excluded_mods']
 
     # Check for updates and pass the --force-update flag
     mods_update_checker.check_for_mod_updates(args.force_update)
@@ -281,8 +284,6 @@ if __name__ == "__main__":
     # Generate an HTML report of the installed mods.
     if not args.no_html:
         export_html.export_mods_to_html()
-
-    excluded_mods = global_cache.mods_data.get('excluded_mods', [])
 
     if excluded_mods:
         excluded_title_style = Style(color="dark_goldenrod", bold=True)

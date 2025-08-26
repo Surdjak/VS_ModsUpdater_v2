@@ -4,6 +4,8 @@ v2.3.0:
 - Added: Improved console output with clickable links and better-centered text.
 - Fixed: Resolved issues with misaligned text in the console display.
 - Fixed: Removed unused code and imports for better performance and readability.
+- Fixed: Resolved an issue where mods on the exclusion list were not being properly ignored. The program will now correctly skip all excluded mods and will not attempt to check for their updates or download them. The list of excluded mods is now displayed correctly at the start of the scan process.
+- Fixed: The program now correctly identifies and displays local mods in the excluded mods list.
 - Changed: The game version display has been rephrased for better clarity.
 
 v2.2.2:

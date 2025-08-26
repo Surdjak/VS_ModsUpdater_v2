@@ -263,16 +263,12 @@ def get_mod_api_data(mod):
         logging.warning(
             f"Failed to retrieve mod info for mod: {modid} at link {mod_url_api}. Error: {e}")
         mod["Mod_url"] = "Local mod"
-        global_cache.mods_data["excluded_mods"].append({"Filename": mod['Filename']})
-        logging.info(f"{mod['Name']} added to excluded mods")
         return None, None, None, None, None, None, None
 
     if mod_json['statuscode'] != '200':
         logging.warning(
             f"Failed to retrieve mod info for mod: {modid} (status code {mod_json['statuscode']}) at link {mod_url_api}")
         mod["Mod_url"] = "Local mod"
-        global_cache.mods_data["excluded_mods"].append({"Filename": mod['Filename']})
-        logging.info(f"{mod['Name']} added to excluded mods")
         return None, None, None, None, None, None, None
 
     mod_assetid = mod_json["mod"]["assetid"]
@@ -329,7 +325,21 @@ def scan_and_fetch_mod_info(mods_folder):
     invalid_files = []
 
     max_workers = validate_workers()
-    mod_files = list(mods_folder.iterdir())
+    # mod_files = list(mods_folder.iterdir())  # old code. to delete
+    excluded_mods_from_config = global_cache.config_cache.get('Mods_Exclusion', {}).get(
+        'mods', [])
+
+    # Filter out files that are in the exclusion list
+    all_mod_files = list(mods_folder.iterdir())
+    mod_files = [f for f in all_mod_files if f.name not in excluded_mods_from_config]
+
+    # New section to display excluded mods
+    if excluded_mods_from_config:
+        print(
+            f"\n[bold orange3]{lang.get_translation('main_excluded_mods_title')}[/bold orange3]")
+        for mod in excluded_mods_from_config:
+            print(f"- [indian_red1]{mod}[/indian_red1]")
+        print()
     total_files = len(mod_files)
     fixed_bar_width = 40
     with Progress(
@@ -356,7 +366,7 @@ def scan_and_fetch_mod_info(mods_folder):
                 progress.update(task, advance=1)
 
     global_cache.mods_data["installed_mods"].sort(
-        key=lambda mod: mod["Name"].lower() if mod["ModId"] else "")
+        key=lambda item: item["Name"].lower() if item["ModId"] else "")
 
     mod_ids = [mod['ModId'] for mod in global_cache.mods_data["installed_mods"]]
     mods = global_cache.mods_data[
@@ -398,11 +408,14 @@ def scan_and_fetch_mod_info(mods_folder):
                     logging.debug(
                         f"Received assetid: {mod_assetid}, mod_url: {mod_url}, and changelog for mod: {mod['Name']}")
                 else:
+                    # Add local mods to the excluded list here
+                    global_cache.mods_data["excluded_mods"].append({"Filename": mod['Filename'], "Name": mod['Name']})
                     logging.warning(
                         f"Failed to retrieve API data for mod: {mod['Name']}. Skipping update for this mod.")
                 progress.update(api_task, advance=1,
                                 description=f'[cyan]{lang.get_translation("fetch_mod_info_fetching_mod_info_name")}',
                                 mod_name=mod['Name'])
+    return {"installed_mods": global_cache.mods_data["installed_mods"], "excluded_mods": global_cache.mods_data["excluded_mods"]}
 
 
 if __name__ == "__main__":
