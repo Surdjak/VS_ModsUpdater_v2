@@ -124,9 +124,9 @@ def process_mod(mod, excluded_filenames, force_update) -> ProcessModResult:
                                         {
                                             "Name": mod['Name'],
                                             "Old_version": mod['Local_Version'],
+                                            "Old_version_game_Version": mod.get("Game_Version", None),
                                             "New_version": mod.get('mod_latest_version_for_game_version',
                                                                     mod['Local_Version']),
-                                            "Game_Version": mod.get("Game_Version", None),
                                             "Changelog": None,
                                             "Filename": mod['Filename'],
                                             "download_url": None
@@ -139,9 +139,9 @@ def process_mod(mod, excluded_filenames, force_update) -> ProcessModResult:
                                 {
                                     "Name": mod['Name'],
                                     "Old_version": mod['Local_Version'],
+                                    "Old_version_game_Version": mod.get("Game_Version", None),
                                     "New_version": mod.get('mod_latest_version_for_game_version',
                                                             mod['Local_Version']),
-                                    "Game_Version": mod.get("Game_Version", None),
                                     "Changelog": changelog_markdown,
                                     "Filename": mod['Filename'],
                                     "download_url": download_url
