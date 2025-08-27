@@ -22,7 +22,7 @@
 
 
 __author__ = "Laerinok"
-__version__ = "2.2.2"  # Don't forget to change EXPECTED_VERSION
+__version__ = "2.3.0"  # Don't forget to change EXPECTED_VERSION
 __date__ = "2025-08-25"  # Last update
 
 
@@ -43,7 +43,7 @@ import lang
 import utils
 
 # The target version after migration
-EXPECTED_VERSION = "2.2.2"
+EXPECTED_VERSION = "2.3.0"
 
 # Variable to enable/disable the download - for my test
 download_enabled = True  # Set to False to disable downloads
@@ -118,8 +118,8 @@ URL_BASE_MOD_DOWNLOAD = "https://moddbcdn.vintagestory.at/"
 URL_BASE_MODS = 'https://mods.vintagestory.at/'
 URL_MOD_DB = "https://mods.vintagestory.at/show/mod/"
 URL_SCRIPT = {
-    "windows": 'https://mods.vintagestory.at/modsupdater#tab-files',
-    "linux": 'https://mods.vintagestory.at/modsupdaterforlinux#tab-files'
+    "windows": 'https://mods.vintagestory.at/api/mod/1403',
+    "linux": 'https://mods.vintagestory.at/api/mod/1525'
 }
 
 # Default configuration

@@ -1,3 +1,13 @@
+v2.3.0:
+- Added: a user prompt that allows displaying the changelog for new script updates on demand.
+- Added: support for a new API to check for ModsUpdater updates.
+- Added: Improved console output with clickable links and better-centered text.
+- Fixed: Resolved issues with misaligned text in the console display.
+- Fixed: Removed unused code and imports for better performance and readability.
+- Fixed: Resolved an issue where mods on the exclusion list were not being properly ignored. The program will now correctly skip all excluded mods and will not attempt to check for their updates or download them. The list of excluded mods is now displayed correctly at the start of the scan process.
+- Fixed: The program now correctly identifies and displays local mods in the excluded mods list.
+- Changed: The game version display has been rephrased for better clarity.
+
 v2.2.2:
 - Improved the configuration for the game version. The program now automatically uses the latest version of the game if no specific version is indicated in `config.ini`.
 - For clarity, the `config.ini` file now shows 'latest_version' instead of being empty when this option is selected.
