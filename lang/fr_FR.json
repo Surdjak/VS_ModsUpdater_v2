@@ -21,7 +21,7 @@
     "main_changelog_title": "Changelog",
     "main_incompatible_mods_found_without_update": "Mods incompatibles trouvés sans mise à jour disponible :",
     "main_aborting_due_to_incompatibility": "Abandon de la mise à jour en raison d'une incompatibilité.",
-    "main_abort_prompt": "Abandonner ?",
+    "main_continue_anyway_prompt": "Continuer quand même ?",
 
     "config_ask_mod_directory": "Entrez le chemin vers votre dossier de mods. Laissez vide pour le chemin par défaut.",
     "config_configuration_migrated": "Mise à jour de la configuration vers la version {EXPECTED_VERSION} réussie.",
