@@ -28,6 +28,7 @@ __date__ = "2025-08-25"  # Last update
 
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from packaging.version import Version
 
 import global_cache
 from utils import version_compare, check_excluded_mods, convert_html_to_markdown
@@ -80,6 +81,7 @@ def process_mod(mod, excluded_filenames, force_update):
     # Determine the correct download URL
     download_url = mod.get("latest_version_dl_url")
     changelog_markdown = ""
+    user_game_ver = Version(global_cache.config_cache['Game_Version']['user_game_version'])
 
     # Check if a new version is available or if a force update is requested
     if mod.get("mod_latest_version_for_game_version") and version_compare(
@@ -98,8 +100,14 @@ def process_mod(mod, excluded_filenames, force_update):
         # Here we just keep it blank as it's a re-install of the same version.
 
     else:
-        # No update needed and no force update, so we don't return any data
-        return None
+        # If no update is available and an update was necessary for the mod, then we raise an error
+        mod_game_version = mod.get("Game_Version", None)
+        if mod_game_version:
+            mod_game_version = Version(mod_game_version)
+            if mod_game_version.major != user_game_ver.major:
+                raise ValueError(f"Mod {mod['Name']} is not compatible with the current game version and cannot be updated.")
+        # No update available or necessary and no force update, so we don't return any data
+        download_url = None
 
     if download_url:
         return {
