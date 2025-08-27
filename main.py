@@ -241,12 +241,25 @@ if __name__ == "__main__":
     # Download
     if global_cache.mods_data.get('incompatible_mods'):
         # Handle incompatible mods
-        print(f"[yellow]{lang.get_translation('main_incompatible_mods_found_without_update')}[/yellow]")
+        print(f"[yellow]{global_cache.language_cache('main_incompatible_mods_found_without_update')}[/yellow]")
         for mod in global_cache.mods_data.get('incompatible_mods'):
             print(f"[yellow] - {mod['Name']} ({mod['Old_version'] + (' for game version ' + mod['Old_version_game_Version'] if mod['Old_version_game_Version'] else '')})[/yellow]")
-        if global_cache.config_cache.get("Fail_On_Incompatible", True):
-            print(f"[red]{lang.get_translation('main_aborting_due_to_incompatibility')}[/red]")
-            exit_program()
+        incompatibility_behavior = global_cache.config_cache.get("Incompatibility_behavior", 0)
+        if incompatibility_behavior == 0:
+            # Use Prompt.ask to get the user's input
+            user_confirms_abort = Prompt.ask(
+                f"{global_cache.language_cache('main_abort_prompt')}",
+                choices=[global_cache.language_cache["yes"][0],
+                         global_cache.language_cache["no"][0]],
+                default=global_cache.language_cache["no"][0])
+            user_confirms_abort = user_confirms_abort.strip().lower()
+            if user_confirms_abort == global_cache.language_cache["yes"][0].lower():
+                exit_program()
+        elif incompatibility_behavior == 1:
+            print(f"[red]{global_cache.language_cache('main_aborting_due_to_incompatibility')}[/red]")
+            if not args.no_pause:
+                input(f"\n{global_cache.language_cache('main_press_enter_to_exit')}")
+            sys.exit()
     if auto_update_cfg:
         # Auto update mods
         if global_cache.mods_data.get('mods_to_update'):
