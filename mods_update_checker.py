@@ -37,7 +37,7 @@ from utils import version_compare, check_excluded_mods, convert_html_to_markdown
 class ModUpdateStatus(Enum):
     UP_TO_DATE = "up_to_date"
     UPDATE_AVAILABLE = "update_available"
-    NOT_COMPATIBLE = "not_compatible"
+    NO_COMPATIBILITY = "no_compatibility"
 
 class ProcessModResult:
     status: ModUpdateStatus
@@ -76,7 +76,7 @@ def check_for_mod_updates(force_update=False):
             mod_data: ProcessModResult = future.result()
             if mod_data.status == ModUpdateStatus.UPDATE_AVAILABLE:
                 mods_to_update.append(mod_data.update_info)
-            elif mod_data.status == ModUpdateStatus.NOT_COMPATIBLE:
+            elif mod_data.status == ModUpdateStatus.NO_COMPATIBILITY:
                 incompatible_mods.append(mod_data.update_info)
 
     global_cache.mods_data['mods_to_update'] = sorted(mods_to_update,
@@ -120,11 +120,13 @@ def process_mod(mod, excluded_filenames, force_update) -> ProcessModResult:
         if mod_game_version:
             mod_game_version = Version(mod_game_version)
             if (mod_game_version.major, mod_game_version.minor) != (user_game_ver.major, user_game_ver.minor):
-                return ProcessModResult(ModUpdateStatus.NOT_COMPATIBLE, 
+                return ProcessModResult(ModUpdateStatus.NO_COMPATIBILITY, 
                                         {
                                             "Name": mod['Name'],
                                             "Old_version": mod['Local_Version'],
-                                            "New_version": None,
+                                            "New_version": mod.get('mod_latest_version_for_game_version',
+                                                                    mod['Local_Version']),
+                                            "Game_Version": mod.get("Game_Version", None),
                                             "Changelog": None,
                                             "Filename": mod['Filename'],
                                             "download_url": None
@@ -138,7 +140,8 @@ def process_mod(mod, excluded_filenames, force_update) -> ProcessModResult:
                                     "Name": mod['Name'],
                                     "Old_version": mod['Local_Version'],
                                     "New_version": mod.get('mod_latest_version_for_game_version',
-                                                        mod['Local_Version']),
+                                                            mod['Local_Version']),
+                                    "Game_Version": mod.get("Game_Version", None),
                                     "Changelog": changelog_markdown,
                                     "Filename": mod['Filename'],
                                     "download_url": download_url

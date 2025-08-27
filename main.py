@@ -243,7 +243,7 @@ if __name__ == "__main__":
         # Handle incompatible mods
         print(f"[yellow]{lang.get_translation('main_incompatible_mods_found_without_update')}[/yellow]")
         for mod in global_cache.mods_data.get('incompatible_mods'):
-            print(f"[yellow] - {mod['Name']} ({mod['Old_version']})[/yellow]")
+            print(f"[yellow] - {mod['Name']} ({mod['Old_version']}) latest available: {mod['New_version']}{' for game version ' + mod['Game_Version'] if mod['Game_Version'] else ''}[/yellow]")
         if global_cache.config_cache.get("Fail_On_Incompatible", True):
             print(f"[red]{lang.get_translation('main_aborting_due_to_incompatibility')}[/red]")
             exit_program()
