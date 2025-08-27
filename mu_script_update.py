@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2024  Laerinok
+# Copyright (C) 2024 Laerinok
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -10,90 +10,95 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 """
-This module is designed to check for updates to the ModsUpdater script itself by comparing the current version with the latest version available on ModDB. It fetches and parses the relevant webpage to extract version information and download URLs.
+This module checks for updates to the ModsUpdater script itself by comparing the current version with the latest version available on ModDB via their API.
 
+It fetches and parses the API response to extract version information and download URLs.
 Key functionalities include:
-- Determining the correct update URL based on the operating system.
-- Fetching and parsing the ModDB page using BeautifulSoup to locate version information and download links.
-- Extracting the latest version number and download URL from the HTML content.
+- Determining the correct API URL based on the operating system.
+- Fetching and parsing the ModDB API response to locate version information and download links.
+- Extracting the latest version number and download URL from the JSON content.
 - Comparing the current script version with the latest available version.
-- Returning a boolean indicating whether an update is available, along with the download URL and latest version.
-- Handling potential network errors and HTML parsing issues, with appropriate logging.
-
+- Returning a boolean indicating whether an update is available, along with the download URL, latest version and changelog text.
+- Handling potential network errors and JSON parsing issues, with appropriate logging.
 """
 
 __author__ = "Laerinok"
-__version__ = "2.2.2"
-__date__ = "2025-08-24"  # Last update
+__version__ = "2.3.0"
+__date__ = "2025-08-26"  # Last update
 
 # mu_script_update.py
 
 import logging
-import re
-
-from bs4 import BeautifulSoup
-
-import config
-import global_cache
 import utils
 from http_client import HTTPClient
+import config
+import global_cache
 
-
-logging.info(f'OS: {config.SYSTEM} - ModsUpdater v{__version__}')
-logging.info(f"For Vintage Story v{global_cache.config_cache['Game_Version']['user_game_version']}")
-logging.info(f'Checking for ModsUpdater script update')
-
-timeout = global_cache.config_cache["Options"].get("timeout", 10)
+# Initialize the HTTP client for making requests.
 client = HTTPClient()
 
 
 def modsupdater_update():
-    """Fetch and parse the page for the update script, handling errors."""
+    """
+    Fetches and verifies the latest ModsUpdater version via the ModDB API,
+    and also retrieves the changelog.
+
+    Returns:
+        tuple: A tuple containing (new_version_available, download_url, latest_version, changelog_text)
+               or (None, None, None, None) if an error occurs.
+    """
+    logging.info("Checking for the latest ModsUpdater script version via API...")
+
     system = config.SYSTEM.lower()
-    url_script = config.URL_SCRIPT[system]
+    api_url = config.URL_SCRIPT.get(system)
 
-    # Fetch the URL with a randomized User-Agent and timeout
-    response = client.get(url_script, timeout=int(global_cache.config_cache["Options"]["timeout"]))
-    response.raise_for_status()  # Check if the request was successful
+    if not api_url:
+        logging.error(f"API URL is not defined for the system '{system}'.")
+        return None, None, None, None
 
-    # Check if content indicates page not found
-    if response.status_code == 404:
-        logging.error("Page not found (404) for URL: %s", url_script)
-        return None, None, None
+    try:
+        response = client.get(api_url, timeout=int(
+            global_cache.config_cache["Options"]["timeout"]))
+        response.raise_for_status()
 
-    soup = BeautifulSoup(response.content, "html.parser")
+        data = response.json()
 
-    # Find the first table row
-    first_row = soup.select_one("table.stdtable tbody tr")
-    if not first_row:
-        logging.error("Could not find the update table row on URL: %s", url_script)
-        return None, None, None
+        if "mod" not in data or "releases" not in data["mod"] or not data["mod"][
+            "releases"]:
+            logging.error("API response did not contain a valid mod or releases list.")
+            return None, None, None, None
 
-    # Extract version and download URL
-    version_text = first_row.select_one("td:nth-of-type(1)").text.strip()
-    match = re.search(r'v\d+\.\d+\.\d+', version_text)
+        latest_release = data["mod"]["releases"][0]
+        latest_version = latest_release.get("modversion")
+        download_url = latest_release.get("mainfile")
+        changelog_html = latest_release.get("changelog")
 
-    latest_version = match.group(0) if match else None
-    download_link = first_row.select_one("td:nth-of-type(6) a.downloadbutton")
-    download_url = f"{config.URL_BASE_MODS}{download_link['href'][1:]}" if download_link else None
+        if not latest_version or not download_url or not changelog_html:
+            logging.error(
+                "The API response did not contain complete version, download, or changelog information.")
+            return None, None, None, None
 
-    # Ensure both version and download URL are found
-    if not latest_version or not download_url:
-        logging.error("Failed to extract version or download URL for URL: %s", url_script)
-        return None, None, None
+        # Convert the HTML changelog to a readable Markdown format for the console.
+        changelog_text = utils.convert_html_to_markdown(changelog_html)
 
-    # Compare with the current version. Only check if behind. Being ahead does not matter as we do not have a max version
-    new_version = utils.version_compare(__version__, latest_version) == utils.VersionCompareState.LOCAL_VERSION_BEHIND
+        new_version = utils.version_compare(__version__, latest_version) == utils.VersionCompareState.LOCAL_VERSION_BEHIND
 
-    return new_version, download_url, latest_version
+        logging.info(
+            f"Current version: {__version__}, Latest version: {latest_version}")
+
+        return new_version, download_url, latest_version, changelog_text
+
+    except Exception as e:
+        logging.error(f"Error while checking for an update via the API: {e}")
+        return None, None, None, None
 
 
-if __name__ == "__main__":  # For test
+if __name__ == "__main__":
     pass
