@@ -32,7 +32,7 @@ from packaging.version import Version
 from enum import Enum
 
 import global_cache
-from utils import version_compare, check_excluded_mods, convert_html_to_markdown
+from utils import version_compare, VersionCompareState, check_excluded_mods, convert_html_to_markdown
 
 class ModUpdateStatus(Enum):
     UP_TO_DATE = "up_to_date"
@@ -99,9 +99,10 @@ def process_mod(mod, excluded_filenames, force_update) -> ProcessModResult:
     user_game_ver = Version(global_cache.config_cache['Game_Version']['user_game_version'])
 
     # Check if a new version is available or if a force update is requested
-    if mod.get("mod_latest_version_for_game_version") and version_compare(
-            mod["Local_Version"], mod["mod_latest_version_for_game_version"]):
-        # A new version is available, use its URL and changelog
+    mod_latest_version_for_game_version = mod.get("mod_latest_version_for_game_version", None)
+    version_compare_result = version_compare(mod["Local_Version"], mod_latest_version_for_game_version) if mod_latest_version_for_game_version else None
+    if version_compare_result in [VersionCompareState.LOCAL_VERSION_BEHIND, VersionCompareState.LOCAL_VERSION_AHEAD]:
+        # A new version is available or the current version is too recent, use its URL and changelog
         raw_changelog_html = mod.get("Changelog")
         if raw_changelog_html is not None:
             changelog_markdown = convert_html_to_markdown(raw_changelog_html)
