@@ -35,9 +35,9 @@ import global_cache
 from utils import version_compare, check_excluded_mods, convert_html_to_markdown
 
 class ModUpdateStatus(Enum):
-    UP_TO_DATE = "Up to date"
-    UPDATE_AVAILABLE = "Update available"
-    NOT_COMPATIBLE = "Not compatible"
+    UP_TO_DATE = "up_to_date"
+    UPDATE_AVAILABLE = "update_available"
+    NOT_COMPATIBLE = "not_compatible"
 
 class ProcessModResult:
     status: ModUpdateStatus
