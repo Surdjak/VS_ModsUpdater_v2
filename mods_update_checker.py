@@ -29,10 +29,23 @@ __date__ = "2025-08-25"  # Last update
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from packaging.version import Version
+from enum import Enum
 
 import global_cache
 from utils import version_compare, check_excluded_mods, convert_html_to_markdown
 
+class ModUpdateStatus(Enum):
+    UP_TO_DATE = "Up to date"
+    UPDATE_AVAILABLE = "Update available"
+    NOT_COMPATIBLE = "Not compatible"
+
+class ProcessModResult:
+    status: ModUpdateStatus
+    update_info: dict[str, str] | None
+
+    def __init__(self, status, update_info=None):
+        self.status = status
+        self.update_info = update_info
 
 def check_for_mod_updates(force_update=False):
     """
@@ -50,8 +63,8 @@ def check_for_mod_updates(force_update=False):
     check_excluded_mods()  # Update excluded mods list
     excluded_filenames = [mod['Filename'] for mod in
                           global_cache.mods_data.get("excluded_mods", [])]
-    mods_to_update = []
-
+    mods_to_update: list[dict[str, str]] = []
+    incompatible_mods: list[dict[str, str]] = []
     with ThreadPoolExecutor() as executor:
         futures = []
         for mod in global_cache.mods_data.get("installed_mods", []):
@@ -60,16 +73,18 @@ def check_for_mod_updates(force_update=False):
 
         # We collect the results from the threads
         for future in as_completed(futures):
-            mod_data = future.result()
-            if mod_data:
-                mods_to_update.append(mod_data)
+            mod_data: ProcessModResult = future.result()
+            if mod_data.status == ModUpdateStatus.UPDATE_AVAILABLE:
+                mods_to_update.append(mod_data.update_info)
+            elif mod_data.status == ModUpdateStatus.NOT_COMPATIBLE:
+                incompatible_mods.append(mod_data.update_info)
 
     global_cache.mods_data['mods_to_update'] = sorted(mods_to_update,
-                                                      key=lambda mod: mod[
-                                                          "Name"].lower())
+                                                      key=lambda mod: mod['Name'].lower())
+    global_cache.mods_data['incompatible_mods'] = sorted(incompatible_mods,
+                                                          key=lambda mod: mod['Name'].lower())
 
-
-def process_mod(mod, excluded_filenames, force_update):
+def process_mod(mod, excluded_filenames, force_update) -> ProcessModResult:
     """
     Processes a single mod to check for updates and fetch changelog.
     Returns the mod data if an update is found, otherwise None.
@@ -104,20 +119,29 @@ def process_mod(mod, excluded_filenames, force_update):
         mod_game_version = mod.get("Game_Version", None)
         if mod_game_version:
             mod_game_version = Version(mod_game_version)
-            if mod_game_version.major != user_game_ver.major:
-                raise ValueError(f"Mod {mod['Name']} is not compatible with the current game version and cannot be updated.")
+            if (mod_game_version.major, mod_game_version.minor) != (user_game_ver.major, user_game_ver.minor):
+                return ProcessModResult(ModUpdateStatus.NOT_COMPATIBLE, 
+                                        {
+                                            "Name": mod['Name'],
+                                            "Old_version": mod['Local_Version'],
+                                            "New_version": None,
+                                            "Changelog": None,
+                                            "Filename": mod['Filename'],
+                                            "download_url": None
+                                        })
         # No update available or necessary and no force update, so we don't return any data
-        download_url = None
+        return ProcessModResult(ModUpdateStatus.UP_TO_DATE)
 
     if download_url:
-        return {
-            "Name": mod['Name'],
-            "Old_version": mod['Local_Version'],
-            "New_version": mod.get('mod_latest_version_for_game_version',
-                                   mod['Local_Version']),
-            "Changelog": changelog_markdown,
-            "Filename": mod['Filename'],
-            "download_url": download_url
-        }
+        return ProcessModResult(ModUpdateStatus.UPDATE_AVAILABLE, 
+                                {
+                                    "Name": mod['Name'],
+                                    "Old_version": mod['Local_Version'],
+                                    "New_version": mod.get('mod_latest_version_for_game_version',
+                                                        mod['Local_Version']),
+                                    "Changelog": changelog_markdown,
+                                    "Filename": mod['Filename'],
+                                    "download_url": download_url
+                                })
 
     return None

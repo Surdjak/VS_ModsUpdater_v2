@@ -239,6 +239,14 @@ if __name__ == "__main__":
     auto_update_cfg = auto_update_str.lower() == 'true'
 
     # Download
+    if global_cache.mods_data.get('incompatible_mods'):
+        # Handle incompatible mods
+        print(f"[yellow]{lang.get_translation('main_incompatible_mods_found_without_update')}[/yellow]")
+        for mod in global_cache.mods_data.get('incompatible_mods'):
+            print(f"[yellow] - {mod['Name']} ({mod['Local_Version']})[/yellow]")
+        if global_cache.config_cache.get("Fail_On_Incompatible", True):
+            print(f"[red]{lang.get_translation('main_aborting_due_to_incompatibility')}[/red]")
+            exit_program()
     if auto_update_cfg:
         # Auto update mods
         if global_cache.mods_data.get('mods_to_update'):
